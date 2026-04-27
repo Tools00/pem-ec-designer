@@ -1,0 +1,46 @@
+{
+  "nafion-1100": {
+    "name": "Nafion (PFSA, EW 1100)",
+    "vendor": "Chemours",
+    "family": "PFSA membrane",
+    "density": {
+      "value": { "value": 1.98, "unit": "g/cm^3" },
+      "source": "kusoglu2017chemrev",
+      "confidence": "paper",
+      "note": "PFSA dry density, widely cited"
+    },
+    "ewt_g_per_eq": {
+      "value": { "value": 1100, "unit": "g/eq" },
+      "source": "chemours.datasheet.n117",
+      "confidence": "datasheet"
+    },
+    "sigma_S_per_m": {
+      "value": { "value": 10.0, "unit": "S/m" },
+      "source": "kusoglu2017chemrev",
+      "confidence": "paper",
+      "note": "Through-plane, fully hydrated, 80 °C — order-of-magnitude reference"
+    }
+  },
+
+  "aquivion-870": {
+    "name": "Aquivion (SSC-PFSA, EW 870)",
+    "vendor": "Solvay",
+    "family": "PFSA membrane (short-side-chain)",
+    "density": {
+      "value": { "value": 1.97, "unit": "g/cm^3" },
+      "source": "kusoglu2017chemrev",
+      "confidence": "paper"
+    },
+    "ewt_g_per_eq": {
+      "value": { "value": 870, "unit": "g/eq" },
+      "source": "solvay.datasheet.aquivion",
+      "confidence": "datasheet"
+    },
+    "sigma_S_per_m": {
+      "value": { "value": 14.0, "unit": "S/m" },
+      "source": "kusoglu2017chemrev",
+      "confidence": "paper",
+      "note": "Higher than long-side-chain Nafion at same RH/T due to shorter chain"
+    }
+  }
+}

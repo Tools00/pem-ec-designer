@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>ADR-001 · Konflikte vor dem Festschreiben</title>
+<style>
+  :root {
+    --bg:#0b0f14; --bg-2:#0f1419;
+    --panel:#1a2028; --panel-2:#222a35; --panel-3:#2a3240;
+    --border:#2d3542; --border-hi:#3d4758;
+    --text:#e4e6eb; --text-dim:#8b94a3; --text-faint:#606773;
+    --accent:#5dade2; --accent-2:#48c9b0; --accent-3:#9b59b6;
+    --warn:#e67e22; --err:#e74c3c; --ok:#27ae60; --info:#3498db;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.25);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font:13px/1.5 -apple-system,"Segoe UI",system-ui,sans-serif;min-height:100vh}
+  ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:24px;
+    display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
+  @media (max-width:1000px){.wrap{grid-template-columns:1fr}}
+
+  .hero{margin-bottom:20px}
+  .eyebrow{font-family:var(--mono);font-size:11px;color:var(--err);
+    letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:-.3px}
+  h1 .accent{color:var(--accent)}
+  .lead{color:var(--text-dim);font-size:13px;max-width:680px;margin:0}
+
+  /* Conflict diagram */
+  .conflict-diagram{background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;padding:18px;margin-bottom:20px;box-shadow:var(--shadow)}
+  .cd-title{font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--text-faint);margin-bottom:14px;font-weight:600}
+  .cd-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;
+    font-size:12px}
+  .cd-side{padding:10px 12px;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:5px}
+  .cd-side .lbl{font-family:var(--mono);font-size:10px;color:var(--text-faint);
+    margin-bottom:4px;letter-spacing:.5px;text-transform:uppercase}
+  .cd-side .val{color:var(--text);font-weight:500}
+  .cd-arrow{font-family:var(--mono);font-size:18px;color:var(--err);
+    text-align:center;font-weight:600}
+  .cd-clash{padding:10px 12px;background:rgba(231,76,60,.08);
+    border:1px solid var(--err);border-radius:5px;margin-top:10px;
+    font-size:11px;color:var(--text-dim)}
+  .cd-clash b{color:var(--err)}
+
+  /* Conflict cards */
+  .conflict{background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--border);border-radius:8px;padding:18px;
+    margin-bottom:14px;box-shadow:var(--shadow)}
+  .conflict.resolved{border-color:rgba(39,174,96,.4)}
+  .c-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+  .c-num{width:30px;height:30px;border-radius:6px;flex-shrink:0;
+    background:rgba(231,76,60,.12);color:var(--err);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:600;font-size:12px;
+    border:1px solid rgba(231,76,60,.3)}
+  .conflict.resolved .c-num{background:rgba(39,174,96,.12);color:var(--ok);
+    border-color:rgba(39,174,96,.3)}
+  .c-meta{flex:1;min-width:0}
+  .c-title{font-size:14px;font-weight:600;margin:0 0 3px}
+  .c-why{color:var(--text-dim);font-size:12px;margin:0;line-height:1.5}
+  .c-status{font-family:var(--mono);font-size:9px;text-transform:uppercase;
+    letter-spacing:.5px;padding:3px 8px;border-radius:3px;font-weight:600;
+    background:rgba(231,76,60,.12);color:var(--err);align-self:center}
+  .conflict.resolved .c-status{background:rgba(39,174,96,.12);color:var(--ok)}
+
+  .c-quote{padding:8px 12px;background:var(--panel-2);
+    border-left:2px solid var(--text-faint);font-family:var(--mono);font-size:11px;
+    color:var(--text-dim);border-radius:0 3px 3px 0;margin-bottom:14px;line-height:1.6}
+  .c-quote .you{color:var(--accent);font-weight:600;margin-right:6px}
+
+  /* Options */
+  .options{display:grid;gap:8px}
+  .opt{position:relative;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:6px;padding:12px 14px;cursor:pointer;transition:all .15s}
+  .opt:hover{border-color:var(--border-hi);background:var(--panel-3)}
+  .opt.selected{border-color:var(--accent);background:rgba(93,173,226,.08)}
+  .opt.selected::before{content:"";position:absolute;left:0;top:0;bottom:0;
+    width:3px;background:var(--accent);border-radius:3px 0 0 3px}
+  .opt-row1{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .opt-title{font-size:12px;font-weight:600}
+  .opt-desc{color:var(--text-dim);font-size:11px;line-height:1.5}
+  .opt-desc code{font-family:var(--mono);font-size:10px;background:var(--bg);
+    padding:1px 5px;border-radius:2px;color:var(--accent-2)}
+  .tag{font-family:var(--mono);font-size:9px;text-transform:uppercase;
+    letter-spacing:.5px;padding:2px 6px;border-radius:2px;background:var(--bg);
+    color:var(--text-dim);border:1px solid var(--border)}
+  .tag.rec{background:rgba(72,201,176,.12);color:var(--accent-2);
+    border-color:rgba(72,201,176,.3)}
+  .tag.warn{background:rgba(230,126,34,.1);color:var(--warn);
+    border-color:rgba(230,126,34,.3)}
+
+  /* Multiselect (personas) */
+  .ms-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+  .ms-opt{padding:8px 10px;border:1px solid var(--border);border-radius:4px;
+    background:var(--panel-2);cursor:pointer;font-size:11px;
+    display:flex;align-items:flex-start;gap:8px;transition:all .15s}
+  .ms-opt:hover{border-color:var(--border-hi)}
+  .ms-opt.primary{border-color:var(--accent);background:rgba(93,173,226,.08);
+    box-shadow:0 0 0 2px rgba(93,173,226,.1)}
+  .ms-opt.secondary{border-color:var(--accent-2);background:rgba(72,201,176,.06)}
+  .ms-mark{font-family:var(--mono);font-size:9px;width:18px;text-align:center;
+    color:var(--text-faint);font-weight:600;flex-shrink:0;margin-top:1px}
+  .ms-opt.primary .ms-mark{color:var(--accent)}
+  .ms-opt.secondary .ms-mark{color:var(--accent-2)}
+  .ms-name{font-weight:500;color:var(--text)}
+  .ms-hint{color:var(--text-dim);font-size:10px;display:block;margin-top:2px;
+    line-height:1.4}
+
+  /* Sidebar */
+  .sidebar{position:sticky;top:24px;display:flex;flex-direction:column;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;padding:16px;box-shadow:var(--shadow)}
+  .panel-title{font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--text-faint);margin:0 0 12px;font-weight:600;
+    display:flex;align-items:center;gap:6px}
+  .panel-title::before{content:"";width:3px;height:12px;background:var(--accent);
+    border-radius:2px}
+  .progress-row{display:flex;align-items:center;gap:8px;font-size:11px;
+    padding:6px 0;color:var(--text-dim)}
+  .progress-row .dot{width:10px;height:10px;border-radius:50%;
+    background:var(--border);flex-shrink:0}
+  .progress-row.done .dot{background:var(--ok);
+    box-shadow:0 0 8px rgba(39,174,96,.4)}
+  .progress-row.done{color:var(--text)}
+
+  .recommend{padding:14px;background:linear-gradient(135deg,
+    rgba(72,201,176,.1),rgba(72,201,176,.02));
+    border:1px solid var(--accent-2);border-radius:5px}
+  .recommend .label{font-family:var(--mono);font-size:10px;color:var(--accent-2);
+    text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:6px}
+  .recommend .v{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px}
+  .recommend .why{font-size:11px;color:var(--text-dim);line-height:1.5}
+
+  button{background:var(--accent);color:var(--bg);border:none;padding:10px 14px;
+    border-radius:5px;cursor:pointer;font:inherit;font-weight:600;font-size:12px;
+    width:100%;transition:all .15s}
+  button:hover{filter:brightness(1.1);box-shadow:0 4px 12px rgba(93,173,226,.3)}
+  button:disabled{opacity:.5;cursor:not-allowed;filter:none}
+  button.ghost{background:transparent;color:var(--text-dim);
+    border:1px solid var(--border);font-weight:400;margin-top:6px}
+  button.ghost:hover{color:var(--text);border-color:var(--border-hi);box-shadow:none}
+  .copied{color:var(--ok);font-size:10px;text-align:center;margin-top:6px;
+    opacity:0;transition:opacity .2s;font-family:var(--mono)}
+  .copied.show{opacity:1}
+
+  /* Physik checklist */
+  .phys-list{display:grid;gap:6px}
+  .phys{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;
+    background:var(--panel-2);border:1px solid var(--border);border-radius:4px;
+    cursor:pointer;font-size:11px;transition:all .15s}
+  .phys:hover{border-color:var(--border-hi)}
+  .phys.active{border-color:var(--accent-2);background:rgba(72,201,176,.06)}
+  .phys-check{font-family:var(--mono);font-size:11px;width:14px;color:var(--text-faint);
+    flex-shrink:0}
+  .phys.active .phys-check{color:var(--accent-2)}
+  .phys-meta{flex:1}
+  .phys-name{font-weight:500;color:var(--text)}
+  .phys-tag{font-family:var(--mono);font-size:9px;color:var(--text-faint)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<div class="main">
+
+  <div class="hero">
+    <div class="eyebrow">⚠ ADR-001 noch nicht final</div>
+    <h1>3 Konflikte vor dem <span class="accent">Festschreiben</span></h1>
+    <p class="lead">Deine Antworten enthalten Widersprüche oder Lücken, die die Framework-Empfehlung kippen können. Klärung hier — danach schreib ich den ADR fest.</p>
+  </div>
+
+  <!-- Conflict diagram -->
+  <div class="conflict-diagram">
+    <div class="cd-title">Erkannte Konflikte</div>
+    <div class="cd-grid">
+      <div class="cd-side"><div class="lbl">1.3 Deploy</div><div class="val">Desktop-App</div></div>
+      <div class="cd-arrow">⇄</div>
+      <div class="cd-side"><div class="lbl">1.6 Multi-User</div><div class="val">Multi shared (DB+Auth)</div></div>
+    </div>
+    <div class="cd-clash"><b>Konflikt 1:</b> Desktop-Apps sind klassisch Single-User. Multi-User-shared verlangt einen Server (Web-App oder Desktop+Cloud-Sync). Eines von beiden muss weichen.</div>
+    <div class="cd-grid" style="margin-top:14px">
+      <div class="cd-side"><div class="lbl">1.1 Ziel-Nutzer</div><div class="val">6 Personas gleichzeitig</div></div>
+      <div class="cd-arrow">⇄</div>
+      <div class="cd-side"><div class="lbl">Framework-Doc</div><div class="val">„Ein Satz, eine Person"</div></div>
+    </div>
+    <div class="cd-clash"><b>Konflikt 2:</b> Anfänger+Manager+Ingenieure haben gegensätzliche UI-Bedürfnisse. Wizard vs. Kontrolle vs. KPI-Dashboard. Drei UIs in einer App = Scope-Explosion.</div>
+    <div class="cd-grid" style="margin-top:14px">
+      <div class="cd-side"><div class="lbl">1.2 18M-State</div><div class="val">„kommt nicht in frage"</div></div>
+      <div class="cd-arrow">⇄</div>
+      <div class="cd-side"><div class="lbl">Framework-Doc</div><div class="val">„18M bestimmt Framework"</div></div>
+    </div>
+    <div class="cd-clash"><b>Lücke 3:</b> Ohne 18-Monats-State ist die Framework-Wahl Bauchgefühl. PyQt für eine 6-Monats-Demo ist Overkill, für ein 18M-Industrie-Tool zu wenig.</div>
+  </div>
+
+  <!-- K1: Persona schärfen -->
+  <div class="conflict" data-c="persona">
+    <div class="c-head">
+      <div class="c-num">K1</div>
+      <div class="c-meta">
+        <h3 class="c-title">Persona schärfen — wähl 1 primär + max 1 sekundär</h3>
+        <p class="c-why">Klick auf eine Karte = primär. Nochmal = sekundär. Drittes Klick = abwählen. <b>Mehr als 2 ist Scope-Explosion.</b></p>
+      </div>
+      <span class="c-status">offen</span>
+    </div>
+    <div class="c-quote"><span class="you">deine Antwort:</span>für mich, mein portfolio, Ingenieure, unternehmen, Manager, Anfänger, private Entwickler, Leute mit keiner Erfahrung</div>
+    <div class="ms-grid">
+      <div class="ms-opt" data-p="self"><span class="ms-mark">○</span><span><b class="ms-name">Du selbst (Portfolio)</b><span class="ms-hint">Tool als Demo-Stück für Bewerbungen</span></span></div>
+      <div class="ms-opt" data-p="engineer"><span class="ms-mark">○</span><span><b class="ms-name">Simulation-Engineer</b><span class="ms-hint">volle Kontrolle, Parameter, Validierung</span></span></div>
+      <div class="ms-opt" data-p="manager"><span class="ms-mark">○</span><span><b class="ms-name">Manager / Decision-Maker</b><span class="ms-hint">KPIs, Cost, Reports, kein Tuning</span></span></div>
+      <div class="ms-opt" data-p="beginner"><span class="ms-mark">○</span><span><b class="ms-name">Anfänger / Quereinsteiger</b><span class="ms-hint">geführter Wizard, Defaults, Tooltips</span></span></div>
+      <div class="ms-opt" data-p="dev"><span class="ms-mark">○</span><span><b class="ms-name">Privater Entwickler</b><span class="ms-hint">Open-Source-Nutzer, eigene Erweiterungen</span></span></div>
+      <div class="ms-opt" data-p="company"><span class="ms-mark">○</span><span><b class="ms-name">Unternehmen / Kunde</b><span class="ms-hint">internes Tool, eigene Daten, Compliance</span></span></div>
+    </div>
+  </div>
+
+  <!-- K2: Multi-User vs Desktop -->
+  <div class="conflict" data-c="multi">
+    <div class="c-head">
+      <div class="c-num">K2</div>
+      <div class="c-meta">
+        <h3 class="c-title">Desktop ↔ Multi-User auflösen</h3>
+        <p class="c-why">Eines von beiden gewinnt. Drei realistische Auflösungen:</p>
+      </div>
+      <span class="c-status">offen</span>
+    </div>
+    <div class="c-quote"><span class="you">deine Antwort:</span>1.3 Desktop-App + 1.6 Multi-User shared</div>
+    <div class="options">
+      <div class="opt" data-val="desktop-single">
+        <div class="opt-row1"><span class="opt-title">Desktop bleibt · Single-User wird</span><span class="tag rec">einfachster Pfad</span></div>
+        <div class="opt-desc">PyQt + pyvistaqt, lokale SQLite/JSON-Configs. Kein Auth, kein Server. „Multi-User shared" wird als Future-Feature in v2.0 verschoben.</div>
+      </div>
+      <div class="opt" data-val="web-multi">
+        <div class="opt-row1"><span class="opt-title">Multi-User bleibt · Web wird</span><span class="tag warn">Stack-Wechsel</span></div>
+        <div class="opt-desc">NiceGUI oder Panel + pyvista. Browser, Server-deploy, Auth, geteilte Configs. <code>build123d</code>-Export als Download. Aufwand höher.</div>
+      </div>
+      <div class="opt" data-val="desktop-cloud">
+        <div class="opt-row1"><span class="opt-title">Desktop + Cloud-Sync</span><span class="tag warn">teuer</span></div>
+        <div class="opt-desc">PyQt-Desktop + Backend-Server für Config-Sync. Komplexester Pfad — nur wenn echte Kunden-Pflicht.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- K3: 18M-State -->
+  <div class="conflict" data-c="state">
+    <div class="c-head">
+      <div class="c-num">K3</div>
+      <div class="c-meta">
+        <h3 class="c-title">18-Monats-State — was kann das Tool dann?</h3>
+        <p class="c-why">Du musst nicht ALLES wissen. Aber eine grobe Richtung. Wähl ein Szenario:</p>
+      </div>
+      <span class="c-status">offen</span>
+    </div>
+    <div class="c-quote"><span class="you">deine Antwort:</span>„kommt nicht in frage" — verstehe ich als „kein Plan dafür", nicht als „nie".</div>
+    <div class="options">
+      <div class="opt" data-val="portfolio">
+        <div class="opt-row1"><span class="opt-title">Portfolio-Endzustand</span><span class="tag">leichtgewichtig</span></div>
+        <div class="opt-desc">v1.0: ein gepolierter PEM-EC-Designer mit Cost+Efficiency-Calculator, STEP-Export, validiert gegen 2 Papers. <b>Kein Stack-Erweiterung auf andere Systeme.</b></div>
+      </div>
+      <div class="opt" data-val="platform">
+        <div class="opt-row1"><span class="opt-title">Plattform-Endzustand</span><span class="tag rec">passt zu „später ähnliche Tools"</span></div>
+        <div class="opt-desc">v1.0: PEM-EC-Designer als <b>erstes</b> Tool auf einer wiederverwendbaren Library/Engine. Andere elektrochemische Stacks (Brennstoffzelle, Redox-Flow) als Folgeprojekte mit minimalem Zusatz.</div>
+      </div>
+      <div class="opt" data-val="commercial">
+        <div class="opt-row1"><span class="opt-title">Industrie-Tool</span><span class="tag warn">Lizenz-Software-Anspruch</span></div>
+        <div class="opt-desc">v1.0: Konkurriert mit AVL/Comsol-light. Multi-User, Auth, Audit-Trail, Reports. <b>Erfordert Web-Stack + Backend.</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- K4: Physik-Domänen -->
+  <div class="conflict" data-c="physics">
+    <div class="c-head">
+      <div class="c-num">K4</div>
+      <div class="c-meta">
+        <h3 class="c-title">Physik-Domänen — mein Vorschlag, du bestätigst</h3>
+        <p class="c-why">Standard-Stack für PEM-EC-Designer. Klick zum (De)Aktivieren.</p>
+      </div>
+      <span class="c-status">offen</span>
+    </div>
+    <div class="c-quote"><span class="you">deine Antwort:</span>„kannst du als Team das beste suchen" — okay, hier ist der Default-Stack:</div>
+    <div class="phys-list">
+      <div class="phys active" data-d="echem"><span class="phys-check">✓</span><span class="phys-meta"><span class="phys-name">0D-Elektrochemie</span> — <span class="phys-tag">Butler-Volmer, Nernst, Tafel · numpy/scipy</span></span></div>
+      <div class="phys active" data-d="thermo"><span class="phys-check">✓</span><span class="phys-meta"><span class="phys-name">0D-Thermodynamik</span> — <span class="phys-tag">Wärmebilanz, ΔG/ΔH · numpy</span></span></div>
+      <div class="phys active" data-d="fluid0d"><span class="phys-check">✓</span><span class="phys-meta"><span class="phys-name">0D-Fluid (Druckverlust)</span> — <span class="phys-tag">Darcy-Weisbach · numpy</span></span></div>
+      <div class="phys active" data-d="cost"><span class="phys-check">✓</span><span class="phys-meta"><span class="phys-name">Kosten/LCOH</span> — <span class="phys-tag">CAPEX/OPEX, levelized · numpy</span></span></div>
+      <div class="phys" data-d="fluid1d"><span class="phys-check">○</span><span class="phys-meta"><span class="phys-name">1D-Fluid optional</span> — <span class="phys-tag">Channel-Flow · cantera/eigene Solver</span></span></div>
+      <div class="phys" data-d="degrad"><span class="phys-check">○</span><span class="phys-meta"><span class="phys-name">Degradation optional</span> — <span class="phys-tag">Lebensdauer-Modelle · später</span></span></div>
+      <div class="phys" data-d="cfd"><span class="phys-check">○</span><span class="phys-meta"><span class="phys-name">CFD</span> — <span class="phys-tag">OpenFOAM-Wrapper · Scope-explodiert · NICHT empfohlen</span></span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+
+  <div class="panel">
+    <h3 class="panel-title">Klärungs-Fortschritt</h3>
+    <div class="progress-row" id="pr-persona"><span class="dot"></span><span>K1 Persona</span></div>
+    <div class="progress-row" id="pr-multi"><span class="dot"></span><span>K2 Desktop ↔ Multi-User</span></div>
+    <div class="progress-row" id="pr-state"><span class="dot"></span><span>K3 18-Monats-State</span></div>
+    <div class="progress-row" id="pr-physics"><span class="dot"></span><span>K4 Physik-Domänen</span></div>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel-title">Aktualisierte Empfehlung</h3>
+    <div class="recommend">
+      <div class="label">Framework</div>
+      <div class="v" id="rec-fw">— wartet auf K2 + K3</div>
+      <div class="why" id="rec-why">Auflösung von K2 (Desktop vs. Web) ist der Haupt-Hebel. K3 bestimmt Schwergewicht.</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel-title">Bestätigen</h3>
+    <button id="copy-btn" disabled>Klärungs-Summary kopieren</button>
+    <button class="ghost" id="reset-btn">Reset</button>
+    <div class="copied" id="copied-msg">✓ kopiert — paste zurück, dann schreib ich ADR-001</div>
+  </div>
+
+</aside>
+
+</div>
+
+<script>
+  const state = {
+    persona_primary:null, persona_secondary:null,
+    multi:null, future:null,
+    physics:new Set(["echem","thermo","fluid0d","cost"])
+  };
+
+  const personaLabels = {
+    self:"Du selbst (Portfolio)",
+    engineer:"Simulation-Engineer",
+    manager:"Manager / Decision-Maker",
+    beginner:"Anfänger / Quereinsteiger",
+    dev:"Privater Entwickler",
+    company:"Unternehmen / Kunde"
+  };
+  const multiLabels = {
+    "desktop-single":"Desktop bleibt · Single-User",
+    "web-multi":"Web wird · Multi-User",
+    "desktop-cloud":"Desktop + Cloud-Sync"
+  };
+  const stateLabels = {
+    "portfolio":"Portfolio-Endzustand (1 Tool)",
+    "platform":"Plattform-Endzustand (Engine + Folgetools)",
+    "commercial":"Industrie-Tool (Lizenz-Anspruch)"
+  };
+
+  // K1: Persona multi-select with primary/secondary
+  document.querySelectorAll('.ms-opt').forEach(el => {
+    el.addEventListener('click', () => {
+      const p = el.dataset.p;
+      if (state.persona_primary === p) {
+        // promote to secondary or clear
+        if (state.persona_secondary === null) {
+          state.persona_primary = null;
+          state.persona_secondary = p;
+        } else if (state.persona_secondary === p) {
+          state.persona_secondary = null;
+        } else {
+          state.persona_primary = null;
+        }
+      } else if (state.persona_secondary === p) {
+        state.persona_secondary = null;
+      } else if (state.persona_primary === null) {
+        state.persona_primary = p;
+      } else if (state.persona_secondary === null) {
+        state.persona_secondary = p;
+      } else {
+        // both filled, replace primary
+        state.persona_primary = p;
+      }
+      update();
+    });
+  });
+
+  // K2 + K3: simple radios
+  document.querySelectorAll('[data-c="multi"] .opt').forEach(el => {
+    el.addEventListener('click', () => { state.multi = el.dataset.val; update(); });
+  });
+  document.querySelectorAll('[data-c="state"] .opt').forEach(el => {
+    el.addEventListener('click', () => { state.future = el.dataset.val; update(); });
+  });
+
+  // K4: physics multi-toggle
+  document.querySelectorAll('.phys').forEach(el => {
+    el.addEventListener('click', () => {
+      const d = el.dataset.d;
+      if (state.physics.has(d)) state.physics.delete(d);
+      else state.physics.add(d);
+      update();
+    });
+  });
+
+  function recommendFramework() {
+    if (!state.multi || !state.future) return null;
+    if (state.multi === "web-multi") {
+      if (state.future === "commercial") return ["FastAPI + React + three.js", "Industrie-Tool braucht Auth, Audit, Skalierung. PyQt ungeeignet."];
+      return ["NiceGUI", "Web-Stack mit three.js-Integration, Python-first. build123d-Export als Download. Geringer Boilerplate."];
+    }
+    if (state.multi === "desktop-cloud") {
+      return ["PyQt + pyvistaqt + FastAPI-Backend", "Desktop für UI, Backend für Sync. Aufwand verdoppelt — nur bei echter Kunden-Pflicht."];
+    }
+    if (state.multi === "desktop-single") {
+      if (state.future === "platform") return ["PyQt + pyvistaqt", "Desktop bleibt, aber Library/Engine wird wiederverwendbar gebaut. Andere Stacks später drauf."];
+      if (state.future === "portfolio") return ["NiceGUI", "Für Portfolio reicht Browser-UI mit 3D — installierbar als Desktop via PyWebView, einfacher zu zeigen als PyQt-Build."];
+      return ["PyQt + pyvistaqt", "Desktop, Single-User, CAD-Qualität."];
+    }
+    return null;
+  }
+
+  function update() {
+    // K1 visuals
+    document.querySelectorAll('.ms-opt').forEach(el => {
+      el.classList.remove('primary', 'secondary');
+      const mark = el.querySelector('.ms-mark');
+      mark.textContent = '○';
+      if (el.dataset.p === state.persona_primary) {
+        el.classList.add('primary'); mark.textContent = '①';
+      } else if (el.dataset.p === state.persona_secondary) {
+        el.classList.add('secondary'); mark.textContent = '②';
+      }
+    });
+    setStatus('persona', !!state.persona_primary);
+
+    // K2
+    document.querySelectorAll('[data-c="multi"] .opt').forEach(el => {
+      el.classList.toggle('selected', el.dataset.val === state.multi);
+    });
+    setStatus('multi', !!state.multi);
+
+    // K3
+    document.querySelectorAll('[data-c="state"] .opt').forEach(el => {
+      el.classList.toggle('selected', el.dataset.val === state.future);
+    });
+    setStatus('state', !!state.future);
+
+    // K4
+    document.querySelectorAll('.phys').forEach(el => {
+      const on = state.physics.has(el.dataset.d);
+      el.classList.toggle('active', on);
+      el.querySelector('.phys-check').textContent = on ? '✓' : '○';
+    });
+    setStatus('physics', state.physics.size > 0);
+
+    // Recommendation
+    const rec = recommendFramework();
+    const fw = document.getElementById('rec-fw');
+    const why = document.getElementById('rec-why');
+    if (rec) { fw.textContent = rec[0]; why.textContent = rec[1]; }
+    else { fw.textContent = "— wartet auf K2 + K3"; why.textContent = "Auflösung von K2 (Desktop vs. Web) ist der Haupt-Hebel. K3 bestimmt Schwergewicht."; }
+
+    // Copy enabled?
+    const allDone = state.persona_primary && state.multi && state.future && state.physics.size > 0;
+    document.getElementById('copy-btn').disabled = !allDone;
+  }
+
+  function setStatus(key, done) {
+    const map = {persona:'persona', multi:'multi', state:'state', physics:'physics'};
+    const ckey = key === 'state' ? 'state' : key;
+    document.getElementById('pr-' + key).classList.toggle('done', done);
+    const conflict = document.querySelector(`[data-c="${ckey}"]`);
+    if (conflict) {
+      conflict.classList.toggle('resolved', done);
+      const status = conflict.querySelector('.c-status');
+      if (status) status.textContent = done ? "geklärt" : "offen";
+    }
+  }
+
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const rec = recommendFramework();
+    const lines = [
+      "ADR-001 · Klärungs-Resultat",
+      "",
+      `K1 Persona primär:    ${personaLabels[state.persona_primary] || "(offen)"}`,
+      `K1 Persona sekundär:  ${state.persona_secondary ? personaLabels[state.persona_secondary] : "(keiner)"}`,
+      `K2 Multi/Desktop:     ${multiLabels[state.multi] || "(offen)"}`,
+      `K3 18M-State:         ${stateLabels[state.future] || "(offen)"}`,
+      `K4 Physik-Domänen:    ${[...state.physics].join(", ")}`,
+      "",
+      `→ Framework:          ${rec ? rec[0] : "(noch unklar)"}`,
+      `→ Begründung:         ${rec ? rec[1] : ""}`
+    ];
+    navigator.clipboard.writeText(lines.join("\n"));
+    const m = document.getElementById('copied-msg'); m.classList.add('show');
+    setTimeout(() => m.classList.remove('show'), 2000);
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    state.persona_primary = null; state.persona_secondary = null;
+    state.multi = null; state.future = null;
+    state.physics = new Set(["echem","thermo","fluid0d","cost"]);
+    update();
+  });
+
+  update();
+</script>
+</body>
+</html>

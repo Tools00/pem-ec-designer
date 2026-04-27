@@ -1,0 +1,82 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pem-ec-designer"
+version = "0.0.1"
+description = "Visual PEM electrolyzer cell designer with CAD-quality 3D and parametric component library"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "TBD — see ADR-003" }
+authors = [{ name = "Abed Qadi" }]
+keywords = ["pem", "electrolysis", "hydrogen", "cad", "build123d", "simulation"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "pydantic>=2.6",
+    "build123d>=0.7",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "bibtexparser>=2.0.0b7",
+]
+
+[project.optional-dependencies]
+ui = [
+    "PySide6>=6.6",
+    "pyvistaqt>=0.11",
+    "pyvista>=0.43",
+]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "mypy>=1.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/USER/pem-ec-designer"
+Issues = "https://github.com/USER/pem-ec-designer/issues"
+
+[project.scripts]
+pem-ec-schema = "pem_ec_designer.schema.cli:generate_schema_main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pem_ec_designer"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/library",
+    "/tests",
+    "/docs/adr",
+    "/README.md",
+    "/CHANGELOG.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "no_qt: tests that must run without Qt installed (smoke test)",
+    "needs_ui: tests that require PySide6/pyvistaqt",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]  # line length handled by formatter
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src"]

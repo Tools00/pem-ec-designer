@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>ADR-002 · Library-Architektur</title>
+<style>
+  :root {
+    --bg:#0b0f14; --bg-2:#0f1419;
+    --panel:#1a2028; --panel-2:#222a35; --panel-3:#2a3240;
+    --border:#2d3542; --border-hi:#3d4758;
+    --text:#e4e6eb; --text-dim:#8b94a3; --text-faint:#606773;
+    --accent:#5dade2; --accent-2:#48c9b0; --accent-3:#9b59b6;
+    --warn:#e67e22; --err:#e74c3c; --ok:#27ae60; --info:#3498db;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.25);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:
+    radial-gradient(circle at 20% 0%, rgba(72,201,176,.04), transparent 40%),
+    var(--bg);
+    color:var(--text);font:13px/1.5 -apple-system,"Segoe UI",system-ui,sans-serif;
+    min-height:100vh}
+  ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px}
+  code{font-family:var(--mono);font-size:11px;background:var(--bg);padding:1px 4px;
+    border-radius:2px;color:var(--accent-2)}
+
+  .topbar{background:var(--panel);border-bottom:1px solid var(--border);
+    padding:12px 24px;display:flex;align-items:center;gap:24px;
+    position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+  .brand{font-size:14px;font-weight:600;color:var(--accent-2);
+    display:flex;align-items:center;gap:8px}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent-2);
+    box-shadow:0 0 12px var(--accent-2)}
+  .brand .ver{font-family:var(--mono);font-size:10px;color:var(--text-faint);font-weight:400}
+  .progress{display:flex;align-items:center;gap:6px;flex:1}
+  .progress .step{flex:1;height:4px;background:var(--border);border-radius:2px;position:relative}
+  .progress .step.done{background:var(--accent-2)}
+  .progress-text{font-family:var(--mono);font-size:11px;color:var(--text-dim);white-space:nowrap}
+  .tabs{display:flex;gap:0;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:5px;padding:2px}
+  .tab{padding:5px 12px;font-size:11px;color:var(--text-dim);cursor:pointer;
+    border-radius:3px;font-family:var(--mono);transition:all .15s;border:none;background:transparent}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--panel-3);color:var(--accent-2);
+    box-shadow:inset 0 0 0 1px var(--border-hi)}
+
+  .wrap{max-width:1400px;margin:0 auto;padding:24px;
+    display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
+  @media (max-width:1100px){.wrap{grid-template-columns:1fr}}
+
+  .hero{margin-bottom:20px}
+  .eyebrow{font-family:var(--mono);font-size:11px;color:var(--text-faint);
+    letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:-.3px}
+  h1 .accent{color:var(--accent-2)}
+  .lead{color:var(--text-dim);font-size:13px;max-width:680px;margin:0}
+
+  /* Decision cards */
+  .deck{display:grid;gap:14px}
+  .decision{background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--border);border-radius:8px;padding:16px 18px;
+    box-shadow:var(--shadow);transition:border-color .15s,box-shadow .15s}
+  .decision.touched{border-color:var(--border-hi);box-shadow:0 4px 16px rgba(72,201,176,.1),var(--shadow)}
+  .d-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+  .d-num{width:28px;height:28px;border-radius:6px;flex-shrink:0;display:flex;
+    align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;
+    font-size:11px;background:var(--panel-2);border:1px solid var(--border);color:var(--text-dim)}
+  .decision.touched .d-num{background:rgba(72,201,176,.12);color:var(--accent-2);
+    border-color:var(--accent-2)}
+  .d-meta{flex:1;min-width:0}
+  .d-title{font-size:14px;font-weight:600;margin:0 0 3px}
+  .d-why{color:var(--text-dim);font-size:12px;margin:0;line-height:1.5}
+  .d-status{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.5px;
+    padding:3px 8px;border-radius:3px;background:var(--panel-2);color:var(--text-faint);align-self:center}
+  .decision.touched .d-status{background:rgba(72,201,176,.12);color:var(--accent-2)}
+
+  .options{display:grid;gap:8px}
+  .opt{position:relative;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:5px;padding:10px 12px 10px 14px;cursor:pointer;transition:all .12s}
+  .opt::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:transparent;transition:background .12s}
+  .opt:hover{border-color:var(--border-hi);background:var(--panel-3)}
+  .opt.selected{border-color:var(--accent-2);background:rgba(72,201,176,.06)}
+  .opt.selected::before{background:var(--accent-2)}
+  .opt-row1{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+  .opt-title{font-size:12px;font-weight:600}
+  .opt-title code{font-size:10px}
+  .opt-desc{color:var(--text-dim);font-size:11px;line-height:1.5}
+  .tag{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.5px;
+    padding:2px 6px;border-radius:2px;background:var(--bg);color:var(--text-dim);
+    border:1px solid var(--border)}
+  .tag.rec{background:rgba(72,201,176,.12);color:var(--accent-2);
+    border-color:rgba(72,201,176,.3)}
+  .tag.warn{background:rgba(230,126,34,.1);color:var(--warn);
+    border-color:rgba(230,126,34,.3)}
+
+  /* Deferred section */
+  .deferred{background:var(--panel);border:1px dashed var(--border);
+    border-radius:8px;padding:16px;margin-top:14px}
+  .deferred h3{font-size:12px;color:var(--text-faint);margin:0 0 10px;
+    text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .def-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-dim);
+    padding:6px 0;border-bottom:1px solid var(--border)}
+  .def-row:last-child{border-bottom:none}
+  .def-row .lbl{font-family:var(--mono);font-size:10px;color:var(--accent-3);
+    width:90px;flex-shrink:0}
+  .def-row .desc{flex:1}
+
+  /* Preview tabs */
+  .preview{display:none}
+  .preview.active{display:block}
+  .deck-view.preview-active{display:none}
+  .preview-pane{background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .preview-pane h3{font-size:13px;margin:0 0 12px;color:var(--accent-2);
+    display:flex;align-items:center;gap:8px}
+  .preview-pane h3 .badge{font-family:var(--mono);font-size:9px;color:var(--text-faint);
+    background:var(--panel-2);padding:2px 6px;border-radius:2px;font-weight:400;
+    text-transform:uppercase;letter-spacing:.5px}
+  .preview-code{background:var(--bg);border:1px solid var(--border);border-radius:5px;
+    padding:14px;overflow-x:auto;font-family:var(--mono);font-size:11px;line-height:1.6;
+    color:var(--text-dim);margin:0;max-height:520px;overflow-y:auto}
+  .preview-code .key{color:var(--accent)}
+  .preview-code .str{color:var(--accent-2)}
+  .preview-code .num{color:var(--warn)}
+  .preview-code .com{color:var(--text-faint);font-style:italic}
+  .preview-code .punct{color:var(--text-dim)}
+
+  .tree{font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--text-dim)}
+  .tree .dir{color:var(--accent)}
+  .tree .file{color:var(--text)}
+  .tree .new{color:var(--accent-2);font-weight:600}
+  .tree .com{color:var(--text-faint);font-style:italic;font-size:10px}
+
+  /* Sidebar */
+  .sidebar{position:sticky;top:80px;display:flex;flex-direction:column;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    padding:16px;box-shadow:var(--shadow)}
+  .panel-title{font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--text-faint);margin:0 0 12px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .panel-title::before{content:"";width:3px;height:12px;background:var(--accent-2);border-radius:2px}
+
+  .stack-grid{display:flex;flex-direction:column;gap:6px}
+  .stack-row{display:flex;align-items:center;gap:8px;padding:7px 9px;
+    background:var(--panel-2);border:1px solid var(--border);border-radius:4px;font-size:11px}
+  .stack-row .num{width:18px;height:18px;border-radius:3px;font-family:var(--mono);
+    font-size:9px;display:flex;align-items:center;justify-content:center;
+    background:var(--bg);color:var(--text-faint);flex-shrink:0;font-weight:600}
+  .stack-row.filled .num{background:var(--accent-2);color:var(--bg)}
+  .stack-row .lbl{font-family:var(--mono);font-size:10px;color:var(--text-faint);
+    flex-shrink:0;width:55px;text-transform:uppercase;letter-spacing:.3px}
+  .stack-row .val{font-size:11px;color:var(--text-dim);flex:1}
+  .stack-row.filled .val{color:var(--text);font-weight:500}
+
+  .impl-list{display:flex;flex-direction:column;gap:6px}
+  .impl{display:flex;gap:8px;padding:7px 10px;background:var(--panel-2);
+    border-left:2px solid var(--border);border-radius:0 3px 3px 0;font-size:11px;
+    color:var(--text-dim);line-height:1.5}
+  .impl.warn{border-left-color:var(--warn);background:rgba(230,126,34,.06)}
+  .impl.warn b{color:var(--warn)}
+  .impl.ok{border-left-color:var(--ok);background:rgba(39,174,96,.06)}
+  .impl.ok b{color:var(--ok)}
+  .impl.info{border-left-color:var(--info);background:rgba(52,152,219,.06)}
+  .impl.info b{color:var(--info)}
+  .impl-icon{font-family:var(--mono);font-size:12px;font-weight:600;flex-shrink:0;width:14px}
+  .impl.empty{color:var(--text-faint);font-style:italic;text-align:center;padding:12px;
+    border-left:none;background:transparent;justify-content:center}
+
+  button{background:var(--accent-2);color:var(--bg);border:none;padding:9px 14px;
+    border-radius:5px;cursor:pointer;font:inherit;font-weight:600;font-size:12px;
+    transition:all .15s;flex:1}
+  button:hover{filter:brightness(1.1);box-shadow:0 4px 12px rgba(72,201,176,.3)}
+  button:disabled{opacity:.5;cursor:not-allowed;filter:none}
+  button.ghost{background:transparent;color:var(--text-dim);
+    border:1px solid var(--border);font-weight:400}
+  button.ghost:hover{color:var(--text);border-color:var(--border-hi);box-shadow:none;background:var(--panel-2)}
+  .actions{display:flex;gap:8px}
+  .copied{color:var(--ok);font-size:10px;text-align:center;margin-top:6px;
+    opacity:0;transition:opacity .2s;font-family:var(--mono)}
+  .copied.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>pem-ec-designer<span class="ver">ADR-002 · Library-Architektur</span></div>
+  <div class="progress">
+    <div class="step" data-s="storage"></div>
+    <div class="step" data-s="validation"></div>
+    <div class="step" data-s="material"></div>
+    <div class="step" data-s="sources"></div>
+    <div class="step" data-s="ids"></div>
+    <div class="step" data-s="units"></div>
+  </div>
+  <span class="progress-text" id="progress-text">0 / 6 entschieden</span>
+  <div class="tabs">
+    <button class="tab active" data-view="deck">Entscheiden</button>
+    <button class="tab" data-view="schema">Schema-Preview</button>
+    <button class="tab" data-view="tree">Tree-Preview</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<div class="main">
+  <div class="hero">
+    <div class="eyebrow">step 3 · ADR-002</div>
+    <h1>Library-Architektur · <span class="accent">6 Entscheidungen</span></h1>
+    <p class="lead">Wie liegt die Library auf Disk? Wie validiert? Wie bindet sie Quellen, Materialien, Units? Empfehlung ist je markiert. Schema- und Tree-Tab oben rechts zeigen das Ergebnis live.</p>
+  </div>
+
+  <div class="deck-view">
+    <div class="deck">
+
+      <!-- D1: Storage layout -->
+      <div class="decision" data-q="storage">
+        <div class="d-head">
+          <div class="d-num">D1</div>
+          <div class="d-meta">
+            <h3 class="d-title">Storage-Layout — wie liegt der Katalog auf Disk?</h3>
+            <p class="d-why">60+ Items wollen sortiert werden. Diff-Friendly soll's auch sein für Git.</p>
+          </div>
+          <span class="d-status">offen</span>
+        </div>
+        <div class="options">
+          <div class="opt" data-val="single">
+            <div class="opt-row1"><span class="opt-title"><code>library/components.json</code> — eine Datei</span></div>
+            <div class="opt-desc">Alle 60+ Komponenten in einer JSON. <b>Pro:</b> simpel · <b>Contra:</b> Merge-Konflikte, schlechte Diffs ab ~30 Items.</div>
+          </div>
+          <div class="opt" data-val="per-cat">
+            <div class="opt-row1"><span class="opt-title"><code>library/components/{category}.json</code> — pro Kategorie</span><span class="tag rec">balanced</span></div>
+            <div class="opt-desc">membrane.json, anode_cl.json, cathode_cl.json, gdl.json, bpp.json, endplate.json, gasket.json, flow_field.json. <b>~8 Files, ~7 Items each.</b></div>
+          </div>
+          <div class="opt" data-val="per-comp">
+            <div class="opt-row1"><span class="opt-title"><code>library/components/{cat}/{id}.yaml</code> — pro Komponente</span></div>
+            <div class="opt-desc">60+ einzelne Files. <b>Pro:</b> beste Diffs, Plugin-Pattern · <b>Contra:</b> File-Wust, langsamer Bulk-Edit.</div>
+          </div>
+          <div class="opt" data-val="sqlite">
+            <div class="opt-row1"><span class="opt-title">SQLite-DB</span><span class="tag warn">over-engineered</span></div>
+            <div class="opt-desc">Library als <code>library/components.db</code>. <b>Pro:</b> Queries · <b>Contra:</b> nicht human-editable, schlechte Git-Diffs.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D2: Validation -->
+      <div class="decision" data-q="validation">
+        <div class="d-head">
+          <div class="d-num">D2</div>
+          <div class="d-meta">
+            <h3 class="d-title">Spec-Validierung — Schema-Layer</h3>
+            <p class="d-why">Tippfehler in JSON sollen früh fliegen. Static-Analysis im Editor wäre nett.</p>
+          </div>
+          <span class="d-status">offen</span>
+        </div>
+        <div class="options">
+          <div class="opt" data-val="pydantic">
+            <div class="opt-row1"><span class="opt-title">Pydantic v2 only</span></div>
+            <div class="opt-desc">Runtime-Validierung beim Laden, IDE-Completion in Python. Kein Editor-Schema in IDE für die JSON-Files.</div>
+          </div>
+          <div class="opt" data-val="jsonschema">
+            <div class="opt-row1"><span class="opt-title">JSON Schema only</span></div>
+            <div class="opt-desc">Editor (VS Code) validiert beim Tippen. Kein Pydantic-Layer in Code → manueller Cast.</div>
+          </div>
+          <div class="opt" data-val="both">
+            <div class="opt-row1"><span class="opt-title">Beides — Pydantic + auto-generiertes JSON Schema</span><span class="tag rec">two birds</span></div>
+            <div class="opt-desc">Pydantic-Modelle als Source of Truth, <code>model_json_schema()</code> exportiert <code>schema.json</code> für Editoren + CI.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D3: Material vs Component -->
+      <div class="decision" data-q="material">
+        <div class="d-head">
+          <div class="d-num">D3</div>
+          <div class="d-meta">
+            <h3 class="d-title">Material vs. Component — separat oder inline?</h3>
+            <p class="d-why">„Nafion 117" wird in mehreren Komponenten referenziert. DRY oder self-contained?</p>
+          </div>
+          <span class="d-status">offen</span>
+        </div>
+        <div class="options">
+          <div class="opt" data-val="inline">
+            <div class="opt-row1"><span class="opt-title">Material inline in Component</span></div>
+            <div class="opt-desc">Jede Komponente trägt ihre Material-Eigenschaften selbst. <b>Pro:</b> self-contained · <b>Contra:</b> Update an Nafion-Werten = N Stellen ändern.</div>
+          </div>
+          <div class="opt" data-val="separate">
+            <div class="opt-row1"><span class="opt-title">Material-Katalog separat, per Reference</span><span class="tag rec">DRY</span></div>
+            <div class="opt-desc"><code>library/materials.json</code> mit ~20 Materialien. Komponenten referenzieren via <code>material_ref: "nafion-117"</code>.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D4: Quellen -->
+      <div class="decision" data-q="sources">
+        <div class="d-head">
+          <div class="d-num">D4</div>
+          <div class="d-meta">
+            <h3 class="d-title">Quellen-Storage — wie sind Paper-Refs gebunden?</h3>
+            <p class="d-why">Strict-Quellen-Wahl verlangt Paper-Beleg pro Wert. Format?</p>
+          </div>
+          <span class="d-status">offen</span>
+        </div>
+        <div class="options">
+          <div class="opt" data-val="inline-full">
+            <div class="opt-row1"><span class="opt-title">Volle Citation inline pro Wert</span></div>
+            <div class="opt-desc"><code>{value: 120, source: "Carmo et al. 2013, IJHE, Table 2"}</code>. Lesbar aber redundant.</div>
+          </div>
+          <div class="opt" data-val="ref-bibtex">
+            <div class="opt-row1"><span class="opt-title">Reference-ID + separate BibTeX</span><span class="tag rec">scientific standard</span></div>
+            <div class="opt-desc"><code>{value: 120, source: "carmo2013ijhe.tab2"}</code> → resolved via <code>library/sources.bib</code>. Standard für wissenschaftliche Reproduzierbarkeit.</div>
+          </div>
+          <div class="opt" data-val="block">
+            <div class="opt-row1"><span class="opt-title">Source-Block pro Komponente, kein per-value</span></div>
+            <div class="opt-desc">Eine Quellenliste pro Komponente, nicht pro Feld. <b>Contra:</b> verliert Granularität — Tafel-Slope von Paper A, j₀ von Paper B nicht trennbar.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D5: Component-IDs -->
+      <div class="decision" data-q="ids">
+        <div class="d-head">
+          <div class="d-num">D5</div>
+          <div class="d-meta">
+            <h3 class="d-title">Component-ID-Schema</h3>
+            <p class="d-why">Wie heißen die Specs? Eindeutigkeit + Lesbarkeit + Sortierbarkeit.</p>
+          </div>
+          <span class="d-status">offen</span>
+        </div>
+        <div class="options">
+          <div class="opt" data-val="flat">
+            <div class="opt-row1"><span class="opt-title">Flat slug — <code>nafion-117</code></span></div>
+            <div class="opt-desc">Kurz, aber Kategorie verloren — <code>nafion-117</code> könnte Membran oder Dichtung sein.</div>
+          </div>
+          <div class="opt" data-val="hier">
+            <div class="opt-row1"><span class="opt-title">Hierarchical — <code>membrane.nafion.117</code></span><span class="tag rec">strukturiert</span></div>
+            <div class="opt-desc">Sortierbar, machine-parseable, human-readable. Drei Ebenen reichen für 60+ Items.</div>
+          </div>
+          <div class="opt" data-val="uuid">
+            <div class="opt-row1"><span class="opt-title">UUID — <code>c1b8...</code></span></div>
+            <div class="opt-desc">Maximal eindeutig, aber unfreundlich. Nur sinnvoll wenn Komponenten user-erstellt werden (nicht der Fall).</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D6: Units -->
+      <div class="decision" data-q="units">
+        <div class="d-head">
+          <div class="d-num">D6</div>
+          <div class="d-meta">
+            <h3 class="d-title">Engineering-Units in JSON</h3>
+            <p class="d-why">Paper geben µm, mil, m durcheinander. Wie speichern wir Werte?</p>
+          </div>
+          <span class="d-status">offen</span>
+        </div>
+        <div class="options">
+          <div class="opt" data-val="si">
+            <div class="opt-row1"><span class="opt-title">SI only — <code>thickness: 0.000183</code></span></div>
+            <div class="opt-desc">Konsistent, aber lesbar nur mit Lupe. <code>thickness: 0.000183</code> ist 183 µm? oder 0.183 mm? Verschreiber-anfällig.</div>
+          </div>
+          <div class="opt" data-val="suffix">
+            <div class="opt-row1"><span class="opt-title">Suffix — <code>thickness_um: 183</code></span></div>
+            <div class="opt-desc">Lesbar, aber kein expliziter Unit-Layer. Mix-Risiko bleibt (jemand schreibt <code>thickness</code> statt <code>thickness_um</code>).</div>
+          </div>
+          <div class="opt" data-val="explicit">
+            <div class="opt-row1"><span class="opt-title">Explicit object — <code>{value: 183, unit: "um"}</code></span><span class="tag rec">strict-konform</span></div>
+            <div class="opt-desc">Pydantic-Validator konvertiert zu SI beim Laden. Kein Verwechslungsrisiko, alle Quellen (µm/mil/m) direkt aus Paper übernehmbar.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="deferred">
+      <h3>Bewusst auf später verschoben</h3>
+      <div class="def-row"><span class="lbl">ADR-004</span><span class="desc"><b>Geometry-Generator-Binding</b> — wo lebt die <code>build()</code>-Funktion pro Komponente? Per-component-method vs. Registry vs. Plugin. Entschieden, sobald wir 5 Generatoren prototypisch geschrieben haben.</span></div>
+      <div class="def-row"><span class="lbl">ADR-005</span><span class="desc"><b>Stack-Composition</b> — wie werden Komponenten zu einem Stack? Components als Pure-Data oder mit Compose-Method? Entschieden, sobald Library + Geometry stehen.</span></div>
+      <div class="def-row"><span class="lbl">ADR-003</span><span class="desc"><b>Lizenz-System</b> — PyQt6 GPL vs PySide6 LGPL, FlexLM-Pattern. Late binding, wenn Industrie-Phase startet.</span></div>
+    </div>
+  </div>
+
+  <!-- SCHEMA PREVIEW -->
+  <div class="preview" data-view="schema">
+    <div class="preview-pane">
+      <h3>Live Schema-Preview <span class="badge">Pydantic-style</span></h3>
+      <pre class="preview-code" id="schema-pydantic"></pre>
+    </div>
+    <div class="preview-pane">
+      <h3>Beispiel-Komponente <span class="badge">JSON · Nafion 117</span></h3>
+      <pre class="preview-code" id="schema-example"></pre>
+    </div>
+  </div>
+
+  <!-- TREE PREVIEW -->
+  <div class="preview" data-view="tree">
+    <div class="preview-pane">
+      <h3>Library-Ordnerstruktur <span class="badge">live</span></h3>
+      <div class="tree" id="tree-out"></div>
+    </div>
+  </div>
+
+</div>
+
+<aside class="sidebar">
+
+  <div class="panel">
+    <h3 class="panel-title">Architektur-Stack</h3>
+    <div class="stack-grid">
+      <div class="stack-row" data-slot="storage"><span class="num">1</span><span class="lbl">Storage</span><span class="val">— offen</span></div>
+      <div class="stack-row" data-slot="validation"><span class="num">2</span><span class="lbl">Validate</span><span class="val">— offen</span></div>
+      <div class="stack-row" data-slot="material"><span class="num">3</span><span class="lbl">Material</span><span class="val">— offen</span></div>
+      <div class="stack-row" data-slot="sources"><span class="num">4</span><span class="lbl">Quellen</span><span class="val">— offen</span></div>
+      <div class="stack-row" data-slot="ids"><span class="num">5</span><span class="lbl">IDs</span><span class="val">— offen</span></div>
+      <div class="stack-row" data-slot="units"><span class="num">6</span><span class="lbl">Units</span><span class="val">— offen</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel-title">Was deine Wahl auslöst</h3>
+    <div class="impl-list" id="impl-list">
+      <div class="impl empty">— wähle Optionen, um Implikationen zu sehen</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel-title">Aktionen</h3>
+    <div class="actions">
+      <button id="copy-btn" disabled>ADR-002 Summary</button>
+      <button class="ghost" id="reset-btn">Reset</button>
+    </div>
+    <div class="copied" id="copied-msg">✓ kopiert — paste zurück</div>
+  </div>
+
+</aside>
+
+</div>
+
+<script>
+  // Pre-fill with recommended defaults — user can change
+  const state = {
+    storage:"per-cat", validation:"both", material:"separate",
+    sources:"ref-bibtex", ids:"hier", units:"explicit"
+  };
+
+  const labels = {
+    storage:{single:"Single JSON",          "per-cat":"Per Category", "per-comp":"Per Component", sqlite:"SQLite"},
+    validation:{pydantic:"Pydantic only",    jsonschema:"JSON Schema only", both:"Pydantic + Schema"},
+    material:{inline:"Material inline",      separate:"Material separat (Ref)"},
+    sources:{"inline-full":"Inline citation","ref-bibtex":"Ref-ID + BibTeX",  block:"Block per component"},
+    ids:{flat:"Flat slug",                   hier:"Hierarchical",             uuid:"UUID"},
+    units:{si:"SI only",                     suffix:"Suffix _um",             explicit:"Explicit object"}
+  };
+
+  function getImplications(){
+    const out = [];
+    if (state.storage === "per-cat")  out.push({type:"ok",   icon:"✓", text:"<b>Diff-friendly</b> · ~8 Category-Files, gut zu reviewen"});
+    if (state.storage === "single")   out.push({type:"warn", icon:"⚠", text:"<b>Merge-Konflikte</b> bei 60+ Items in einer Datei sind chronisch"});
+    if (state.storage === "per-comp") out.push({type:"info", icon:"⤳", text:"<b>60+ Files</b> — bessere Plugin-Story, mehr Boilerplate"});
+    if (state.storage === "sqlite")   out.push({type:"warn", icon:"⚠", text:"<b>Nicht human-editable</b> · widerspricht Strict-Quellen-Workflow"});
+
+    if (state.validation === "both") out.push({type:"ok",   icon:"✓", text:"<b>Editor-Validation</b> in VS Code + Runtime-Check beim Laden"});
+    if (state.validation === "jsonschema") out.push({type:"info", icon:"⤳", text:"<b>Manueller Pydantic-Cast</b> nötig im Code"});
+
+    if (state.material === "separate") out.push({type:"ok", icon:"✓", text:"<b>Nafion-117-Update</b> an einer Stelle wirkt überall"});
+    if (state.material === "inline")   out.push({type:"warn", icon:"⚠", text:"<b>N-fache Updates</b> wenn Material-Werte sich ändern"});
+
+    if (state.sources === "ref-bibtex")  out.push({type:"ok",   icon:"✓", text:"<b>BibTeX</b> · Standard für Paper-Refs, Pandoc/Zotero-kompatibel"});
+    if (state.sources === "inline-full") out.push({type:"warn", icon:"⚠", text:"<b>Redundanz</b> · gleicher Paper-String 30× im JSON"});
+    if (state.sources === "block")       out.push({type:"warn", icon:"⚠", text:"<b>Granularität verloren</b> · Werte aus 2 Papern nicht trennbar"});
+
+    if (state.ids === "hier")  out.push({type:"ok", icon:"✓", text:"<b>Sortierbar</b> · alle Membrane unter <code>membrane.*</code>"});
+    if (state.ids === "uuid")  out.push({type:"warn", icon:"⚠", text:"<b>Unfreundlich</b> · UUIDs braucht's nur bei user-generated content"});
+
+    if (state.units === "explicit") out.push({type:"ok",   icon:"✓", text:"<b>Verwechslungs-frei</b> · 183 µm vs. 0.183 mm vs. 7.2 mil alles direkt aus Paper übernehmbar"});
+    if (state.units === "si")       out.push({type:"warn", icon:"⚠", text:"<b>Verschreiber-Risiko</b> · 0.000183 vs 0.0000183 nicht visuell prüfbar"});
+
+    // combo notes
+    if (state.material === "separate" && state.sources === "ref-bibtex") {
+      out.push({type:"info", icon:"⤳", text:"<b>Konsistenz-Win:</b> Materials referenzieren via ID, Quellen via ID, BibTeX. Eine Norm überall."});
+    }
+    return out;
+  }
+
+  function renderSchemaPreview(){
+    const sep = state.material === "separate";
+    const explicit = state.units === "explicit";
+    const refBib = state.sources === "ref-bibtex";
+    const idEx = state.ids === "hier" ? "membrane.nafion.117" : (state.ids === "flat" ? "nafion-117" : "c1b8e2-…");
+
+    let pyd = "";
+    pyd += `<span class="com"># library/schema/component.py — Pydantic v2</span>\n`;
+    pyd += `<span class="key">from</span> pydantic <span class="key">import</span> BaseModel, Field\n`;
+    if (explicit) pyd += `<span class="key">from</span> .units <span class="key">import</span> Quantity  <span class="com"># {value, unit} → SI</span>\n`;
+    pyd += `\n`;
+    if (sep) {
+      pyd += `<span class="key">class</span> <span class="str">MaterialRef</span>(BaseModel):\n`;
+      pyd += `    ref: <span class="str">str</span>  <span class="com"># "nafion-117" → resolved from materials.json</span>\n\n`;
+    }
+    if (refBib) {
+      pyd += `<span class="key">class</span> <span class="str">SourcedValue</span>(BaseModel):\n`;
+      pyd += `    value: ${explicit ? 'Quantity' : '<span class="str">float</span>'}\n`;
+      pyd += `    source: <span class="str">str</span>  <span class="com"># "carmo2013ijhe.tab2" → resolved from sources.bib</span>\n\n`;
+    }
+    pyd += `<span class="key">class</span> <span class="str">Component</span>(BaseModel):\n`;
+    pyd += `    id: <span class="str">str</span>  <span class="com"># "${idEx}"</span>\n`;
+    pyd += `    category: <span class="str">str</span>\n`;
+    pyd += `    name: <span class="str">str</span>\n`;
+    if (sep) pyd += `    material: <span class="str">MaterialRef</span>\n`;
+    else      pyd += `    material_name: <span class="str">str</span>\n`;
+    pyd += `    thickness: ${refBib ? 'SourcedValue' : (explicit ? 'Quantity' : '<span class="str">float</span>')}\n`;
+    pyd += `    cost_eur: ${refBib ? 'SourcedValue' : '<span class="str">float</span>'}\n`;
+    pyd += `    <span class="com"># …</span>\n`;
+    document.getElementById('schema-pydantic').innerHTML = pyd;
+
+    // Example component JSON
+    let ex = "";
+    ex += `{\n`;
+    ex += `  <span class="key">"id"</span><span class="punct">:</span> <span class="str">"${idEx}"</span><span class="punct">,</span>\n`;
+    ex += `  <span class="key">"category"</span><span class="punct">:</span> <span class="str">"membrane"</span><span class="punct">,</span>\n`;
+    ex += `  <span class="key">"name"</span><span class="punct">:</span> <span class="str">"Nafion 117"</span><span class="punct">,</span>\n`;
+    if (sep) {
+      ex += `  <span class="key">"material"</span><span class="punct">:</span> { <span class="key">"ref"</span><span class="punct">:</span> <span class="str">"nafion-117"</span> }<span class="punct">,</span>\n`;
+    } else {
+      ex += `  <span class="key">"material_name"</span><span class="punct">:</span> <span class="str">"PFSA"</span><span class="punct">,</span>\n`;
+      ex += `  <span class="key">"sigma_S_per_m"</span><span class="punct">:</span> <span class="num">10</span><span class="punct">,</span>\n`;
+    }
+    if (refBib) {
+      if (state.units === "explicit") {
+        ex += `  <span class="key">"thickness"</span><span class="punct">:</span> {\n`;
+        ex += `    <span class="key">"value"</span><span class="punct">:</span> { <span class="key">"value"</span><span class="punct">:</span> <span class="num">183</span><span class="punct">,</span> <span class="key">"unit"</span><span class="punct">:</span> <span class="str">"um"</span> }<span class="punct">,</span>\n`;
+        ex += `    <span class="key">"source"</span><span class="punct">:</span> <span class="str">"chemours.datasheet.n117"</span>\n`;
+        ex += `  }<span class="punct">,</span>\n`;
+      } else if (state.units === "suffix") {
+        ex += `  <span class="key">"thickness_um"</span><span class="punct">:</span> { <span class="key">"value"</span><span class="punct">:</span> <span class="num">183</span><span class="punct">,</span> <span class="key">"source"</span><span class="punct">:</span> <span class="str">"chemours.datasheet.n117"</span> }<span class="punct">,</span>\n`;
+      } else {
+        ex += `  <span class="key">"thickness"</span><span class="punct">:</span> { <span class="key">"value"</span><span class="punct">:</span> <span class="num">0.000183</span><span class="punct">,</span> <span class="key">"source"</span><span class="punct">:</span> <span class="str">"chemours.datasheet.n117"</span> }<span class="punct">,</span>\n`;
+      }
+      ex += `  <span class="key">"cost_eur"</span><span class="punct">:</span> { <span class="key">"value"</span><span class="punct">:</span> <span class="num">120</span><span class="punct">,</span> <span class="key">"source"</span><span class="punct">:</span> <span class="str">"chemours.pricelist.2024"</span> }\n`;
+    } else if (state.sources === "inline-full") {
+      ex += `  <span class="key">"thickness_um"</span><span class="punct">:</span> <span class="num">183</span><span class="punct">,</span>\n`;
+      ex += `  <span class="key">"thickness_source"</span><span class="punct">:</span> <span class="str">"Chemours Datasheet Nafion 117 (2024)"</span>\n`;
+    } else {
+      ex += `  <span class="key">"thickness_um"</span><span class="punct">:</span> <span class="num">183</span><span class="punct">,</span>\n`;
+      ex += `  <span class="key">"sources"</span><span class="punct">:</span> [\n`;
+      ex += `    <span class="str">"chemours.datasheet.n117"</span><span class="punct">,</span>\n`;
+      ex += `    <span class="str">"carmo2013ijhe"</span>\n`;
+      ex += `  ]\n`;
+    }
+    ex += `}`;
+    document.getElementById('schema-example').innerHTML = ex;
+  }
+
+  function renderTreePreview(){
+    const sep = state.material === "separate";
+    const refBib = state.sources === "ref-bibtex";
+    let tree = "";
+    tree += `<span class="dir">library/</span>\n`;
+    if (state.validation === "both" || state.validation === "jsonschema") {
+      tree += `├── <span class="file">schema.json</span>            <span class="com"># JSON Schema (auto-gen aus Pydantic)</span>\n`;
+    }
+    if (sep) {
+      tree += `├── <span class="file new">materials.json</span>         <span class="com"># 20 Materialien (Nafion 117, IrO2, Pt/C, Ti, …)</span>\n`;
+    }
+    if (refBib) {
+      tree += `├── <span class="file new">sources.bib</span>            <span class="com"># BibTeX aller Paper + Datasheets</span>\n`;
+    }
+    if (state.storage === "single") {
+      tree += `├── <span class="file">components.json</span>        <span class="com"># 60+ Items in einer Datei</span>\n`;
+    } else if (state.storage === "per-cat") {
+      tree += `├── <span class="dir">components/</span>\n`;
+      tree += `│   ├── <span class="file">membrane.json</span>      <span class="com"># Nafion 115, 117, 212, Aquivion, …</span>\n`;
+      tree += `│   ├── <span class="file">anode_cl.json</span>      <span class="com"># IrO2, IrRuO2, IrO2/TiO2, …</span>\n`;
+      tree += `│   ├── <span class="file">cathode_cl.json</span>    <span class="com"># Pt/C 20/40/60%, Pt-alloy, …</span>\n`;
+      tree += `│   ├── <span class="file">gdl.json</span>           <span class="com"># Ti-Felt, Ti-sinter, carbon paper</span>\n`;
+      tree += `│   ├── <span class="file">bpp.json</span>           <span class="com"># Ti, coated Ti, SS316</span>\n`;
+      tree += `│   ├── <span class="file">flow_field.json</span>    <span class="com"># straight/serpentine/interdigit/mesh</span>\n`;
+      tree += `│   ├── <span class="file">endplate.json</span>      <span class="com"># SS, Al varianten</span>\n`;
+      tree += `│   └── <span class="file">gasket.json</span>        <span class="com"># EPDM, PTFE, Viton</span>\n`;
+    } else if (state.storage === "per-comp") {
+      tree += `├── <span class="dir">components/</span>\n`;
+      tree += `│   ├── <span class="dir">membrane/</span>\n`;
+      tree += `│   │   ├── <span class="file">nafion-117.yaml</span>\n`;
+      tree += `│   │   ├── <span class="file">nafion-115.yaml</span>\n`;
+      tree += `│   │   └── <span class="com"># … (60+ files insgesamt)</span>\n`;
+    } else if (state.storage === "sqlite") {
+      tree += `├── <span class="file">components.db</span>         <span class="com"># SQLite, nicht human-editable</span>\n`;
+    }
+    tree += `├── <span class="dir">schema/</span>                <span class="com"># Pydantic-Modelle</span>\n`;
+    tree += `│   ├── <span class="file">component.py</span>\n`;
+    if (sep) tree += `│   ├── <span class="file">material.py</span>\n`;
+    if (state.units === "explicit") tree += `│   └── <span class="file">units.py</span>           <span class="com"># Quantity → SI</span>\n`;
+    tree += `└── <span class="file">README.md</span>              <span class="com"># wie Komponenten hinzufügen</span>\n`;
+    document.getElementById('tree-out').innerHTML = tree;
+  }
+
+  function update(){
+    document.querySelectorAll('.decision').forEach(dec => {
+      const q = dec.dataset.q;
+      const val = state[q];
+      dec.classList.toggle('touched', !!val);
+      dec.querySelector('.d-status').textContent = val ? labels[q][val] : "offen";
+      dec.querySelectorAll('.opt').forEach(o => o.classList.toggle('selected', o.dataset.val === val));
+    });
+
+    const done = Object.values(state).filter(Boolean).length;
+    document.getElementById('progress-text').textContent = `${done} / 6 entschieden`;
+    document.querySelectorAll('.progress .step').forEach(s => {
+      s.classList.toggle('done', !!state[s.dataset.s]);
+    });
+
+    document.querySelectorAll('.stack-row').forEach(r => {
+      const q = r.dataset.slot;
+      const val = state[q];
+      r.classList.toggle('filled', !!val);
+      r.querySelector('.val').textContent = val ? labels[q][val] : "— offen";
+    });
+
+    const list = document.getElementById('impl-list');
+    const impls = getImplications();
+    if (impls.length === 0) {
+      list.innerHTML = '<div class="impl empty">— wähle Optionen, um Implikationen zu sehen</div>';
+    } else {
+      list.innerHTML = impls.map(i => `<div class="impl ${i.type}"><span class="impl-icon">${i.icon}</span><span>${i.text}</span></div>`).join('');
+    }
+
+    document.getElementById('copy-btn').disabled = done < 6;
+    renderSchemaPreview();
+    renderTreePreview();
+  }
+
+  document.querySelectorAll('.decision').forEach(dec => {
+    const q = dec.dataset.q;
+    dec.querySelectorAll('.opt').forEach(opt => {
+      opt.addEventListener('click', () => { state[q] = opt.dataset.val; update(); });
+    });
+  });
+
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const v = t.dataset.view;
+      document.querySelector('.deck-view').style.display = v === 'deck' ? '' : 'none';
+      document.querySelectorAll('.preview').forEach(p => p.classList.remove('active'));
+      if (v !== 'deck') document.querySelector(`.preview[data-view="${v}"]`).classList.add('active');
+    });
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const lines = [
+      "ADR-002 · Library-Architektur — Antworten",
+      "",
+      `D1 Storage:    ${labels.storage[state.storage]}`,
+      `D2 Validation: ${labels.validation[state.validation]}`,
+      `D3 Material:   ${labels.material[state.material]}`,
+      `D4 Quellen:    ${labels.sources[state.sources]}`,
+      `D5 IDs:        ${labels.ids[state.ids]}`,
+      `D6 Units:      ${labels.units[state.units]}`
+    ];
+    navigator.clipboard.writeText(lines.join("\n"));
+    const m = document.getElementById('copied-msg'); m.classList.add('show');
+    setTimeout(() => m.classList.remove('show'), 2000);
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    Object.keys(state).forEach(k => state[k] = null);
+    update();
+  });
+
+  update();
+</script>
+</body>
+</html>

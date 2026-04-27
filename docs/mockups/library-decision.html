@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Library-Architektur — Entscheidungs-Board</title>
+<style>
+  :root {
+    --bg:#0f1419; --panel:#1a2028; --panel-2:#222a35; --panel-3:#2a3240;
+    --border:#2d3542; --border-hi:#3d4758;
+    --text:#e4e6eb; --text-dim:#8b94a3; --text-faint:#606773;
+    --accent:#5dade2; --accent-2:#48c9b0; --accent-3:#9b59b6;
+    --accent-4:#f1c40f; --warn:#e67e22; --err:#e74c3c; --ok:#2ecc71;
+    --mono: ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font:13px/1.5 -apple-system,"Segoe UI",system-ui,sans-serif;min-height:100%}
+  header.hero{padding:20px 28px;border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,var(--panel),transparent);
+    display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+  header.hero h1{margin:0;font-size:18px;font-weight:600;color:var(--accent)}
+  header.hero .sub{color:var(--text-dim);margin-top:4px;font-size:12px}
+  header.hero .meta{font-family:var(--mono);font-size:10px;color:var(--text-faint);text-align:right}
+  main{padding:20px 28px;max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+
+  .step-label{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+  .step-label .num{display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:50%;background:var(--accent);color:#0f1419;
+    font-weight:700;font-size:11px;font-family:var(--mono)}
+  .step-label h2{margin:0;font-size:14px;font-weight:600}
+  .step-label .hint{color:var(--text-dim);font-size:11px;margin-left:auto}
+
+  /* ─── Architecture cards ─── */
+  .arch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    padding:16px;cursor:pointer;transition:all .15s ease;position:relative;overflow:hidden}
+  .card:hover{border-color:var(--border-hi);transform:translateY(-1px)}
+  .card.active{border-color:var(--accent);background:var(--panel-2);
+    box-shadow:0 0 0 1px var(--accent),0 6px 24px -8px rgba(93,173,226,.4)}
+  .card .badge{position:absolute;top:12px;right:12px;font-size:10px;
+    font-family:var(--mono);color:var(--text-faint);letter-spacing:1px}
+  .card.active .badge{color:var(--accent)}
+  .card h3{margin:0 0 4px;font-size:14px}
+  .card .tag{color:var(--text-dim);font-size:11px;margin-bottom:12px}
+  .card .ico{height:80px;margin:6px 0 14px;display:flex;align-items:center;justify-content:center;
+    background:var(--bg);border-radius:4px;border:1px solid var(--border)}
+  .card ul.pc{list-style:none;padding:0;margin:0 0 10px;font-size:11.5px}
+  .card ul.pc li{padding:3px 0;display:flex;gap:6px}
+  .card ul.pc li .mk{width:14px;flex-shrink:0;font-family:var(--mono);font-weight:700}
+  .card ul.pc li.pro .mk{color:var(--ok)}
+  .card ul.pc li.con .mk{color:var(--err)}
+  .card .foot{display:flex;justify-content:space-between;font-size:10.5px;
+    font-family:var(--mono);color:var(--text-dim);border-top:1px dashed var(--border);padding-top:8px;margin-top:4px}
+  .card .foot b{color:var(--text);font-weight:500}
+
+  /* ─── Toggles (params) ─── */
+  .params-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .toggle-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px}
+  .toggle-card .label{font-size:11px;color:var(--text-dim);text-transform:uppercase;
+    letter-spacing:.8px;margin-bottom:8px}
+  .toggle-group{display:flex;gap:0}
+  .toggle-group button{flex:1;background:var(--panel-2);border:1px solid var(--border);
+    border-right:none;color:var(--text-dim);padding:7px 10px;font:inherit;font-size:12px;
+    cursor:pointer;transition:all .1s}
+  .toggle-group button:first-child{border-radius:4px 0 0 4px}
+  .toggle-group button:last-child{border-radius:0 4px 4px 0;border-right:1px solid var(--border)}
+  .toggle-group button:hover{background:var(--panel-3);color:var(--text)}
+  .toggle-group button.on{background:rgba(93,173,226,.15);color:var(--accent);
+    border-color:var(--accent);font-weight:500;z-index:1}
+  .toggle-card .note{margin-top:8px;font-size:11px;color:var(--text-faint);min-height:16px}
+
+  /* ─── Preview panel ─── */
+  .preview{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+  .preview-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .preview-box .head{background:var(--panel-2);border-bottom:1px solid var(--border);
+    padding:8px 14px;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+  .preview-box .head .ttl{font-weight:600}
+  .preview-box .head .sub{color:var(--text-dim);font-family:var(--mono);font-size:10px}
+  .preview-box .body{padding:14px;font-family:var(--mono);font-size:11.5px;line-height:1.55;
+    max-height:360px;overflow:auto;white-space:pre;tab-size:2}
+  .preview-box .body.plain{font-family:inherit;font-size:12px;white-space:normal}
+  .k{color:var(--accent)} .s{color:var(--accent-2)} .n{color:var(--accent-4)}
+  .c{color:var(--text-faint);font-style:italic} .p{color:var(--accent-3)}
+
+  /* SVG illustrations */
+  .svg-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+
+  /* Summary */
+  .summary{background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--accent);border-radius:8px;padding:18px 22px}
+  .summary h3{margin:0 0 12px;color:var(--accent);font-size:13px;text-transform:uppercase;letter-spacing:1px}
+  .summary .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .chip{background:var(--bg);border:1px solid var(--border-hi);padding:4px 10px;
+    border-radius:12px;font-size:11px;font-family:var(--mono)}
+  .chip b{color:var(--accent);font-weight:500}
+  .summary .will{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-bottom:14px}
+  .summary .will li{list-style:none;padding:3px 0;font-size:12px;display:flex;gap:8px}
+  .summary .will li::before{content:"→";color:var(--accent);font-family:var(--mono)}
+  .summary .wont li::before{content:"✕";color:var(--err);font-family:var(--mono)}
+  .summary .actions{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+  .summary button{background:var(--accent);color:#0f1419;border:none;padding:8px 16px;
+    border-radius:4px;font:inherit;font-weight:600;cursor:pointer;font-size:12px}
+  .summary button.ghost{background:transparent;color:var(--text);border:1px solid var(--border-hi);font-weight:400}
+  .summary button:hover{filter:brightness(1.1)}
+
+  /* Effort bar */
+  .bar{height:4px;background:var(--bg);border-radius:2px;overflow:hidden;margin-top:4px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent-4),var(--warn));transition:width .3s}
+
+  /* Toast */
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--panel-2);
+    border:1px solid var(--accent);padding:10px 14px;border-radius:6px;font-size:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;transform:translateY(10px);
+    transition:all .2s;pointer-events:none;max-width:320px}
+  .toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div>
+    <h1>Library-Architektur — Entscheidungs-Board</h1>
+    <div class="sub">Klick durch die Optionen. Die Live-Vorschau zeigt, was du bekommst.</div>
+  </div>
+  <div class="meta">
+    pem-ec-designer<br>
+    docs/mockups/library-decision.html
+  </div>
+</header>
+
+<main>
+
+<!-- ─── 1. ARCHITECTURE ─── -->
+<section>
+  <div class="step-label">
+    <span class="num">1</span>
+    <h2>Architektur-Ansatz</h2>
+    <span class="hint">genau einen wählen · klick auf Karte</span>
+  </div>
+  <div class="arch-grid" id="arch-cards">
+
+    <div class="card active" data-arch="A">
+      <span class="badge">A · EMPFOHLEN</span>
+      <h3>JSON-Daten-Katalog</h3>
+      <div class="tag">Spec-Library, kein Code-Package</div>
+      <div class="ico"><svg class="svg-wrap" viewBox="0 0 140 70"><rect x="10" y="10" width="120" height="50" fill="none" stroke="#5dade2" stroke-width="1.5" rx="3"/><text x="20" y="30" font-family="ui-monospace" font-size="9" fill="#48c9b0">"id":</text><text x="45" y="30" font-family="ui-monospace" font-size="9" fill="#f1c40f">"nafion-117"</text><text x="20" y="44" font-family="ui-monospace" font-size="9" fill="#48c9b0">"thickness_um":</text><text x="78" y="44" font-family="ui-monospace" font-size="9" fill="#e67e22">183</text><text x="20" y="58" font-family="ui-monospace" font-size="9" fill="#48c9b0">"sigma_S_cm":</text><text x="72" y="58" font-family="ui-monospace" font-size="9" fill="#e67e22">0.1</text></svg></div>
+      <ul class="pc">
+        <li class="pro"><span class="mk">+</span>Framework-agnostisch (JS, Python, beides)</li>
+        <li class="pro"><span class="mk">+</span>Single Source of Truth, git-diffbar</li>
+        <li class="pro"><span class="mk">+</span>Schnell — 2 Tage MVP</li>
+        <li class="con"><span class="mk">−</span>Kein 3D ohne Zweit-Layer</li>
+      </ul>
+      <div class="foot"><span>Aufwand <b>2 Tage</b></span><span>Lock-in <b>keiner</b></span></div>
+    </div>
+
+    <div class="card" data-arch="B">
+      <span class="badge">B</span>
+      <h3>JS-Library + Three.js</h3>
+      <div class="tag">Visueller Katalog im Browser</div>
+      <div class="ico"><svg class="svg-wrap" viewBox="0 0 140 70"><defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#5dade2"/><stop offset="1" stop-color="#48c9b0"/></linearGradient></defs><ellipse cx="70" cy="35" rx="50" ry="12" fill="url(#g1)" opacity="0.3"/><ellipse cx="70" cy="32" rx="50" ry="12" fill="url(#g1)" opacity="0.5"/><ellipse cx="70" cy="29" rx="50" ry="12" fill="url(#g1)" opacity="0.8"/><ellipse cx="70" cy="29" rx="50" ry="12" fill="none" stroke="#5dade2" stroke-width="1"/><line x1="70" y1="17" x2="70" y2="41" stroke="#5dade2" stroke-width="0.5" stroke-dasharray="2,2"/></svg></div>
+      <ul class="pc">
+        <li class="pro"><span class="mk">+</span>Sofort visuell, klickbar im Browser</li>
+        <li class="pro"><span class="mk">+</span>Bleibt im HTML-Prototyp-Level</li>
+        <li class="con"><span class="mk">−</span>Kein STEP/STL-Export</li>
+        <li class="con"><span class="mk">−</span>Rausgeschmissen falls Python-Stack gewählt</li>
+      </ul>
+      <div class="foot"><span>Aufwand <b>5 Tage</b></span><span>Lock-in <b>mittel (JS)</b></span></div>
+    </div>
+
+    <div class="card" data-arch="C">
+      <span class="badge">C · BLOCKIERT</span>
+      <h3>Python-Package + build123d</h3>
+      <div class="tag">Echtes CAD, STEP/STL-fähig</div>
+      <div class="ico"><svg class="svg-wrap" viewBox="0 0 140 70"><g transform="translate(70,35)"><polygon points="-30,-15 30,-15 40,0 30,15 -30,15 -40,0" fill="#9b59b6" fill-opacity="0.25" stroke="#9b59b6" stroke-width="1.2"/><polygon points="-30,-15 -40,0 -40,10 -30,25 -30,15" fill="#9b59b6" fill-opacity="0.4" stroke="#9b59b6" stroke-width="1.2"/><polygon points="30,-15 40,0 40,10 30,25 30,15" fill="#9b59b6" fill-opacity="0.35" stroke="#9b59b6" stroke-width="1.2"/><polygon points="-30,15 30,15 30,25 -30,25" fill="#9b59b6" fill-opacity="0.5" stroke="#9b59b6" stroke-width="1.2"/></g></svg></div>
+      <ul class="pc">
+        <li class="pro"><span class="mk">+</span>Echter CAD-Export (STEP/STL)</li>
+        <li class="pro"><span class="mk">+</span>Integrierbar mit pem-ec-0d-Physik</li>
+        <li class="con"><span class="mk">−</span>Braucht ADR-001 (Framework) zuerst</li>
+        <li class="con"><span class="mk">−</span>10+ Tage Aufwand, voller Stack-Lock-in</li>
+      </ul>
+      <div class="foot"><span>Aufwand <b>10+ Tage</b></span><span>Lock-in <b>hoch</b></span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── 2. PARAMETERS ─── -->
+<section>
+  <div class="step-label">
+    <span class="num">2</span>
+    <h2>Parameter</h2>
+    <span class="hint">Toggles — Preview unten aktualisiert sich live</span>
+  </div>
+  <div class="params-row">
+
+    <div class="toggle-card">
+      <div class="label">Start-Umfang</div>
+      <div class="toggle-group" data-param="scope">
+        <button data-v="minimal" class="on">Minimal ~10</button>
+        <button data-v="medium">Medium ~30</button>
+        <button data-v="broad">Breit 60+</button>
+      </div>
+      <div class="note" id="note-scope">Nur was im v1-Mockup vorkommt. Feedback-Loop früh.</div>
+    </div>
+
+    <div class="toggle-card">
+      <div class="label">Spec-Sprache</div>
+      <div class="toggle-group" data-param="lang">
+        <button data-v="de">DE</button>
+        <button data-v="en">EN</button>
+        <button data-v="hybrid" class="on">Hybrid</button>
+      </div>
+      <div class="note" id="note-lang">Name/Description EN (international), UI-Labels DE.</div>
+    </div>
+
+    <div class="toggle-card">
+      <div class="label">Quellen-Pflicht</div>
+      <div class="toggle-group" data-param="sources">
+        <button data-v="strict" class="on">Strict</button>
+        <button data-v="marked">Markiert</button>
+        <button data-v="optional">Optional</button>
+      </div>
+      <div class="note" id="note-sources">Jeder Wert braucht Paper-DOI. Kein &quot;aus dem Gedächtnis&quot;.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── 3. PREVIEW ─── -->
+<section>
+  <div class="step-label">
+    <span class="num">3</span>
+    <h2>Live-Vorschau — so wird ein Eintrag aussehen</h2>
+    <span class="hint" id="preview-context">Ansatz A · minimal · hybrid · strict</span>
+  </div>
+  <div class="preview">
+    <div class="preview-box">
+      <div class="head">
+        <span class="ttl" id="pv-title">Komponenten-Eintrag</span>
+        <span class="sub" id="pv-lang">JSON</span>
+      </div>
+      <div class="body" id="pv-code"></div>
+    </div>
+    <div class="preview-box">
+      <div class="head">
+        <span class="ttl">Was der User im Browser sieht</span>
+        <span class="sub" id="pv-viewer-sub">browse.html</span>
+      </div>
+      <div class="body plain" id="pv-viewer"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 4. SUMMARY ─── -->
+<section>
+  <div class="summary" id="summary">
+    <h3>Deine Wahl</h3>
+    <div class="chips" id="summary-chips"></div>
+    <div>
+      <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin:6px 0 4px">Aufwand · Risiko · Lock-in</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+        <div><div style="font-size:11px;color:var(--text-dim)">Aufwand</div><div id="m-effort" style="font-family:var(--mono);font-size:13px"></div><div class="bar"><div id="bar-effort"></div></div></div>
+        <div><div style="font-size:11px;color:var(--text-dim)">Framework-Risiko</div><div id="m-risk" style="font-family:var(--mono);font-size:13px"></div><div class="bar"><div id="bar-risk"></div></div></div>
+        <div><div style="font-size:11px;color:var(--text-dim)">Technik-Lock-in</div><div id="m-lock" style="font-family:var(--mono);font-size:13px"></div><div class="bar"><div id="bar-lock"></div></div></div>
+      </div>
+    </div>
+    <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Das wird passieren</div>
+        <ul class="will" id="will" style="display:block"></ul>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Das NICHT</div>
+        <ul class="will wont" id="wont" style="display:block"></ul>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btn-adr">Als ADR-Markdown downloaden</button>
+      <button class="ghost" id="btn-copy">Entscheidung in Zwischenablage</button>
+      <button class="ghost" id="btn-reset">Reset auf Empfehlung</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── State ────────────────────────────────────────────────
+const state = {
+  arch: 'A',
+  scope: 'minimal',
+  lang: 'hybrid',
+  sources: 'strict',
+};
+const defaults = { ...state };
+
+// ─── Config per option ────────────────────────────────────
+const archCfg = {
+  A: { effort: 20, risk: 15, lock: 10, name: 'JSON-Katalog',
+       deliverable: 'components.json + schema.json + README',
+       viewer: 'browse.html (Tabelle)' },
+  B: { effort: 55, risk: 40, lock: 55, name: 'JS + Three.js',
+       deliverable: 'components.json + viewers/browse.html mit 3D',
+       viewer: 'browse.html (3D-Preview)' },
+  C: { effort: 95, risk: 70, lock: 90, name: 'Python + build123d',
+       deliverable: 'pem_components/ Package + CAD-Export',
+       viewer: 'NiceGUI-App (nach ADR-001)' },
+};
+const scopeCfg = {
+  minimal: { count: 10, desc: 'Nur was im v1-Mockup vorkommt. Feedback-Loop früh.', days: 0 },
+  medium:  { count: 30, desc: '3× Varianten pro Kategorie. Eine Arbeitswoche.', days: 3 },
+  broad:   { count: 60, desc: 'Volle Breite. Ohne klaren Feedback-Loop riskant.', days: 7 },
+};
+const langCfg = {
+  de:     { desc: 'Alles DE. Einfach für dich, international schwer teilbar.' },
+  en:     { desc: 'Alles EN. International, UI muss übersetzt werden.' },
+  hybrid: { desc: 'Name/Description EN (international), UI-Labels DE.' },
+};
+const srcCfg = {
+  strict:   { desc: 'Jeder Wert braucht Paper-DOI. Kein "aus dem Gedächtnis".', badge: 'required' },
+  marked:   { desc: 'Werte ohne Quelle erlaubt, aber als "estimate" markiert.', badge: 'flagged' },
+  optional: { desc: 'Freitext. Schnell, aber Library ist dann nur Notizzettel.', badge: 'free' },
+};
+
+// ─── Preview content generators ───────────────────────────
+function syntax(obj, indent=0){
+  const pad = '  '.repeat(indent);
+  if (obj === null) return '<span class="c">null</span>';
+  if (typeof obj === 'number') return `<span class="n">${obj}</span>`;
+  if (typeof obj === 'boolean') return `<span class="p">${obj}</span>`;
+  if (typeof obj === 'string') return `<span class="s">"${obj}"</span>`;
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) return '[]';
+    return '[\n' + obj.map(v => pad + '  ' + syntax(v, indent+1)).join(',\n') + '\n' + pad + ']';
+  }
+  const keys = Object.keys(obj);
+  if (keys.length === 0) return '{}';
+  return '{\n' + keys.map(k => pad + '  <span class="k">"' + k + '"</span>: ' + syntax(obj[k], indent+1)).join(',\n') + '\n' + pad + '}';
+}
+
+function buildJsonEntry(){
+  const ent = {};
+  ent.id = 'membrane-nafion-117';
+  if (state.lang === 'de') {
+    ent.name = 'Nafion 117 Membran';
+    ent.kategorie = 'funktionsschicht';
+  } else if (state.lang === 'en') {
+    ent.name = 'Nafion 117 Membrane';
+    ent.category = 'functional_layer';
+  } else {
+    ent.name = 'Nafion 117 Membrane';
+    ent.ui_label_de = 'Membran';
+    ent.category = 'functional_layer';
+  }
+  ent.material = 'PFSA';
+  ent.thickness_um = 183;
+  ent.area_cm2_default = 25;
+  ent.sigma_S_cm = 0.1;
+  ent.density_g_cm3 = 2.0;
+  ent.cost_eur_per_cell = 120;
+  if (state.sources === 'strict') {
+    ent.sources = [{ doi: '10.1016/j.ijhydene.2013.01.151', ref: 'Carmo 2013, Table 2' }];
+    ent.confidence = 'measured';
+  } else if (state.sources === 'marked') {
+    ent.sources = [];
+    ent.confidence = 'estimate';
+  }
+  return ent;
+}
+
+function buildPythonEntry(){
+  return `<span class="c"># pem_components/membranes.py</span>
+<span class="p">from</span> pydantic <span class="p">import</span> BaseModel, Field
+<span class="p">from</span> build123d <span class="p">import</span> Cylinder, Location
+
+<span class="p">class</span> <span class="k">Membrane</span>(BaseModel):
+    id: <span class="p">str</span>
+    material: <span class="p">str</span> = <span class="s">"PFSA"</span>
+    thickness_um: <span class="p">float</span> = Field(gt=<span class="n">0</span>)
+    area_cm2: <span class="p">float</span>
+    sigma_S_cm: <span class="p">float</span>
+    cost_eur_per_cell: <span class="p">float</span>
+    sources: <span class="p">list</span>[<span class="p">str</span>]
+
+    <span class="p">def</span> <span class="k">to_cad</span>(<span class="p">self</span>):
+        r_mm = (<span class="p">self</span>.area_cm2 / <span class="n">3.14159</span>) ** <span class="n">0.5</span> * <span class="n">10</span>
+        <span class="p">return</span> Cylinder(radius=r_mm, height=<span class="p">self</span>.thickness_um/<span class="n">1000</span>)
+
+NAFION_117 = Membrane(
+    id=<span class="s">"membrane-nafion-117"</span>,
+    thickness_um=<span class="n">183</span>,
+    area_cm2=<span class="n">25</span>,
+    sigma_S_cm=<span class="n">0.1</span>,
+    cost_eur_per_cell=<span class="n">120</span>,
+    sources=[<span class="s">"10.1016/j.ijhydene.2013.01.151"</span>],
+)`;
+}
+
+function viewerMock(){
+  const cfg = archCfg[state.arch];
+  const srcBadgeColor = state.sources === 'strict' ? 'var(--ok)'
+                      : state.sources === 'marked' ? 'var(--warn)' : 'var(--text-faint)';
+  const srcLabel = state.sources === 'strict' ? '✓ Carmo 2013'
+                 : state.sources === 'marked' ? '⚠ estimate' : '— no source';
+  const threeD = state.arch === 'B' ? `
+    <div style="height:90px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:4px;margin:10px 0;border:1px solid var(--border)">
+      <svg width="180" height="80" viewBox="0 0 180 80">
+        <ellipse cx="90" cy="50" rx="70" ry="8" fill="#5dade2" fill-opacity="0.2"/>
+        <ellipse cx="90" cy="44" rx="70" ry="8" fill="#5dade2" fill-opacity="0.4"/>
+        <ellipse cx="90" cy="38" rx="70" ry="8" fill="#5dade2" fill-opacity="0.7"/>
+        <ellipse cx="90" cy="38" rx="70" ry="8" fill="none" stroke="#5dade2" stroke-width="1"/>
+        <text x="165" y="42" font-size="9" font-family="ui-monospace" fill="#8b94a3">Ø 56 mm</text>
+        <text x="5" y="60" font-size="9" font-family="ui-monospace" fill="#8b94a3">t = 183 µm</text>
+      </svg>
+    </div>` : state.arch === 'C' ? `
+    <div style="height:90px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:4px;margin:10px 0;border:1px solid var(--border)">
+      <div style="text-align:center;color:var(--accent-3)">
+        <div style="font-family:var(--mono);font-size:11px">▶ membrane.step</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px">openable in FreeCAD, SolidWorks, Fusion</div>
+      </div>
+    </div>` : `
+    <div style="height:60px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:4px;margin:10px 0;border:1px dashed var(--border);color:var(--text-faint);font-size:11px">
+      kein 3D — Spec-only
+    </div>`;
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:13px;font-weight:600">Nafion 117 Membrane</div>
+        <div style="color:var(--text-dim);font-size:11px">PFSA · functional layer</div>
+      </div>
+      <span style="font-size:10px;font-family:var(--mono);color:${srcBadgeColor};border:1px solid ${srcBadgeColor};padding:2px 6px;border-radius:10px">${srcLabel}</span>
+    </div>
+    ${threeD}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:11.5px">
+      <div><span style="color:var(--text-dim)">Dicke</span> 183 µm</div>
+      <div><span style="color:var(--text-dim)">Fläche</span> 25 cm²</div>
+      <div><span style="color:var(--text-dim)">σ</span> 0.1 S/cm</div>
+      <div><span style="color:var(--text-dim)">Dichte</span> 2.0 g/cm³</div>
+      <div><span style="color:var(--text-dim)">Preis</span> 120 €/Zelle</div>
+      <div><span style="color:var(--text-dim)">Varianten</span> ${scopeCfg[state.scope].count}</div>
+    </div>
+    <div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);font-size:10.5px;color:var(--text-faint)">
+      Lieferumfang: <b style="color:var(--text)">${cfg.deliverable}</b>
+    </div>`;
+}
+
+// ─── Render ────────────────────────────────────────────────
+function render(){
+  // arch cards
+  document.querySelectorAll('.card').forEach(c => {
+    c.classList.toggle('active', c.dataset.arch === state.arch);
+  });
+  // toggle buttons
+  document.querySelectorAll('.toggle-group').forEach(g => {
+    const p = g.dataset.param;
+    g.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('on', b.dataset.v === state[p]);
+    });
+  });
+  // notes
+  document.getElementById('note-scope').textContent = scopeCfg[state.scope].desc;
+  document.getElementById('note-lang').textContent  = langCfg[state.lang].desc;
+  document.getElementById('note-sources').textContent = srcCfg[state.sources].desc;
+
+  // preview
+  const ctx = `Ansatz ${state.arch} · ${state.scope} · ${state.lang} · ${state.sources}`;
+  document.getElementById('preview-context').textContent = ctx;
+
+  if (state.arch === 'C') {
+    document.getElementById('pv-title').textContent = 'membranes.py — Pydantic Spec + build123d';
+    document.getElementById('pv-lang').textContent = 'Python';
+    document.getElementById('pv-code').innerHTML = buildPythonEntry();
+    document.getElementById('pv-viewer-sub').textContent = 'nach ADR-001';
+  } else {
+    const entry = buildJsonEntry();
+    document.getElementById('pv-title').textContent = 'components.json — ein Eintrag';
+    document.getElementById('pv-lang').textContent = 'JSON';
+    document.getElementById('pv-code').innerHTML = syntax(entry);
+    document.getElementById('pv-viewer-sub').textContent = state.arch === 'B' ? 'browse.html · 3D' : 'browse.html · table';
+  }
+  document.getElementById('pv-viewer').innerHTML = viewerMock();
+
+  // summary chips
+  const chips = [
+    `Ansatz <b>${state.arch}</b> — ${archCfg[state.arch].name}`,
+    `Umfang <b>${scopeCfg[state.scope].count} Komponenten</b>`,
+    `Sprache <b>${state.lang}</b>`,
+    `Quellen <b>${srcCfg[state.sources].badge}</b>`,
+  ];
+  document.getElementById('summary-chips').innerHTML =
+    chips.map(c => `<span class="chip">${c}</span>`).join('');
+
+  // metrics
+  const cfg = archCfg[state.arch];
+  const extraDays = scopeCfg[state.scope].days + (state.sources === 'strict' ? 2 : 0);
+  const effortPct = Math.min(100, cfg.effort + extraDays * 4);
+  const totalDays = (state.arch === 'C' ? 10 : state.arch === 'B' ? 5 : 2) + extraDays;
+  document.getElementById('m-effort').textContent = `~${totalDays} Tage`;
+  document.getElementById('bar-effort').style.width = effortPct + '%';
+  document.getElementById('m-risk').textContent = cfg.risk < 30 ? 'niedrig' : cfg.risk < 60 ? 'mittel' : 'hoch';
+  document.getElementById('bar-risk').style.width = cfg.risk + '%';
+  document.getElementById('m-lock').textContent = cfg.lock < 30 ? 'keiner' : cfg.lock < 60 ? 'mittel' : 'hoch';
+  document.getElementById('bar-lock').style.width = cfg.lock + '%';
+
+  // will / wont
+  const will = [];
+  const wont = [];
+  will.push(`components.json mit ${scopeCfg[state.scope].count} Einträgen`);
+  will.push(`schema.json für Validation`);
+  will.push(`library/README.md mit Hinzufügen-Regeln`);
+  if (state.sources === 'strict') will.push('Paper-DOI-Pflicht, bibtex-Datei');
+  if (state.lang === 'hybrid') will.push('EN-Specs + DE-UI-Labels');
+  if (state.arch === 'B') {
+    will.push('browse.html mit Three.js-3D-Preview');
+    will.push('Parametrische Mesh-Generatoren in JS');
+  }
+  if (state.arch === 'C') {
+    will.push('pem_components/ Python-Package');
+    will.push('build123d CAD-Geometrie-Generatoren');
+    will.push('STEP/STL-Export');
+  }
+  if (state.arch === 'A') will.push('browse.html als simple Tabellen-Ansicht');
+
+  if (state.arch === 'A') {
+    wont.push('Kein 3D-Rendering');
+    wont.push('Kein CAD-Export');
+  }
+  if (state.arch === 'B') {
+    wont.push('Kein echter CAD-Export (nur Mesh)');
+    wont.push('Kein Python-Stack-Vorentscheid');
+  }
+  if (state.arch === 'C') {
+    wont.push('Braucht ADR-001 VOR Start');
+    wont.push('Lock-in auf Python-Stack');
+  }
+  if (state.scope === 'minimal') wont.push('Keine Flow-Field-Varianten ab Tag 1');
+  if (state.sources === 'optional') wont.push('Keine Reproduzierbarkeit der Werte');
+
+  document.getElementById('will').innerHTML = will.map(x => `<li>${x}</li>`).join('');
+  document.getElementById('wont').innerHTML = wont.map(x => `<li>${x}</li>`).join('');
+}
+
+// ─── Interactions ─────────────────────────────────────────
+document.querySelectorAll('.card').forEach(c => {
+  c.addEventListener('click', () => { state.arch = c.dataset.arch; render(); toast(`Ansatz ${state.arch} gewählt`); });
+});
+document.querySelectorAll('.toggle-group').forEach(g => {
+  g.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => { state[g.dataset.param] = b.dataset.v; render(); });
+  });
+});
+
+// ─── Buttons (real actions) ───────────────────────────────
+document.getElementById('btn-reset').addEventListener('click', () => {
+  Object.assign(state, defaults); render(); toast('Reset auf Empfehlung');
+});
+document.getElementById('btn-copy').addEventListener('click', async () => {
+  const txt = buildSummaryText();
+  await navigator.clipboard.writeText(txt);
+  toast('Entscheidung kopiert — in Chat einfügen');
+});
+document.getElementById('btn-adr').addEventListener('click', () => {
+  const md = buildADR();
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = '002-library-architecture.md';
+  a.click(); URL.revokeObjectURL(url);
+  toast('ADR-002 heruntergeladen');
+});
+
+function buildSummaryText(){
+  const cfg = archCfg[state.arch];
+  return `Library-Architektur-Entscheidung
+Ansatz: ${state.arch} — ${cfg.name}
+Umfang: ${scopeCfg[state.scope].count} Komponenten (${state.scope})
+Sprache: ${state.lang}
+Quellen: ${state.sources} (${srcCfg[state.sources].badge})
+Lieferumfang: ${cfg.deliverable}`;
+}
+function buildADR(){
+  const cfg = archCfg[state.arch];
+  const date = new Date().toISOString().slice(0,10);
+  return `# ADR-002: Library-Architektur
+
+**Status:** proposed · ${date}
+**Kontext:** pem-ec-designer, Component-Library für Stack-Designer
+
+## Entscheidung
+
+Ansatz **${state.arch} — ${cfg.name}** als Start-Architektur.
+
+| Parameter | Wert |
+|-----------|------|
+| Start-Umfang | ${scopeCfg[state.scope].count} Komponenten (${state.scope}) |
+| Spec-Sprache | ${state.lang} |
+| Quellen-Pflicht | ${state.sources} (${srcCfg[state.sources].badge}) |
+| Aufwand-Schätzung | ~${(state.arch === 'C' ? 10 : state.arch === 'B' ? 5 : 2) + scopeCfg[state.scope].days + (state.sources === 'strict' ? 2 : 0)} Tage |
+
+## Lieferumfang
+
+${cfg.deliverable}
+
+## Konsequenzen
+
+### Positiv
+${state.arch === 'A' ? '- Framework-agnostisch, single source of truth\n- Schnellster Weg zu Feedback\n- Git-diffbar, review-freundlich' : ''}
+${state.arch === 'B' ? '- Sofort visueller Katalog im Browser\n- Nutzt denselben Stack wie Haupt-Mockup\n- Three.js-Primitives sind billig' : ''}
+${state.arch === 'C' ? '- Echter CAD-Export möglich\n- Direkt in finale Python-App integrierbar\n- Pydantic-Validierung eingebaut' : ''}
+
+### Negativ
+${state.arch === 'A' ? '- Kein 3D-Rendering in der Library selbst\n- Browser-View bleibt tabellarisch' : ''}
+${state.arch === 'B' ? '- Keine STEP/STL-Exportfähigkeit\n- Bei Python-Stack-Entscheidung teilweise zu entsorgen' : ''}
+${state.arch === 'C' ? '- Blockiert durch fehlende ADR-001 (Framework)\n- Hoher Technik-Lock-in vor Framework-Wahl\n- 10+ Tage bevor erstes visuelles Feedback' : ''}
+
+## Nicht-Entscheidungen
+
+Diese ADR entscheidet NICHT:
+- Framework-Wahl (→ ADR-001)
+- Physik-Integration-Strategie (→ ADR-003)
+- Stack-Assembly-Logik (Haupt-Mockup-Scope)
+
+## Quellen-Policy
+
+${srcCfg[state.sources].desc}
+`;
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+render();
+</script>
+</body>
+</html>

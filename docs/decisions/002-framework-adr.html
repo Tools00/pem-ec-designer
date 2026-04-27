@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>ADR-001 · Framework-Entscheidung · 8 Pflichtfragen</title>
+<style>
+  :root {
+    --bg:#0f1419; --panel:#1a2028; --panel-2:#222a35; --panel-3:#2a3240;
+    --border:#2d3542; --border-hi:#3d4758;
+    --text:#e4e6eb; --text-dim:#8b94a3; --text-faint:#606773;
+    --accent:#5dade2; --accent-2:#48c9b0; --accent-3:#9b59b6;
+    --warn:#e67e22; --err:#e74c3c; --ok:#27ae60;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font:13px/1.5 -apple-system,"Segoe UI",system-ui,sans-serif}
+  .wrap{max-width:1280px;margin:0 auto;padding:24px;display:grid;
+    grid-template-columns:1fr 360px;gap:20px;align-items:start}
+  h1{font-size:20px;margin:0 0 4px;color:var(--accent)}
+  h2{font-size:15px;margin:24px 0 8px}
+  h3{font-size:13px;margin:0 0 6px}
+  .sub{color:var(--text-dim);font-size:12px;margin-bottom:16px}
+  .mono{font-family:var(--mono);font-size:11px}
+  code{font-family:var(--mono);font-size:11px;background:var(--bg);
+    padding:1px 4px;border-radius:2px;color:var(--accent-2)}
+
+  .decision{background:var(--panel);border:1px solid var(--border);
+    border-radius:6px;padding:14px 16px;margin-bottom:14px}
+  .q{font-size:13px;font-weight:600;margin-bottom:3px}
+  .q .num{font-family:var(--mono);color:var(--text-faint);margin-right:6px}
+  .why{color:var(--text-dim);font-size:11px;margin-bottom:10px}
+
+  .options{display:grid;gap:6px}
+  .opt{display:flex;gap:10px;align-items:flex-start;
+    background:var(--panel-2);border:1px solid var(--border);
+    border-radius:3px;padding:8px 10px;cursor:pointer;font-size:12px;
+    transition:border-color .1s,background .1s}
+  .opt:hover{border-color:var(--border-hi);background:var(--panel-3)}
+  .opt.selected{border-color:var(--accent);background:rgba(93,173,226,.1)}
+  .radio{width:12px;height:12px;border:2px solid var(--border-hi);
+    border-radius:50%;margin-top:3px;flex-shrink:0;position:relative}
+  .opt.selected .radio{border-color:var(--accent)}
+  .opt.selected .radio::after{content:"";position:absolute;inset:1px;
+    background:var(--accent);border-radius:50%}
+  .opt-label{flex:1}
+  .opt-label b{color:var(--text)}
+  .opt-label .hint{color:var(--text-dim);font-size:11px;display:block;margin-top:2px}
+
+  textarea,input[type=text]{width:100%;background:var(--bg);color:var(--text);
+    border:1px solid var(--border);border-radius:3px;padding:6px 8px;
+    font:inherit;font-size:12px;font-family:var(--mono)}
+  textarea:focus,input[type=text]:focus{outline:none;border-color:var(--accent)}
+  textarea{min-height:40px;resize:vertical}
+  .triple{display:grid;grid-template-columns:60px 1fr;gap:6px;
+    align-items:center;margin-bottom:4px}
+  .triple label{font-size:11px;color:var(--text-dim);font-family:var(--mono)}
+
+  /* Sidebar — framework matrix */
+  .sidebar{position:sticky;top:16px;max-height:calc(100vh - 32px);
+    overflow-y:auto}
+  .matrix{background:var(--panel);border:1px solid var(--border);
+    border-radius:6px;padding:14px;margin-bottom:14px}
+  .matrix h3{color:var(--accent);margin-bottom:10px}
+  .matrix table{width:100%;border-collapse:collapse;font-size:11px}
+  .matrix th{text-align:left;color:var(--text-faint);font-size:10px;
+    text-transform:uppercase;letter-spacing:.5px;padding:4px 6px;
+    border-bottom:1px solid var(--border)}
+  .matrix td{padding:6px;border-bottom:1px solid var(--border);
+    vertical-align:top;color:var(--text-dim)}
+  .matrix tr.framework td b{color:var(--text)}
+  .matrix tr.framework.dim{opacity:.28}
+  .matrix tr.framework.match{background:rgba(39,174,96,.08)}
+  .matrix tr.framework.match td b{color:var(--accent-2)}
+  .matrix tr.framework.exclude{background:rgba(231,76,60,.06)}
+  .matrix tr.framework.exclude td b{color:var(--err);text-decoration:line-through}
+  .match-reason{font-size:10px;color:var(--accent-2);font-style:italic;
+    margin-top:2px;display:none}
+  .match .match-reason{display:block}
+
+  /* Summary */
+  .summary{background:var(--panel);border:1px solid var(--accent);
+    border-radius:6px;padding:14px}
+  .summary h3{color:var(--accent);margin-bottom:10px}
+  .sum-row{margin-bottom:6px;font-size:11px;line-height:1.4}
+  .sum-row .k{color:var(--text-faint);font-family:var(--mono);
+    font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+  .sum-row .v{color:var(--text);display:block;padding-left:8px;
+    border-left:2px solid var(--border);margin-top:2px;word-break:break-word}
+  .sum-row .v.empty{color:var(--text-faint);font-style:italic}
+  .recommend{margin-top:12px;padding:10px;background:var(--panel-2);
+    border-left:3px solid var(--accent-2);border-radius:3px}
+  .recommend .k{font-size:10px;color:var(--accent-2);
+    text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .recommend .v{font-size:14px;color:var(--text);font-weight:600;margin-top:4px}
+  .recommend .note{font-size:10px;color:var(--text-dim);margin-top:4px}
+  button{background:var(--accent);color:#0f1419;border:none;
+    padding:7px 12px;border-radius:3px;cursor:pointer;font:inherit;
+    font-weight:500;font-size:11px;width:100%}
+  button:hover{filter:brightness(1.1)}
+  button.ghost{background:transparent;color:var(--text-dim);
+    border:1px solid var(--border);margin-top:6px}
+  .copied{color:var(--ok);font-size:10px;margin-top:6px;opacity:0;
+    transition:opacity .2s;text-align:center}
+  .copied.show{opacity:1}
+
+  .note-box{background:rgba(230,126,34,.08);border-left:3px solid var(--warn);
+    padding:8px 10px;font-size:11px;color:var(--text-dim);
+    border-radius:2px;margin-bottom:14px}
+  .note-box b{color:var(--warn)}
+
+  @media (max-width:900px){.wrap{grid-template-columns:1fr}.sidebar{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="main">
+  <h1>ADR-001 · Framework-Entscheidung</h1>
+  <div class="sub">8 Pflichtfragen aus <code>docs/simulation-project-framework.md</code>. Rechts: Framework-Matrix reagiert live auf deine Antworten.</div>
+
+  <div class="note-box">
+    <b>Kontext aus Library-Scope:</b> Du hast <b>C · Python-Package + build123d</b> gewählt, mit 3D-CAD-Export-Anspruch. Das schränkt die Framework-Matrix schon ein — nur noch Zeilen mit echter 3D-Fähigkeit kommen in Frage.
+  </div>
+
+  <!-- Q1.1 Ziel-Nutzer -->
+  <div class="decision" data-q="user">
+    <div class="q"><span class="num">1.1</span>Ziel-Nutzer in <b>einem</b> Satz</div>
+    <div class="why">Format: „Für [Person] die [Aufgabe] macht, damit [Ergebnis]." Kein Plural, keine „Engineers und Forscher".</div>
+    <textarea id="in-user" placeholder="Für einen … , der … , damit …"></textarea>
+  </div>
+
+  <!-- Q1.2 UI-Ziel-State -->
+  <div class="decision" data-q="state">
+    <div class="q"><span class="num">1.2</span>UI-Ziel-State (jetzt / 6 Monate / 18 Monate)</div>
+    <div class="why">Der <b>18-Monats-State</b> bestimmt die Framework-Wahl. Nicht v0.1.</div>
+    <div class="triple"><label>jetzt</label><input type="text" id="in-state-now" placeholder="v0.1 — was soll's heute können?"></div>
+    <div class="triple"><label>+6 Mon.</label><input type="text" id="in-state-6" placeholder="v0.x — Zwischenstand"></div>
+    <div class="triple"><label>+18 Mon.</label><input type="text" id="in-state-18" placeholder="v1.0 — Endausbau"></div>
+  </div>
+
+  <!-- Q1.3 Deploy -->
+  <div class="decision" data-q="deploy">
+    <div class="q"><span class="num">1.3</span>Deploy-Ziel</div>
+    <div class="why">Wo läuft das Tool in 18 Monaten?</div>
+    <div class="options">
+      <div class="opt" data-val="local"><div class="radio"></div><div class="opt-label"><b>Lokal only</b><span class="hint">kein Browser, direkt Python starten</span></div></div>
+      <div class="opt" data-val="browser-public"><div class="radio"></div><div class="opt-label"><b>Browser, frei zugänglich</b><span class="hint">HuggingFace Spaces, Vercel, Streamlit Cloud</span></div></div>
+      <div class="opt" data-val="browser-internal"><div class="radio"></div><div class="opt-label"><b>Browser, intern</b><span class="hint">eigener Server, Docker</span></div></div>
+      <div class="opt" data-val="desktop"><div class="radio"></div><div class="opt-label"><b>Desktop-App</b><span class="hint">PyQt/PySide, native</span></div></div>
+      <div class="opt" data-val="library"><div class="radio"></div><div class="opt-label"><b>API / Library only</b><span class="hint">kein UI</span></div></div>
+    </div>
+  </div>
+
+  <!-- Q1.4 3D -->
+  <div class="decision" data-q="threed">
+    <div class="q"><span class="num">1.4</span>3D-Visualisierung (jetzt oder in 18 Monaten)</div>
+    <div class="why">Härtester Filter auf die Framework-Matrix.</div>
+    <div class="options">
+      <div class="opt" data-val="none"><div class="radio"></div><div class="opt-label"><b>Nein</b><span class="hint">nur 2D-Plots — Streamlit/Dash/Gradio OK</span></div></div>
+      <div class="opt" data-val="simple"><div class="radio"></div><div class="opt-label"><b>Einfach, statisch</b><span class="hint">3D-Plot ohne Interaktion — Plotly 3D reicht</span></div></div>
+      <div class="opt" data-val="interactive"><div class="radio"></div><div class="opt-label"><b>Interaktiv, CAD-ähnlich</b><span class="hint">Rotate/Zoom/Click-on-Part — <code>kein Streamlit</code></span></div></div>
+      <div class="opt" data-val="cad"><div class="radio"></div><div class="opt-label"><b>CAD-Qualität + STEP/STL-Export</b><span class="hint">Desktop oder NiceGUI/Panel + pyvista</span></div></div>
+    </div>
+  </div>
+
+  <!-- Q1.5 Echtzeit -->
+  <div class="decision" data-q="rt">
+    <div class="q"><span class="num">1.5</span>Echtzeit-Simulation oder Batch?</div>
+    <div class="why">Wie lange dauert eine Berechnung nach Parameter-Änderung?</div>
+    <div class="options">
+      <div class="opt" data-val="realtime"><div class="radio"></div><div class="opt-label"><b>Echtzeit &lt; 1 s</b><span class="hint">Slider bewegen → sofort neues Ergebnis</span></div></div>
+      <div class="opt" data-val="long"><div class="radio"></div><div class="opt-label"><b>Länger &gt; 5 s</b><span class="hint">Celery/Background-Job nötig</span></div></div>
+      <div class="opt" data-val="batch"><div class="radio"></div><div class="opt-label"><b>Batch 1000+ parallel</b><span class="hint">CLI oder Ray, UI zweitrangig</span></div></div>
+    </div>
+  </div>
+
+  <!-- Q1.6 Multi-User -->
+  <div class="decision" data-q="users">
+    <div class="q"><span class="num">1.6</span>Multi-User?</div>
+    <div class="options">
+      <div class="opt" data-val="single"><div class="radio"></div><div class="opt-label"><b>Single User</b><span class="hint">Portfolio, persönlich — kein Auth, kein DB</span></div></div>
+      <div class="opt" data-val="multi-isolated"><div class="radio"></div><div class="opt-label"><b>Multi-User, isolierte Sessions</b><span class="hint">session_state reicht</span></div></div>
+      <div class="opt" data-val="multi-shared"><div class="radio"></div><div class="opt-label"><b>Multi-User, geteilte Daten</b><span class="hint">DB + Auth nötig</span></div></div>
+    </div>
+  </div>
+
+  <!-- Q1.7 Physik -->
+  <div class="decision" data-q="physics">
+    <div class="q"><span class="num">1.7</span>Physik-Domänen (18-Monats-Scope)</div>
+    <div class="why">Alle, die in v1.0 drin sein sollen. Kommaseparierte Liste oder Zeilen. Bestimmt frühe Dependency-Planung.</div>
+    <textarea id="in-physics" placeholder="z.B. Elektrochemie (Butler-Volmer, Nernst), 0D-Thermodynamik, 0D-Fluid, optional 1D-Flow"></textarea>
+  </div>
+
+  <!-- Q1.8 Validation -->
+  <div class="decision" data-q="valid">
+    <div class="q"><span class="num">1.8</span>Wer validiert — und gegen was?</div>
+    <div class="why">Mind. 1 Paper für v0.1. Quelle, Akzeptanzbereich, wer zitiert.</div>
+    <textarea id="in-valid" placeholder="z.B. Carmo 2013 IJHE für Tafel-Slope 40–60 mV/dec, Bernt 2020 JES für RMSE &lt; 60 mV auf Polarisation"></textarea>
+  </div>
+
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+
+  <div class="matrix">
+    <h3>Framework-Matrix (live)</h3>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Grün = passt. Rot durchgestrichen = ausgeschlossen. Grau = noch offen.</div>
+    <table>
+      <thead><tr><th>Framework</th><th>Use Case</th></tr></thead>
+      <tbody id="matrix-body">
+        <tr class="framework" data-fw="streamlit" data-excl-3d="interactive,cad" data-excl-rt="long,batch"><td><b>Streamlit</b></td><td>Portfolio-Demo, Sliders, kein 3D<div class="match-reason"></div></td></tr>
+        <tr class="framework" data-fw="dash" data-excl-3d="cad"><td><b>Dash</b></td><td>Engineering-Dashboard, komplexer State, Plotly<div class="match-reason"></div></td></tr>
+        <tr class="framework" data-fw="panel" data-match-3d="interactive,cad"><td><b>Panel + pyvista</b></td><td>Wissenschaftlich mit 3D, pyvista/VTK nativ<div class="match-reason"></div></td></tr>
+        <tr class="framework" data-fw="nicegui" data-match-3d="interactive,cad"><td><b>NiceGUI</b></td><td>Modernes Python-Web-UI mit 3D (three.js)<div class="match-reason"></div></td></tr>
+        <tr class="framework" data-fw="fastapi" data-match-3d="cad" data-match-deploy="browser-internal"><td><b>FastAPI + React + three.js</b></td><td>Volle Freiheit, REST, Auth<div class="match-reason"></div></td></tr>
+        <tr class="framework" data-fw="jupyter" data-excl-deploy="browser-public,browser-internal,desktop"><td><b>Jupyter + ipywidgets + k3d</b></td><td>Exploration, kein Deploy<div class="match-reason"></div></td></tr>
+        <tr class="framework" data-fw="pyqt" data-match-deploy="desktop" data-match-3d="cad"><td><b>PyQt + pyvistaqt</b></td><td>Desktop, CAD-Qualität, GPU<div class="match-reason"></div></td></tr>
+        <tr class="framework" data-fw="lib" data-match-deploy="library"><td><b>Python Package + FastAPI</b></td><td>Library / API, kein UI<div class="match-reason"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="summary">
+    <h3>Deine ADR-001-Antworten</h3>
+    <div class="sum-row"><span class="k">1.1 Ziel-Nutzer</span><span class="v empty" data-sum="user">— leer</span></div>
+    <div class="sum-row"><span class="k">1.2 UI-State 18m</span><span class="v empty" data-sum="state">— leer</span></div>
+    <div class="sum-row"><span class="k">1.3 Deploy</span><span class="v empty" data-sum="deploy">— leer</span></div>
+    <div class="sum-row"><span class="k">1.4 3D</span><span class="v empty" data-sum="threed">— leer</span></div>
+    <div class="sum-row"><span class="k">1.5 Echtzeit</span><span class="v empty" data-sum="rt">— leer</span></div>
+    <div class="sum-row"><span class="k">1.6 Users</span><span class="v empty" data-sum="users">— leer</span></div>
+    <div class="sum-row"><span class="k">1.7 Physik</span><span class="v empty" data-sum="physics">— leer</span></div>
+    <div class="sum-row"><span class="k">1.8 Validation</span><span class="v empty" data-sum="valid">— leer</span></div>
+
+    <div class="recommend">
+      <div class="k">Framework-Empfehlung</div>
+      <div class="v" id="rec-name">— noch keine Auswahl</div>
+      <div class="note" id="rec-note">Beantworte mindestens Q1.3 und Q1.4.</div>
+    </div>
+
+    <button id="copy-btn" style="margin-top:10px">ADR-Antworten kopieren</button>
+    <button class="ghost" id="reset-btn">Reset</button>
+    <div class="copied" id="copied-msg">✓ kopiert</div>
+  </div>
+
+</div>
+</div>
+
+<script>
+  const state = {
+    user:"", state_now:"", state_6:"", state_18:"", physics:"", valid:"",
+    deploy:null, threed:null, rt:null, users:null
+  };
+  const labels = {
+    deploy:{"local":"Lokal only","browser-public":"Browser public","browser-internal":"Browser intern","desktop":"Desktop-App","library":"Library only"},
+    threed:{"none":"Nein","simple":"Einfach statisch","interactive":"Interaktiv CAD-ähnlich","cad":"CAD-Qualität + Export"},
+    rt:{"realtime":"Echtzeit <1s","long":">5s","batch":"Batch 1000+"},
+    users:{"single":"Single User","multi-isolated":"Multi isoliert","multi-shared":"Multi shared"}
+  };
+
+  // Radio-Karten
+  document.querySelectorAll('.decision').forEach(dec => {
+    const q = dec.dataset.q;
+    dec.querySelectorAll('.opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        dec.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        state[q] = opt.dataset.val;
+        update();
+      });
+    });
+  });
+  // Text-Inputs
+  const textMap = {
+    "in-user":"user", "in-physics":"physics", "in-valid":"valid",
+    "in-state-now":"state_now","in-state-6":"state_6","in-state-18":"state_18"
+  };
+  Object.keys(textMap).forEach(id => {
+    document.getElementById(id).addEventListener('input', e => {
+      state[textMap[id]] = e.target.value;
+      update();
+    });
+  });
+
+  function update(){ updateSummary(); updateMatrix(); }
+
+  function updateSummary(){
+    const map = {
+      user: state.user,
+      state: [state.state_now, state.state_6, state.state_18].filter(Boolean).join(" → "),
+      deploy: state.deploy ? labels.deploy[state.deploy] : "",
+      threed: state.threed ? labels.threed[state.threed] : "",
+      rt: state.rt ? labels.rt[state.rt] : "",
+      users: state.users ? labels.users[state.users] : "",
+      physics: state.physics,
+      valid: state.valid
+    };
+    Object.keys(map).forEach(k => {
+      const cell = document.querySelector(`[data-sum="${k}"]`);
+      if (map[k]) { cell.textContent = map[k]; cell.classList.remove('empty'); }
+      else { cell.textContent = "— leer"; cell.classList.add('empty'); }
+    });
+  }
+
+  function updateMatrix(){
+    const rows = document.querySelectorAll('#matrix-body tr.framework');
+    let bestMatch = null; let bestScore = -1; let note = "";
+
+    rows.forEach(r => {
+      r.classList.remove('match','exclude','dim');
+      const reasonEl = r.querySelector('.match-reason');
+      reasonEl.textContent = "";
+
+      const excl3d = (r.dataset.excl3d || "").split(',');
+      const match3d = (r.dataset.match3d || "").split(',');
+      const exclDep = (r.dataset.exclDeploy || "").split(',');
+      const matchDep = (r.dataset.matchDeploy || "").split(',');
+      const exclRt = (r.dataset.exclRt || "").split(',');
+
+      let excluded = false; let matchReasons = [];
+      if (state.threed && excl3d.includes(state.threed)) { excluded = true; matchReasons.push(`3D=${state.threed} nicht unterstützt`); }
+      if (state.deploy && exclDep.includes(state.deploy)) { excluded = true; matchReasons.push(`Deploy=${state.deploy} geht nicht`); }
+      if (state.rt && exclRt.includes(state.rt))         { excluded = true; matchReasons.push(`Echtzeit=${state.rt} ungeeignet`); }
+
+      let score = 0;
+      if (state.threed && match3d.includes(state.threed)) score += 2;
+      if (state.deploy && matchDep.includes(state.deploy)) score += 1;
+
+      if (excluded) {
+        r.classList.add('exclude');
+        reasonEl.textContent = matchReasons.join(' · ');
+      } else if (score > 0) {
+        r.classList.add('match');
+        reasonEl.textContent = "passt zu deinen Kriterien";
+        if (score > bestScore) { bestScore = score; bestMatch = r.dataset.fw; }
+      } else if (state.threed || state.deploy || state.rt) {
+        r.classList.add('dim');
+      }
+    });
+
+    const recName = document.getElementById('rec-name');
+    const recNote = document.getElementById('rec-note');
+    const names = {
+      streamlit:"Streamlit", dash:"Dash",
+      panel:"Panel + pyvista", nicegui:"NiceGUI",
+      fastapi:"FastAPI + React + three.js",
+      jupyter:"Jupyter + ipywidgets + k3d",
+      pyqt:"PyQt + pyvistaqt",
+      lib:"Python Package + FastAPI"
+    };
+    if (!state.threed && !state.deploy && !state.rt) {
+      recName.textContent = "— noch keine Auswahl";
+      recNote.textContent = "Beantworte mindestens Q1.3 und Q1.4.";
+    } else if (bestMatch) {
+      recName.textContent = names[bestMatch];
+      recNote.textContent = "Bestes Match basierend auf 1.3 + 1.4. Keine harte Regel — Entscheidung bleibt deine.";
+    } else {
+      recName.textContent = "— kein eindeutiges Match";
+      recNote.textContent = "Deine Kombination schließt die meisten Standard-Frameworks aus. ggf. Eigenbau oder Kombination.";
+    }
+  }
+
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const s = (v) => v || "(offen)";
+    const lines = [
+      "ADR-001 · Framework-Entscheidung — Antworten",
+      "",
+      `1.1 Ziel-Nutzer:     ${s(state.user)}`,
+      `1.2 UI-State jetzt:  ${s(state.state_now)}`,
+      `1.2 UI-State +6 M:   ${s(state.state_6)}`,
+      `1.2 UI-State +18 M:  ${s(state.state_18)}`,
+      `1.3 Deploy:          ${s(state.deploy ? labels.deploy[state.deploy] : '')}`,
+      `1.4 3D:              ${s(state.threed ? labels.threed[state.threed] : '')}`,
+      `1.5 Echtzeit:        ${s(state.rt ? labels.rt[state.rt] : '')}`,
+      `1.6 Users:           ${s(state.users ? labels.users[state.users] : '')}`,
+      `1.7 Physik-Domänen:  ${s(state.physics)}`,
+      `1.8 Validation:      ${s(state.valid)}`,
+      "",
+      `Framework-Empfehlung: ${document.getElementById('rec-name').textContent}`
+    ];
+    navigator.clipboard.writeText(lines.join("\n"));
+    const msg = document.getElementById('copied-msg');
+    msg.classList.add('show');
+    setTimeout(() => msg.classList.remove('show'), 1800);
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    Object.keys(state).forEach(k => state[k] = (typeof state[k] === 'string') ? "" : null);
+    document.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('textarea, input[type=text]').forEach(i => i.value = "");
+    update();
+  });
+
+  update();
+</script>
+</body>
+</html>

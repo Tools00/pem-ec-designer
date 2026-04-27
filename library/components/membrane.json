@@ -1,0 +1,81 @@
+{
+  "membrane.nafion.115": {
+    "category": "membrane",
+    "name": "Nafion 115 — 127 µm",
+    "name_de": "Nafion 115 — 127 µm",
+    "material": { "ref": "nafion-1100" },
+    "thickness": {
+      "value": { "value": 127, "unit": "um" },
+      "source": "chemours.datasheet.n115",
+      "confidence": "datasheet"
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "membrane.nafion.117": {
+    "category": "membrane",
+    "name": "Nafion 117 — 183 µm",
+    "name_de": "Nafion 117 — 183 µm",
+    "material": { "ref": "nafion-1100" },
+    "thickness": {
+      "value": { "value": 183, "unit": "um" },
+      "source": "chemours.datasheet.n117",
+      "confidence": "datasheet"
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "membrane.nafion.211": {
+    "category": "membrane",
+    "name": "Nafion NR-211 — 25 µm",
+    "name_de": "Nafion NR-211 — 25 µm",
+    "material": { "ref": "nafion-1100" },
+    "thickness": {
+      "value": { "value": 25, "unit": "um" },
+      "source": "chemours.datasheet.n211",
+      "confidence": "datasheet"
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "membrane.nafion.212": {
+    "category": "membrane",
+    "name": "Nafion NR-212 — 51 µm",
+    "name_de": "Nafion NR-212 — 51 µm",
+    "material": { "ref": "nafion-1100" },
+    "thickness": {
+      "value": { "value": 51, "unit": "um" },
+      "source": "chemours.datasheet.n212",
+      "confidence": "datasheet"
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "membrane.aquivion.e87": {
+    "category": "membrane",
+    "name": "Aquivion E87-05S — 50 µm",
+    "name_de": "Aquivion E87-05S — 50 µm",
+    "material": { "ref": "aquivion-870" },
+    "thickness": {
+      "value": { "value": 50, "unit": "um" },
+      "source": "solvay.datasheet.aquivion",
+      "confidence": "datasheet"
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  }
+}

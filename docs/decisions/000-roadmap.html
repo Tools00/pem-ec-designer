@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>pem-ec-designer · Roadmap &amp; Status</title>
+<style>
+  :root {
+    --bg:#0b0f14; --bg-2:#0f1419;
+    --panel:#1a2028; --panel-2:#222a35; --panel-3:#2a3240;
+    --border:#2d3542; --border-hi:#3d4758;
+    --text:#e4e6eb; --text-dim:#8b94a3; --text-faint:#606773;
+    --accent:#5dade2; --accent-2:#48c9b0; --accent-3:#9b59b6;
+    --warn:#e67e22; --err:#e74c3c; --ok:#27ae60; --info:#3498db;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.25);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;
+    background:radial-gradient(circle at 30% 0%, rgba(93,173,226,.05), transparent 50%),
+      radial-gradient(circle at 70% 100%, rgba(72,201,176,.04), transparent 50%),
+      var(--bg);
+    color:var(--text);
+    font:13px/1.5 -apple-system,"Segoe UI",system-ui,sans-serif;min-height:100vh}
+
+  .wrap{max-width:1280px;margin:0 auto;padding:32px 24px;
+    display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
+  @media (max-width:1000px){.wrap{grid-template-columns:1fr}}
+
+  .hero{margin-bottom:24px}
+  .eyebrow{font-family:var(--mono);font-size:11px;color:var(--text-faint);
+    letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.4px}
+  h1 .accent{color:var(--accent)}
+  .lead{color:var(--text-dim);font-size:14px;max-width:640px;margin:0}
+
+  /* Roadmap timeline */
+  .roadmap{position:relative;padding-left:32px}
+  .roadmap::before{content:"";position:absolute;left:11px;top:8px;bottom:8px;
+    width:2px;background:linear-gradient(180deg,
+      var(--ok) 0%, var(--ok) 50%,
+      var(--warn) 50%, var(--warn) 67%,
+      var(--border) 67%, var(--border) 100%)}
+  .step{position:relative;margin-bottom:16px}
+  .step-marker{position:absolute;left:-32px;top:14px;width:24px;height:24px;
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:600;border:2px solid var(--bg);
+    box-shadow:0 0 0 2px var(--border)}
+  .step.done .step-marker{background:var(--ok);color:var(--bg);
+    box-shadow:0 0 0 2px var(--ok), 0 0 16px rgba(39,174,96,.4)}
+  .step.active .step-marker{background:var(--warn);color:var(--bg);
+    box-shadow:0 0 0 2px var(--warn), 0 0 16px rgba(230,126,34,.5);
+    animation:pulse 2s infinite}
+  .step.pending .step-marker{background:var(--panel-2);color:var(--text-faint)}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+  .step-card{background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--border);border-radius:8px;padding:16px 18px;
+    box-shadow:var(--shadow);transition:border-color .15s}
+  .step.done .step-card{border-color:rgba(39,174,96,.3)}
+  .step.active .step-card{border-color:var(--warn);
+    box-shadow:0 4px 16px rgba(230,126,34,.15), var(--shadow)}
+  .step.pending .step-card{opacity:.65}
+
+  .step-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+  .step-num{font-family:var(--mono);font-size:10px;color:var(--text-faint);
+    text-transform:uppercase;letter-spacing:.5px}
+  .step-title{font-size:14px;font-weight:600;margin:0;flex:1}
+  .step-status{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+    letter-spacing:.5px;padding:3px 8px;border-radius:3px;font-weight:600}
+  .step.done .step-status{background:rgba(39,174,96,.12);color:var(--ok)}
+  .step.active .step-status{background:rgba(230,126,34,.12);color:var(--warn)}
+  .step.pending .step-status{background:var(--panel-2);color:var(--text-faint)}
+
+  .step-desc{color:var(--text-dim);font-size:12px;margin:0 0 12px;line-height:1.5}
+  .step-meta{display:flex;gap:16px;font-size:11px;color:var(--text-faint);
+    margin-bottom:10px;flex-wrap:wrap}
+  .step-meta b{color:var(--text-dim);font-weight:500}
+
+  .step-action{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;
+    border-radius:5px;font-size:12px;font-weight:500;text-decoration:none;
+    border:1px solid var(--border);background:var(--panel-2);color:var(--text-dim);
+    cursor:pointer;transition:all .15s;font-family:inherit}
+  .btn:hover{background:var(--panel-3);border-color:var(--border-hi);color:var(--text)}
+  .btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);
+    font-weight:600}
+  .btn.primary:hover{filter:brightness(1.1);
+    box-shadow:0 4px 12px rgba(93,173,226,.3);color:var(--bg)}
+  .btn .arr{font-family:var(--mono);font-size:11px;opacity:.7}
+  .btn:disabled,.btn.disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+
+  .deps{margin-top:8px;padding:8px 10px;background:rgba(231,76,60,.06);
+    border-left:2px solid var(--err);border-radius:0 3px 3px 0;
+    font-size:11px;color:var(--text-dim)}
+  .deps b{color:var(--err)}
+
+  /* Sidebar */
+  .sidebar{position:sticky;top:24px;display:flex;flex-direction:column;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;padding:16px;box-shadow:var(--shadow)}
+  .panel-title{font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--text-faint);margin:0 0 12px;font-weight:600;
+    display:flex;align-items:center;gap:6px}
+  .panel-title::before{content:"";width:3px;height:12px;background:var(--accent);
+    border-radius:2px}
+
+  .stack-grid{display:grid;gap:6px}
+  .stack-item{display:flex;align-items:center;gap:10px;padding:8px 10px;
+    background:var(--panel-2);border:1px solid var(--border);border-radius:5px}
+  .stack-item .k{font-family:var(--mono);font-size:10px;color:var(--text-faint);
+    text-transform:uppercase;letter-spacing:.5px;width:60px}
+  .stack-item .v{font-size:12px;color:var(--text);font-weight:500;flex:1}
+  .stack-item .badge{font-family:var(--mono);font-size:9px;padding:2px 6px;
+    border-radius:2px;background:rgba(72,201,176,.12);color:var(--accent-2);
+    border:1px solid rgba(72,201,176,.3)}
+
+  .next-card{padding:14px;background:linear-gradient(135deg,
+    rgba(230,126,34,.12), rgba(230,126,34,.04));
+    border:1px solid var(--warn);border-radius:5px}
+  .next-card .label{font-family:var(--mono);font-size:10px;color:var(--warn);
+    text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px}
+  .next-card .title{font-size:14px;font-weight:600;margin-bottom:8px}
+  .next-card .desc{font-size:11px;color:var(--text-dim);margin-bottom:10px;
+    line-height:1.5}
+
+  .files{display:flex;flex-direction:column;gap:4px}
+  .file{display:flex;align-items:center;gap:8px;padding:6px 8px;
+    font-family:var(--mono);font-size:11px;color:var(--text-dim);
+    text-decoration:none;border-radius:3px;transition:background .15s}
+  .file:hover{background:var(--panel-2);color:var(--text)}
+  .file .icon{color:var(--text-faint);font-size:10px}
+  .file.exists .icon{color:var(--ok)}
+  .file.missing{opacity:.5}
+
+  .legend{display:flex;gap:14px;margin-bottom:18px;font-size:11px;
+    color:var(--text-dim);flex-wrap:wrap}
+  .legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;
+    margin-right:6px;vertical-align:middle}
+  .ld-done{background:var(--ok)}
+  .ld-active{background:var(--warn)}
+  .ld-pending{background:var(--text-faint)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<div class="main">
+  <div class="hero">
+    <div class="eyebrow">pem-ec-designer · Projekt 2</div>
+    <h1>Roadmap &amp; <span class="accent">aktueller Stand</span></h1>
+    <p class="lead">Wo wir stehen, was als nächstes ansteht. Klick auf den aktiven Schritt — der Rest wartet.</p>
+  </div>
+
+  <div class="legend">
+    <span><span class="legend-dot ld-done"></span>erledigt</span>
+    <span><span class="legend-dot ld-active"></span>aktiv · jetzt</span>
+    <span><span class="legend-dot ld-pending"></span>wartet auf Vorgänger</span>
+  </div>
+
+  <div class="roadmap">
+
+    <!-- Step 1: DONE -->
+    <div class="step done">
+      <div class="step-marker">✓</div>
+      <div class="step-card">
+        <div class="step-head">
+          <span class="step-num">Step 1</span>
+          <h3 class="step-title">Library-Scope entschieden</h3>
+          <span class="step-status">erledigt</span>
+        </div>
+        <p class="step-desc">4 Entscheidungen zur Library-Form, Quellen, Sprache, Umfang. Vorausgewählt mit C / Strict / Hybrid / Medium.</p>
+        <div class="step-meta">
+          <span><b>Output:</b> Wahl steht, ~17 Tage MVP-Schätzung</span>
+          <span><b>Datei:</b> 001-library-scope.html</span>
+        </div>
+        <div class="step-action">
+          <a class="btn" href="001-library-scope.html">Anschauen <span class="arr">→</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: DONE -->
+    <div class="step done">
+      <div class="step-marker">✓</div>
+      <div class="step-card">
+        <div class="step-head">
+          <span class="step-num">Step 2</span>
+          <h3 class="step-title">ADR-001 · Framework-Wahl</h3>
+          <span class="step-status">erledigt</span>
+        </div>
+        <p class="step-desc">3 Konflikte geklärt (Persona / Multi-User / 18M-State). Entscheidung: <b>PyQt6 + pyvistaqt + build123d</b>. Lizenz-System als ADR-003 Late Binding gemerkt.</p>
+        <div class="step-meta">
+          <span><b>Output:</b> docs/adr/001-framework-choice.md</span>
+          <span><b>Persona:</b> Portfolio + Sim-Engineer</span>
+          <span><b>18M:</b> Industrie-Tool</span>
+        </div>
+        <div class="step-action">
+          <a class="btn" href="../adr/001-framework-choice.md">ADR lesen <span class="arr">→</span></a>
+          <a class="btn" href="003-adr-conflicts.html">Klärung ansehen <span class="arr">→</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: DONE -->
+    <div class="step done">
+      <div class="step-marker">✓</div>
+      <div class="step-card">
+        <div class="step-head">
+          <span class="step-num">Step 3</span>
+          <h3 class="step-title">ADR-002 · Library-Architektur</h3>
+          <span class="step-status">erledigt</span>
+        </div>
+        <p class="step-desc">6 Architektur-Entscheidungen mit Default-Empfehlung übernommen: Per-Category Storage · Pydantic+Schema · Material separat · Ref+BibTeX · Hierarchical IDs · Explicit Units.</p>
+        <div class="step-meta">
+          <span><b>Output:</b> docs/adr/002-library-architecture.md</span>
+          <span><b>Storage:</b> ~8 Files</span>
+          <span><b>Validation:</b> Pydantic v2</span>
+        </div>
+        <div class="step-action">
+          <a class="btn" href="../adr/002-library-architecture.md">ADR lesen <span class="arr">→</span></a>
+          <a class="btn" href="004-library-architecture.html">Klärung ansehen <span class="arr">→</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: ACTIVE -->
+    <div class="step active">
+      <div class="step-marker">4</div>
+      <div class="step-card">
+        <div class="step-head">
+          <span class="step-num">Step 4</span>
+          <h3 class="step-title">Python-Scaffold + Pydantic-Schema + erste 5 Specs</h3>
+          <span class="step-status">aktiv · jetzt</span>
+        </div>
+        <p class="step-desc"><code>pyproject.toml</code> · Layer-Struktur aus ADR-001 · Pydantic-Modelle aus ADR-002 · erste 5 Membran-Komponenten als Strict-Quellen-Beispiel · CI-Smoke-Tests grün.</p>
+        <div class="step-meta">
+          <span><b>Output:</b> lauffähiges Python-Skelett + 5 Specs</span>
+          <span><b>Aufwand:</b> ~2 Tage</span>
+        </div>
+        <div class="deps" style="background:rgba(52,152,219,.06);border-left-color:var(--info)"><b style="color:var(--info)">Mitigation aus 001:</b> inkrementell — erst 5 Membran-Specs strict + Pydantic-Schema → Smoke-Tests grün → dann auf 60 erweitern. Kein 10-Tage-Tippen ohne Feedback.</div>
+      </div>
+    </div>
+
+    <!-- Step 5: PENDING -->
+    <div class="step pending">
+      <div class="step-marker">5</div>
+      <div class="step-card">
+        <div class="step-head">
+          <span class="step-num">Step 5</span>
+          <h3 class="step-title">build123d-Geometrie-Generatoren</h3>
+          <span class="step-status">wartet</span>
+        </div>
+        <p class="step-desc">Pro Komponente eine <code>build()</code>-Funktion: Footprint + Z-Stack + Flow-Pattern → STEP/STL. Validation-Tests gegen Mockup-Maße.</p>
+        <div class="step-meta">
+          <span><b>Output:</b> <code>pem_components/</code> Package + STEP-Beispiele</span>
+          <span><b>Aufwand:</b> ~7 Tage</span>
+        </div>
+        <div class="step-action">
+          <button class="btn disabled" disabled>wartet auf Specs</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6: PENDING -->
+    <div class="step pending">
+      <div class="step-marker">6</div>
+      <div class="step-card">
+        <div class="step-head">
+          <span class="step-num">Step 6</span>
+          <h3 class="step-title">Library-Browser (Viewer)</h3>
+          <span class="step-status">wartet</span>
+        </div>
+        <p class="step-desc">UI um Komponenten zu erkunden, 3D-Preview, Spec-Sheet rechts, Quellen-Links. Framework laut ADR-001.</p>
+        <div class="step-meta">
+          <span><b>Output:</b> Browser-Demo + Integration ins Haupt-Mockup</span>
+          <span><b>Aufwand:</b> ~3 Tage</span>
+        </div>
+        <div class="step-action">
+          <button class="btn disabled" disabled>wartet auf Generatoren</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+
+  <div class="next-card">
+    <div class="label">Nächster Schritt</div>
+    <div class="title">ADR-001 ausfüllen</div>
+    <div class="desc">Klick durch die 8 Fragen, kopier die Antworten zurück in den Chat — dann schreib ich den ADR und scaffolde gegen das gewählte Framework.</div>
+    <a class="btn primary" href="002-framework-adr.html" style="width:100%;justify-content:center">Öffnen <span class="arr">→</span></a>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel-title">Library-Scope (Step 1)</h3>
+    <div class="stack-grid">
+      <div class="stack-item"><span class="k">Form</span><span class="v">C · Python + build123d</span></div>
+      <div class="stack-item"><span class="k">Quellen</span><span class="v">Strict</span><span class="badge">Paper-Pflicht</span></div>
+      <div class="stack-item"><span class="k">Sprache</span><span class="v">Hybrid</span><span class="badge">EN/DE</span></div>
+      <div class="stack-item" style="border-color:rgba(230,126,34,.4);background:rgba(230,126,34,.06)"><span class="k">Umfang</span><span class="v">Wide · 60+ Items</span><span class="badge" style="background:rgba(230,126,34,.15);color:var(--warn);border-color:rgba(230,126,34,.4)">⚠ heavy</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel-title">Dateien im Projekt</h3>
+    <div class="files">
+      <a class="file exists" href="000-roadmap.html"><span class="icon">●</span>000-roadmap.html</a>
+      <a class="file exists" href="001-library-scope.html"><span class="icon">●</span>001-library-scope.html</a>
+      <a class="file exists" href="002-framework-adr.html"><span class="icon">●</span>002-framework-adr.html</a>
+      <span class="file missing"><span class="icon">○</span>../adr/001-framework-choice.md</span>
+      <span class="file missing"><span class="icon">○</span>../adr/002-library-architecture.md</span>
+      <span class="file missing"><span class="icon">○</span>../../library/schema.json</span>
+      <span class="file missing"><span class="icon">○</span>../../library/components.json</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel-title">Geschätzter Gesamt-Aufwand</h3>
+    <div style="font-family:var(--mono);font-size:28px;font-weight:600;color:var(--warn);margin-bottom:4px">~24 <span style="font-size:12px;color:var(--text-dim);font-weight:400">Tage bis MVP</span></div>
+    <div style="font-size:11px;color:var(--text-dim);line-height:1.5">2 ADRs (~2 d) + Schema (~1 d) + <b style="color:var(--warn)">60 Specs mit Strict-Quellen (~10 d)</b> + Generatoren (~7 d) + Viewer (~4 d). Wide 60+ × Strict ist die teuerste Kombi.</div>
+  </div>
+
+</aside>
+
+</div>
+
+</body>
+</html>

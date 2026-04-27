@@ -1,0 +1,1873 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>pem-ec-designer — v1.0 UI Mockup (simulation-grade)</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    :root {
+      --bg:         #0f1419;
+      --panel:      #1a2028;
+      --panel-2:    #222a35;
+      --panel-3:    #2a3240;
+      --border:     #2d3542;
+      --border-hi:  #3d4758;
+      --text:       #e4e6eb;
+      --text-dim:   #8b94a3;
+      --text-faint: #606773;
+      --accent:     #5dade2;
+      --accent-2:   #48c9b0;
+      --accent-3:   #9b59b6;
+      --accent-4:   #f1c40f;
+      --warn:       #e67e22;
+      --err:        #e74c3c;
+      --mono:       ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: var(--bg); color: var(--text);
+      font: 13px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif;
+      overflow: hidden;
+    }
+    button {
+      background: var(--panel-2); color: var(--text);
+      border: 1px solid var(--border);
+      padding: 5px 10px; border-radius: 4px;
+      cursor: pointer; font: inherit;
+    }
+    button:hover { background: var(--panel-3); border-color: var(--border-hi); }
+    button.primary { background: var(--accent); color: #0f1419; border-color: var(--accent); font-weight: 500; }
+    button.primary:hover { filter: brightness(1.1); }
+    button.ghost { background: transparent; border-color: var(--border); }
+    button.danger { background: var(--err); color: #fff; border-color: var(--err); }
+    input, select, textarea {
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); padding: 4px 8px;
+      border-radius: 3px; font: inherit;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    [contenteditable]:focus { outline: 1px solid var(--accent); }
+
+    .mockup-banner {
+      background: var(--warn); color: #1a1a1a;
+      padding: 4px 12px; font-size: 11px; font-weight: 600;
+      text-align: center; letter-spacing: .5px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .mockup-banner .hint { font-weight: 400; opacity: 0.8; font-size: 10px; }
+
+    /* ─── Topbar ─────────────────────────────────────── */
+    header.topbar {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center; gap: 16px;
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      padding: 8px 14px;
+      min-height: 48px;
+    }
+    .brand { font-weight: 600; font-size: 14px; color: var(--accent); white-space: nowrap; }
+    .brand .version { color: var(--text-dim); font-weight: 400; font-size: 10px; margin-left: 6px; font-family: var(--mono); }
+
+    /* Workspace nav (was "workflow breadcrumb" — now actual navigation) */
+    .workspace-nav {
+      display: flex; align-items: center; gap: 0;
+      font-size: 11px;
+    }
+    .workspace-nav .step {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 10px; background: var(--panel-2);
+      border: 1px solid var(--border); border-right: none;
+      color: var(--text-dim); cursor: pointer;
+      user-select: none;
+    }
+    .workspace-nav .step:hover { background: var(--panel-3); color: var(--text); }
+    .workspace-nav .step:first-child { border-radius: 3px 0 0 3px; }
+    .workspace-nav .step:last-child { border-radius: 0 3px 3px 0; border-right: 1px solid var(--border); }
+    .workspace-nav .step.active {
+      color: var(--accent); background: rgba(93, 173, 226, 0.14);
+      border-color: rgba(93,173,226,0.55); font-weight: 500;
+    }
+    .workspace-nav .step .mark { font-family: var(--mono); font-size: 10px; }
+    .workspace-nav .step.done .mark { color: var(--accent-2); }
+    .workspace-nav .step.warn .mark { color: var(--warn); }
+    .workspace-nav .arrow {
+      width: 14px; text-align: center; color: var(--text-faint);
+      background: var(--panel-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 5px 0;
+    }
+
+    .topbar nav { display: flex; gap: 5px; }
+    .topbar .target { color: var(--text-dim); font-size: 10px; font-family: var(--mono); text-align: right; }
+
+    /* ─── Layout ─────────────────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr 310px;
+      height: calc(100vh - 28px - 49px - 24px);
+    }
+
+    aside.panel {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    aside.panel.right { border-right: none; border-left: 1px solid var(--border); }
+
+    .tabs {
+      display: flex; background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1; padding: 7px 10px;
+      font-size: 11px; color: var(--text-dim);
+      background: transparent; border: none; border-bottom: 2px solid transparent;
+      cursor: pointer; text-transform: uppercase; letter-spacing: .5px;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--panel); }
+
+    .panel-body { flex: 1; overflow-y: auto; padding: 10px 12px; }
+
+    .search {
+      padding: 8px 12px 0;
+    }
+    .search input { width: 100%; font-size: 11px; }
+
+    /* Tree */
+    .tree { font-family: var(--mono); font-size: 11px; }
+    .tree-node {
+      display: flex; align-items: center; gap: 4px;
+      padding: 3px 4px; cursor: pointer;
+      border-radius: 2px;
+    }
+    .tree-node:hover { background: var(--panel-2); }
+    .tree-node.selected { background: rgba(93, 173, 226, 0.15); color: var(--accent); }
+    .tree-caret { width: 10px; color: var(--text-faint); font-size: 9px; }
+    .tree-icon {
+      width: 14px; height: 14px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px;
+    }
+    .tree-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tree-badge {
+      font-size: 9px; padding: 0 4px; background: var(--border);
+      color: var(--text-dim); border-radius: 2px;
+    }
+    .tree-status { width: 8px; height: 8px; border-radius: 50%; }
+    .tree-status.ok   { background: var(--accent-2); }
+    .tree-status.warn { background: var(--warn); }
+    .tree-children { margin-left: 14px; border-left: 1px dashed var(--border); padding-left: 2px; }
+
+    /* Library */
+    .lib-section { margin-bottom: 14px; }
+    .lib-section h4 {
+      margin: 6px 0 4px; font-size: 10px; font-weight: 600;
+      color: var(--text-dim); text-transform: uppercase; letter-spacing: .6px;
+    }
+    .lib-item {
+      padding: 5px 8px; background: var(--panel-2);
+      border: 1px solid transparent; border-radius: 3px;
+      font-family: var(--mono); font-size: 11px;
+      margin: 2px 0; cursor: grab;
+      display: flex; justify-content: space-between; align-items: center; gap: 6px;
+    }
+    .lib-item:hover { border-color: var(--accent); }
+    .lib-item .tag {
+      font-size: 9px; padding: 1px 5px; background: var(--border);
+      border-radius: 2px; color: var(--text-dim); white-space: nowrap;
+    }
+
+    /* ─── Workspaces (center + right) ───────────────── */
+    main.workspace-main { background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+    .workspace-head {
+      padding: 8px 14px; border-bottom: 1px solid var(--border);
+      background: var(--panel); display: flex; justify-content: space-between; align-items: center;
+    }
+    .workspace-title { font-size: 12px; font-weight: 600; color: var(--text); letter-spacing: .3px; }
+    .workspace-title .ws-tag {
+      font-family: var(--mono); font-size: 10px; color: var(--text-dim); font-weight: 400;
+      margin-left: 6px;
+    }
+    .workspace-actions { display: flex; gap: 5px; }
+    .workspace-body { flex: 1; overflow: auto; position: relative; }
+
+    /* Design workspace: 3D scene fills */
+    .scene {
+      position: relative; width: 100%; height: 100%;
+      background: radial-gradient(ellipse at center, #1a2330 0%, #0a0d12 100%);
+      overflow: hidden;
+    }
+    #three-container { width: 100%; height: 100%; }
+
+    .scene-toolbar {
+      position: absolute; top: 12px; left: 12px;
+      display: flex; gap: 5px; align-items: center;
+      background: rgba(26, 32, 40, 0.88); padding: 5px; border-radius: 4px;
+      border: 1px solid var(--border); backdrop-filter: blur(6px);
+    }
+    .scene-toolbar label {
+      font-size: 10px; color: var(--text-dim);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .scene-toolbar .divider-v { width: 1px; height: 18px; background: var(--border); }
+    .scene-hint {
+      position: absolute; bottom: 12px; right: 12px;
+      font-family: var(--mono); font-size: 10px; color: var(--text-faint);
+      background: rgba(26, 32, 40, 0.7); padding: 4px 8px; border-radius: 3px;
+    }
+
+    /* View Cube */
+    .view-cube-holder {
+      position: absolute; top: 12px; right: 12px;
+      width: 90px; height: 90px; perspective: 400px; z-index: 4;
+    }
+    .view-cube {
+      width: 60px; height: 60px; position: absolute; top: 15px; left: 15px;
+      transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(.2,.8,.2,1);
+      transform: rotateX(-20deg) rotateY(-35deg);
+    }
+    .view-cube .face {
+      position: absolute; width: 60px; height: 60px;
+      background: rgba(34, 42, 53, 0.85); border: 1px solid var(--border-hi);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text); font-size: 11px; font-weight: 600;
+      cursor: pointer; user-select: none; letter-spacing: .5px;
+    }
+    .view-cube .face:hover { background: rgba(93, 173, 226, 0.25); color: var(--accent); }
+    .vc-front  { transform: translateZ(30px); }
+    .vc-back   { transform: rotateY(180deg) translateZ(30px); }
+    .vc-right  { transform: rotateY(90deg)  translateZ(30px); }
+    .vc-left   { transform: rotateY(-90deg) translateZ(30px); }
+    .vc-top    { transform: rotateX(90deg)  translateZ(30px); }
+    .vc-bottom { transform: rotateX(-90deg) translateZ(30px); }
+    .view-cube-label {
+      position: absolute; bottom: -14px; width: 100%;
+      text-align: center; font-size: 9px; color: var(--text-faint);
+      font-family: var(--mono); letter-spacing: .5px;
+    }
+
+    /* Nav gizmo */
+    .nav-gizmo {
+      position: absolute; bottom: 12px; left: 12px;
+      width: 70px; height: 70px;
+      background: rgba(26, 32, 40, 0.7); border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    /* Workspaces general */
+    .ws-grid {
+      display: grid; gap: 12px; padding: 12px;
+    }
+    .ws-card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 5px; padding: 12px;
+    }
+    .ws-card h3 {
+      margin: 0 0 8px; font-size: 11px; text-transform: uppercase;
+      color: var(--text-dim); letter-spacing: .7px; font-weight: 600;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .ws-card .subtitle { font-size: 10px; color: var(--text-faint); }
+
+    /* Right panel sections */
+    .right-body { padding: 12px; overflow-y: auto; height: 100%; }
+    .selected-card {
+      background: var(--panel-2); border-left: 3px solid var(--accent);
+      padding: 8px 10px; margin-bottom: 10px; border-radius: 0 3px 3px 0;
+    }
+    .selected-card .label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; }
+    .selected-card .name { font-weight: 500; margin-top: 2px; font-size: 13px; }
+
+    /* Property Tabs */
+    .prop-tabs {
+      display: flex; gap: 2px; margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .prop-tab {
+      padding: 5px 8px; font-size: 10px; color: var(--text-dim);
+      background: transparent; border: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+      border-bottom: 2px solid transparent;
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+    .prop-tab:hover { color: var(--text); }
+    .prop-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .prop-tab .ico { width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; }
+
+    dl.props { margin: 0; font-family: var(--mono); font-size: 11px; }
+    dl.props div { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--border); gap: 8px; }
+    dl.props dt { color: var(--text-dim); white-space: nowrap; }
+    dl.props dd { margin: 0; color: var(--text); text-align: right; display: flex; align-items: center; gap: 4px; }
+
+    /* Citation chip */
+    .cite {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 9px; padding: 1px 5px;
+      background: rgba(155, 89, 182, 0.15); color: var(--accent-3);
+      border: 1px solid rgba(155, 89, 182, 0.35);
+      border-radius: 2px; cursor: pointer; font-family: var(--mono);
+    }
+    .cite:hover { background: rgba(155, 89, 182, 0.3); }
+    .cite.green { background: rgba(72,201,176,0.15); color: var(--accent-2); border-color: rgba(72,201,176,.35); }
+    .cite.yellow { background: rgba(241,196,15,0.15); color: var(--accent-4); border-color: rgba(241,196,15,.35); }
+
+    .tooltip {
+      position: fixed; background: #0a0d12; border: 1px solid var(--accent-3);
+      padding: 8px 10px; border-radius: 4px; font-size: 11px;
+      max-width: 280px; z-index: 2000; display: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+    .tooltip .paper { color: var(--accent-3); font-weight: 600; margin-bottom: 3px; }
+    .tooltip .cite-detail { color: var(--text-dim); font-size: 10px; font-family: var(--mono); line-height: 1.5; white-space: pre-line; }
+
+    .metric-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+      margin: 10px 0;
+    }
+    .metric { background: var(--panel-2); padding: 5px 7px; border-radius: 3px; }
+    .metric .k { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .4px; }
+    .metric .v { font-family: var(--mono); font-size: 12px; color: var(--accent-2); margin-top: 2px; }
+
+    h3.section-h {
+      margin: 14px 0 6px; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; color: var(--text-dim); letter-spacing: .7px;
+    }
+
+    /* ─── BOM Table (Cost workspace) ─────────────────── */
+    table.bom {
+      width: 100%; border-collapse: collapse;
+      font-family: var(--mono); font-size: 11px;
+    }
+    table.bom th {
+      background: var(--panel-2); padding: 6px 8px; text-align: left;
+      font-weight: 500; color: var(--text-dim); font-size: 10px;
+      text-transform: uppercase; letter-spacing: .5px;
+      border-bottom: 1px solid var(--border);
+    }
+    table.bom td {
+      padding: 5px 8px; border-bottom: 1px dashed var(--border);
+      color: var(--text);
+    }
+    table.bom td.num { text-align: right; color: var(--accent-2); }
+    table.bom td.edit { background: rgba(93,173,226,0.05); }
+    table.bom td.edit[contenteditable]:hover { background: rgba(93,173,226,0.12); cursor: text; }
+    table.bom tr.total td {
+      border-top: 2px solid var(--border); border-bottom: none;
+      font-weight: 600; padding-top: 8px;
+    }
+    table.bom tr.total td.num { color: var(--accent); font-size: 13px; }
+    table.bom .component-name { color: var(--text); }
+    table.bom .component-kind { color: var(--text-dim); font-size: 9px; }
+
+    /* Flow schematic */
+    .flow-diagram {
+      padding: 20px;
+      text-align: center;
+    }
+
+    /* Action Log Console */
+    .action-log {
+      position: fixed; bottom: 24px; left: 260px; right: 0;
+      height: 120px; background: #0a0d12; border-top: 2px solid var(--accent);
+      overflow-y: auto; padding: 6px 12px; font-family: var(--mono); font-size: 11px;
+      z-index: 500; transform: translateY(100%); transition: transform 0.25s;
+    }
+    .action-log.open { transform: translateY(0); }
+    .action-log .log-line { color: var(--text); padding: 1px 0; }
+    .action-log .log-time { color: var(--text-faint); margin-right: 8px; }
+    .action-log .log-line .badge-act {
+      display: inline-block; padding: 0 4px; border-radius: 2px;
+      background: var(--accent-3); color: #fff; font-size: 9px;
+      margin-right: 6px; font-weight: 600; text-transform: uppercase;
+    }
+    .log-toggle {
+      position: fixed; bottom: 24px; right: 16px; z-index: 501;
+      background: var(--panel); border: 1px solid var(--border);
+      padding: 3px 8px; border-radius: 3px 3px 0 0;
+      font-size: 10px; cursor: pointer; color: var(--text-dim);
+      font-family: var(--mono);
+    }
+    .log-toggle:hover { color: var(--accent); }
+
+    /* Toast notifications */
+    .toast-container {
+      position: fixed; top: 76px; right: 16px; z-index: 1500;
+      display: flex; flex-direction: column; gap: 6px;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--panel); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 8px 14px; border-radius: 4px;
+      font-size: 12px; color: var(--text);
+      opacity: 0; transform: translateX(30px);
+      transition: opacity 0.25s, transform 0.25s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      min-width: 220px; max-width: 340px;
+      pointer-events: auto;
+    }
+    .toast.show { opacity: 1; transform: translateX(0); }
+    .toast .t-head { font-weight: 600; font-size: 11px; color: var(--accent); }
+    .toast .t-body { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+    .toast.success { border-left-color: var(--accent-2); } .toast.success .t-head { color: var(--accent-2); }
+    .toast.warn { border-left-color: var(--warn); } .toast.warn .t-head { color: var(--warn); }
+    .toast.err { border-left-color: var(--err); } .toast.err .t-head { color: var(--err); }
+
+    /* Library hover preview */
+    .lib-preview {
+      position: fixed; z-index: 2000; display: none;
+      background: #0a0d12; border: 1px solid var(--accent);
+      border-radius: 5px; padding: 10px;
+      width: 260px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      pointer-events: none;
+    }
+    .lib-preview .prev-title {
+      font-weight: 600; font-size: 12px; color: var(--accent); margin-bottom: 2px;
+    }
+    .lib-preview .prev-sub { font-size: 10px; color: var(--text-dim); margin-bottom: 8px; font-family: var(--mono); }
+    .lib-preview .prev-svg {
+      width: 100%; height: 80px; background: var(--panel-2);
+      border-radius: 3px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;
+    }
+    .lib-preview dl { margin: 0; font-size: 10px; font-family: var(--mono); }
+    .lib-preview dl div { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed var(--border); }
+    .lib-preview dl dt { color: var(--text-dim); }
+    .lib-preview dl dd { margin: 0; color: var(--text); }
+    .lib-preview .prev-cite { margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+
+    /* Status Bar */
+    .status-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--panel); border-top: 1px solid var(--border);
+      padding: 4px 12px; font-family: var(--mono); font-size: 10px;
+      color: var(--text-dim); display: flex; gap: 16px; align-items: center;
+      height: 24px; z-index: 400;
+    }
+    .status-bar .ok { color: var(--accent-2); }
+    .status-bar .pending { color: var(--warn); }
+    .status-bar .pill {
+      padding: 1px 6px; border-radius: 8px; font-size: 9px;
+      background: var(--border); color: var(--text);
+    }
+
+    /* Small utilities */
+    .row { margin-bottom: 8px; }
+    .row-inline { display: flex; gap: 6px; align-items: center; }
+    .muted { color: var(--text-faint); font-size: 10px; }
+    .kpi {
+      display: flex; flex-direction: column; gap: 2px;
+      padding: 8px 10px; background: var(--panel-2); border-radius: 4px;
+      border-left: 3px solid var(--accent);
+    }
+    .kpi .k { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; }
+    .kpi .v { font-family: var(--mono); font-size: 18px; color: var(--accent); font-weight: 500; }
+    .kpi .sub { font-size: 10px; color: var(--text-dim); font-family: var(--mono); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  </style>
+</head>
+<body>
+
+  <div class="mockup-banner">
+    <span>MOCKUP — keine Funktionen, nur Platzhalter · pem-ec-designer v1.0 Ziel-UI</span>
+    <span class="hint">8 Workspaces · Button-Demo · Hover-Preview · UI-Refs: COMSOL·Fusion·Blender·Ansys·DWSIM</span>
+  </div>
+
+  <!-- ─── Topbar ─────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="brand">pem-ec-designer<span class="version">v1.0 · mockup</span></div>
+
+    <div class="workspace-nav" id="workspace-nav">
+      <div class="step active done" data-ws="design"><span class="mark">✓</span> Design</div>
+      <div class="arrow">›</div>
+      <div class="step done" data-ws="physics"><span class="mark">✓</span> Physics</div>
+      <div class="arrow">›</div>
+      <div class="step done" data-ws="thermal"><span class="mark">✓</span> Thermal</div>
+      <div class="arrow">›</div>
+      <div class="step warn" data-ws="flow"><span class="mark">!</span> Flow</div>
+      <div class="arrow">›</div>
+      <div class="step" data-ws="cost"><span class="mark">€</span> Cost</div>
+      <div class="arrow">›</div>
+      <div class="step" data-ws="efficiency"><span class="mark">η</span> Efficiency</div>
+      <div class="arrow">›</div>
+      <div class="step done" data-ws="validation"><span class="mark">✓</span> Validation</div>
+      <div class="arrow">›</div>
+      <div class="step" data-ws="export"><span class="mark">⤓</span> Export</div>
+    </div>
+
+    <nav>
+      <button data-action="Neue Konfiguration">Neu</button>
+      <button data-action="Lade gespeicherte Konfig (JSON file dialog)">Laden</button>
+      <button data-action="Speichere aktuelle Konfig als stack-config.json">Speichern</button>
+      <button class="primary" data-action="Generiere STEP via build123d, download stack.step">Export STEP</button>
+      <button data-action="Generiere STL via build123d, download stack.stl">Export STL</button>
+      <button class="ghost" data-action="Render 3D-Szene als PNG 1920×1080">PNG</button>
+    </nav>
+
+    <div class="target">localhost:8080<br>single-user</div>
+  </header>
+
+  <!-- ─── Layout ─────────────────────────────────────── -->
+  <div class="layout">
+
+    <!-- LEFT PANEL -->
+    <aside class="panel left">
+      <div class="tabs">
+        <button class="tab active" data-left-tab="tree">Stack Tree</button>
+        <button class="tab" data-left-tab="library">Library</button>
+      </div>
+
+      <div class="search">
+        <input id="left-search" placeholder="Filter (Name, Material, Ref)…">
+      </div>
+
+      <div class="panel-body" id="left-tree">
+        <div class="tree">
+          <div class="tree-node"><span class="tree-caret">▾</span><span class="tree-icon">▣</span><span class="tree-label">Stack Assembly</span><span class="tree-badge">10 cells</span><span class="tree-status ok"></span></div>
+          <div class="tree-children">
+            <div class="tree-node"><span class="tree-caret">▸</span><span class="tree-icon">⬛</span><span class="tree-label">Endplate (top)</span><span class="tree-status ok"></span></div>
+            <div class="tree-node"><span class="tree-caret">▾</span><span class="tree-icon">◨</span><span class="tree-label">Cell 1</span><span class="tree-status ok"></span></div>
+            <div class="tree-children">
+              <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">│</span><span class="tree-label">BPP (top)</span></div>
+              <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">│</span><span class="tree-label">GDL Anode</span></div>
+              <div class="tree-node selected"><span class="tree-caret"></span><span class="tree-icon">▪</span><span class="tree-label">Anode Catalyst</span><span class="tree-badge">IrO₂/TiO₂</span></div>
+              <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">═</span><span class="tree-label">Membran</span><span class="tree-badge">N117</span></div>
+              <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">▪</span><span class="tree-label">Cathode Catalyst</span></div>
+              <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">│</span><span class="tree-label">GDL Cathode</span></div>
+              <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">│</span><span class="tree-label">BPP (bottom)</span></div>
+            </div>
+            <div class="tree-node"><span class="tree-caret">▸</span><span class="tree-icon">◨</span><span class="tree-label">Cell 2</span><span class="tree-status ok"></span></div>
+            <div class="tree-node"><span class="tree-caret">▸</span><span class="tree-icon">◨</span><span class="tree-label">Cell 3 … 10</span><span class="tree-badge">repeat</span></div>
+            <div class="tree-node"><span class="tree-caret">▸</span><span class="tree-icon">⬛</span><span class="tree-label">Endplate (bottom)</span></div>
+          </div>
+          <div class="tree-node" style="margin-top:10px;"><span class="tree-caret">▾</span><span class="tree-icon">⚙</span><span class="tree-label">Operating Conditions</span><span class="tree-status ok"></span></div>
+          <div class="tree-children">
+            <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">T</span><span class="tree-label">Temperature</span><span class="tree-badge">80 °C</span></div>
+            <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">p</span><span class="tree-label">Pressures</span><span class="tree-badge">1/1 bar</span></div>
+            <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">j</span><span class="tree-label">Current density</span><span class="tree-badge">2.0 A/cm²</span></div>
+          </div>
+          <div class="tree-node" style="margin-top:10px;"><span class="tree-caret">▾</span><span class="tree-icon">✓</span><span class="tree-label">Validation Targets</span><span class="tree-status ok"></span></div>
+          <div class="tree-children">
+            <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">📄</span><span class="tree-label">Bernt 2020 RMSE</span><span class="tree-badge">48 mV</span></div>
+            <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">📄</span><span class="tree-label">Zimmer 2026 envelope</span><span class="tree-badge">in</span></div>
+            <div class="tree-node"><span class="tree-caret"></span><span class="tree-icon">∫</span><span class="tree-label">Tafel-slope analytical</span><span class="tree-badge">ok</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Library with hover preview -->
+      <div class="panel-body" id="left-library" style="display:none;">
+        <div class="lib-section">
+          <h4>Membran</h4>
+          <div class="lib-item" data-lib="nafion-117">Nafion 117 <span class="tag">175 µm</span></div>
+          <div class="lib-item" data-lib="nafion-212">Nafion 212 <span class="tag">50 µm</span></div>
+          <div class="lib-item" data-lib="aquivion-e79">Aquivion E79 <span class="tag">80 µm</span></div>
+        </div>
+        <div class="lib-section">
+          <h4>Catalyst Layer (Anode)</h4>
+          <div class="lib-item" data-lib="iro2-tio2">IrO₂ / TiO₂ <span class="tag">Carmo13</span></div>
+          <div class="lib-item" data-lib="ir-black">Ir-black <span class="tag">generic</span></div>
+          <div class="lib-item" data-lib="iro2-ruo2">Ir₀.₇Ru₀.₃O₂ <span class="tag">Bernt20</span></div>
+        </div>
+        <div class="lib-section">
+          <h4>Catalyst Layer (Kathode)</h4>
+          <div class="lib-item" data-lib="pt-c-40">Pt/C 40% <span class="tag">0.4 mg</span></div>
+          <div class="lib-item" data-lib="pt-black">Pt-black <span class="tag">generic</span></div>
+        </div>
+        <div class="lib-section">
+          <h4>GDL / PTL</h4>
+          <div class="lib-item" data-lib="ti-felt">Ti-Felt <span class="tag">250 µm</span></div>
+          <div class="lib-item" data-lib="sgl-29bc">SGL 29BC <span class="tag">235 µm</span></div>
+          <div class="lib-item" data-lib="toray-060">Toray TGP-H-060 <span class="tag">190 µm</span></div>
+        </div>
+        <div class="lib-section">
+          <h4>BPP / Flow-Field</h4>
+          <div class="lib-item" data-lib="ti-parallel">Ti, straight-parallel <span class="tag">v1.0</span></div>
+          <div class="lib-item" data-lib="ti-serpentine">Ti, serpentine <span class="tag">v1.1</span></div>
+          <div class="lib-item" data-lib="graphite-parallel">Graphite, parallel <span class="tag">v1.0</span></div>
+        </div>
+        <div class="lib-section">
+          <h4>Endplate</h4>
+          <div class="lib-item" data-lib="ss-316">Stainless 316 <span class="tag">20 mm</span></div>
+          <div class="lib-item" data-lib="al-6061">Al-6061 <span class="tag">15 mm</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN: Workspaces -->
+    <main class="workspace-main">
+      <div class="workspace-head">
+        <div class="workspace-title" id="ws-title">Design<span class="ws-tag" id="ws-sub">geometry + stack tree</span></div>
+        <div class="workspace-actions" id="ws-actions">
+          <!-- filled per workspace -->
+        </div>
+      </div>
+
+      <div class="workspace-body">
+
+        <!-- DESIGN WORKSPACE -->
+        <div class="workspace-panel" data-ws="design" style="height:100%;">
+          <section class="scene">
+            <div id="three-container"></div>
+            <div class="scene-toolbar">
+              <button id="btn-reset" data-action="Kamera Reset-View">Reset</button>
+              <button id="btn-exploded" data-action="Toggle Exploded-View">Explode</button>
+              <button data-action="Isoliere ausgewähltes Bauteil, verberge Rest">Isolate</button>
+              <button data-action="Erzeuge Schnitt-Ebene, clip alles davor">Section</button>
+              <div class="divider-v"></div>
+              <label>Cells: <span id="cell-count" style="color:var(--text);font-family:var(--mono);">10</span>
+                <input type="range" id="cell-slider" min="1" max="20" value="10" style="width:80px"></label>
+              <label>Explode: <input type="range" id="explode-slider" min="0" max="100" value="0" style="width:70px"></label>
+              <div class="divider-v"></div>
+              <label>Shade:
+                <select id="shade-mode" style="font-size:10px;padding:2px 4px;">
+                  <option>Solid</option><option>X-Ray</option><option>Wireframe</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="view-cube-holder">
+              <div class="view-cube" id="view-cube">
+                <div class="face vc-front"  data-view="front">FRONT</div>
+                <div class="face vc-back"   data-view="back">BACK</div>
+                <div class="face vc-right"  data-view="right">RIGHT</div>
+                <div class="face vc-left"   data-view="left">LEFT</div>
+                <div class="face vc-top"    data-view="top">TOP</div>
+                <div class="face vc-bottom" data-view="bottom">BOT</div>
+              </div>
+              <div class="view-cube-label">view cube</div>
+            </div>
+
+            <div class="nav-gizmo">
+              <svg width="60" height="60" viewBox="-30 -30 60 60">
+                <line x1="0" y1="0" x2="22" y2="0" stroke="#e74c3c" stroke-width="2"/>
+                <circle cx="25" cy="0" r="6" fill="#e74c3c"/>
+                <text x="25" y="3" font-size="8" text-anchor="middle" fill="#fff" font-family="monospace" font-weight="bold">X</text>
+                <line x1="0" y1="0" x2="0" y2="-22" stroke="#48c9b0" stroke-width="2"/>
+                <circle cx="0" cy="-25" r="6" fill="#48c9b0"/>
+                <text x="0" y="-22" font-size="8" text-anchor="middle" fill="#fff" font-family="monospace" font-weight="bold">Y</text>
+                <line x1="0" y1="0" x2="-15" y2="15" stroke="#5dade2" stroke-width="2"/>
+                <circle cx="-17" cy="17" r="6" fill="#5dade2"/>
+                <text x="-17" y="20" font-size="8" text-anchor="middle" fill="#fff" font-family="monospace" font-weight="bold">Z</text>
+                <circle cx="0" cy="0" r="2.5" fill="#e4e6eb"/>
+              </svg>
+            </div>
+
+            <div class="scene-hint">LMB rotate · RMB pan · wheel zoom · click part = select</div>
+          </section>
+        </div>
+
+        <!-- PHYSICS WORKSPACE -->
+        <div class="workspace-panel" data-ws="physics" style="display:none;">
+          <div class="ws-grid" style="grid-template-columns: 1fr 260px; padding: 12px; height: calc(100% - 0px);">
+            <div class="ws-card">
+              <h3>Polarisationskurve <span class="subtitle">0D Butler-Volmer · <span class="cite" data-cite="carmo13">Carmo13</span></span></h3>
+              <div id="polcurve-main" style="height:340px;"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="ws-card">
+                <h3>Parameter Sweep <span class="cite green">active</span></h3>
+                <div class="row"><label class="muted">Variable</label>
+                  <select style="width:100%;" data-action="Wähle Sweep-Variable">
+                    <option>Temperature</option><option>Anode pressure</option><option>Membrane thickness</option><option>Catalyst loading</option>
+                  </select>
+                </div>
+                <div class="row"><label class="muted">Range</label>
+                  <div class="row-inline">
+                    <input type="number" value="40" style="width:60px;"> – <input type="number" value="95" style="width:60px;">
+                    <span class="muted">°C</span>
+                  </div>
+                </div>
+                <div class="row"><label class="muted">Steps</label> <input type="number" value="10" style="width:60px;"></div>
+                <button style="width:100%;" data-action="Berechne Kurvenschar für gewählte Variable, overlay">Run Sweep</button>
+              </div>
+              <div class="ws-card">
+                <h3>Betriebsparameter</h3>
+                <div class="row"><label class="muted">Temperatur <span class="val" id="v-temp" style="color:var(--accent-2);font-family:var(--mono);">80 °C</span></label>
+                  <input type="range" min="40" max="95" value="80" id="s-temp" style="width:100%"></div>
+                <div class="row"><label class="muted">Druck Anode <span class="val" id="v-pa" style="color:var(--accent-2);font-family:var(--mono);">1.0 bar</span></label>
+                  <input type="range" min="1" max="30" value="1" id="s-pa" style="width:100%"></div>
+                <div class="row"><label class="muted">Druck Kathode <span class="val" id="v-pc" style="color:var(--accent-2);font-family:var(--mono);">1.0 bar</span></label>
+                  <input type="range" min="1" max="30" value="1" id="s-pc" style="width:100%"></div>
+                <div class="row"><label class="muted">Stromdichte <span class="val" id="v-j" style="color:var(--accent-2);font-family:var(--mono);">2.0 A/cm²</span></label>
+                  <input type="range" min="1" max="40" value="20" id="s-j" style="width:100%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- THERMAL WORKSPACE -->
+        <div class="workspace-panel" data-ws="thermal" style="display:none;">
+          <div class="ws-grid" style="grid-template-columns: 1.3fr 1fr; padding: 12px; height: calc(100% - 0px);">
+            <div class="ws-card">
+              <h3>Temperaturprofil Stack (Querschnitt) <span class="cite yellow">preview</span></h3>
+              <div class="subtitle" style="margin-bottom:10px;">0D-Thermalmodell · P_loss = (U_cell − U_th) · j · A_active</div>
+              <div id="thermal-svg"></div>
+              <div id="thermal-profile" style="height:180px;margin-top:10px;"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="ws-card">
+                <h3>Heat Balance</h3>
+                <dl class="props">
+                  <div><dt>Cell power (input)</dt><dd>1.84 kW</dd></div>
+                  <div><dt>H₂ chem. power (HHV)</dt><dd>1.48 kW</dd></div>
+                  <div><dt>Waste heat</dt><dd style="color:var(--warn)">360 W</dd></div>
+                  <div><dt>Heat per cell</dt><dd>36 W</dd></div>
+                  <div><dt>Active area</dt><dd>50 cm² / cell</dd></div>
+                  <div><dt>Heat flux</dt><dd>0.72 W/cm²</dd></div>
+                </dl>
+              </div>
+              <div class="ws-card">
+                <h3>Cooling Design</h3>
+                <div class="row"><label class="muted">Cooling strategy</label>
+                  <select style="width:100%;" data-action="Wechsle Cooling-Strategie">
+                    <option>Endplate water loop</option>
+                    <option>Interleaved cooling plates</option>
+                    <option>Air-cooled fins</option>
+                  </select>
+                </div>
+                <div class="row"><label class="muted">ΔT Einlass → Auslass</label>
+                  <input type="number" value="5" style="width:60px;"> <span class="muted">K</span></div>
+                <div class="row"><label class="muted">Kühlwasser-Flow</label>
+                  <input type="text" value="1.03 L/min" readonly style="width:100%;color:var(--accent-2);"></div>
+                <button style="width:100%;" data-action="Re-compute thermal mit aktueller Cooling-Config">Rechne neu</button>
+              </div>
+              <div class="ws-card">
+                <h3 style="margin-bottom:4px;">Warnings</h3>
+                <div class="muted" style="color:var(--warn);font-size:11px;">⚠ T_max (Membran) bei &gt;85 °C → Nafion-Lifetime degradiert. Trigger bei T_avg &gt;80 °C.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FLOW WORKSPACE -->
+        <div class="workspace-panel" data-ws="flow" style="display:none;">
+          <div class="ws-grid" style="grid-template-columns: 1.3fr 1fr; padding: 12px; height: calc(100% - 0px);">
+            <div class="ws-card">
+              <h3>Flow-Diagramm · Anode Wasser + Kathode Gas <span class="cite yellow">preview</span></h3>
+              <div class="subtitle" style="margin-bottom:10px;">Darcy-Weisbach · Hagen-Poiseuille · 0D</div>
+              <div id="flow-svg"></div>
+              <div id="flow-dp-plot" style="height:170px;margin-top:10px;"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="ws-card">
+                <h3>Massenbilanz (1 cell @ 2 A/cm², 50 cm²)</h3>
+                <dl class="props">
+                  <div><dt>H₂O in (anode)</dt><dd>0.56 g/min</dd></div>
+                  <div><dt>H₂ out (cathode)</dt><dd>0.063 g/min</dd></div>
+                  <div><dt>O₂ out (anode)</dt><dd>0.50 g/min</dd></div>
+                  <div><dt>Stoichiometry</dt><dd>λ = 10 <span class="cite" data-cite="carmo13">Carmo13</span></dd></div>
+                  <div><dt>H₂ purity (vor Dryer)</dt><dd>99.6%</dd></div>
+                </dl>
+              </div>
+              <div class="ws-card">
+                <h3>Pressure Drop</h3>
+                <dl class="props">
+                  <div><dt>Anode Channel Δp</dt><dd>28 mbar</dd></div>
+                  <div><dt>GDL Anode Δp</dt><dd>12 mbar</dd></div>
+                  <div><dt>Total stack Δp (anode)</dt><dd style="color:var(--warn)">400 mbar</dd></div>
+                  <div><dt>Pump power</dt><dd>2.1 W</dd></div>
+                </dl>
+              </div>
+              <div class="ws-card">
+                <h3 style="margin-bottom:4px;">Warnings</h3>
+                <div class="muted" style="color:var(--warn);font-size:11px;">⚠ Δp Anode > 350 mbar → Check Manifold-Dimensionierung. Eventuell BPP-Channel-Breite vergrößern.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COST WORKSPACE -->
+        <div class="workspace-panel" data-ws="cost" style="display:none;">
+          <div class="ws-grid" style="grid-template-columns: 2fr 1fr; padding: 12px;">
+            <div class="ws-card">
+              <h3>Bill of Materials · editierbar <span class="subtitle">Doppelklick Zelle → Wert ändern · Gesamtkosten recalc</span></h3>
+              <table class="bom" id="bom-table">
+                <thead>
+                  <tr>
+                    <th>Bauteil</th><th>Material</th>
+                    <th style="text-align:right;">Menge</th>
+                    <th style="text-align:right;">Einheit</th>
+                    <th style="text-align:right;">€ / Einheit</th>
+                    <th style="text-align:right;">Subtotal €</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Per-cell items × 10 cells -->
+                  <tr><td><span class="component-name">Membran</span><div class="component-kind">pro Zelle</div></td><td>Nafion 117</td>
+                    <td class="num edit" contenteditable="true">10</td><td class="num">cell</td>
+                    <td class="num edit" contenteditable="true" data-cost="120">120.00</td><td class="num" data-subtotal>1200.00</td></tr>
+
+                  <tr><td><span class="component-name">Anode CL</span><div class="component-kind">pro Zelle</div></td><td>IrO₂/TiO₂ (2 mg/cm²)</td>
+                    <td class="num edit" contenteditable="true">10</td><td class="num">cell</td>
+                    <td class="num edit" contenteditable="true" data-cost="85">85.00</td><td class="num" data-subtotal>850.00</td></tr>
+
+                  <tr><td><span class="component-name">Cathode CL</span><div class="component-kind">pro Zelle</div></td><td>Pt/C 40% (0.4 mg/cm²)</td>
+                    <td class="num edit" contenteditable="true">10</td><td class="num">cell</td>
+                    <td class="num edit" contenteditable="true" data-cost="24">24.00</td><td class="num" data-subtotal>240.00</td></tr>
+
+                  <tr><td><span class="component-name">GDL/PTL (×2)</span><div class="component-kind">pro Zelle</div></td><td>Ti-Felt 250 µm</td>
+                    <td class="num edit" contenteditable="true">20</td><td class="num">pcs</td>
+                    <td class="num edit" contenteditable="true" data-cost="18">18.00</td><td class="num" data-subtotal>360.00</td></tr>
+
+                  <tr><td><span class="component-name">BPP (×2)</span><div class="component-kind">pro Zelle</div></td><td>Ti, straight-parallel</td>
+                    <td class="num edit" contenteditable="true">20</td><td class="num">pcs</td>
+                    <td class="num edit" contenteditable="true" data-cost="45">45.00</td><td class="num" data-subtotal>900.00</td></tr>
+
+                  <tr><td><span class="component-name">Endplate</span><div class="component-kind">stack</div></td><td>Stainless 316, 20 mm</td>
+                    <td class="num edit" contenteditable="true">2</td><td class="num">pcs</td>
+                    <td class="num edit" contenteditable="true" data-cost="180">180.00</td><td class="num" data-subtotal>360.00</td></tr>
+
+                  <tr><td><span class="component-name">Gaskets + Seals</span><div class="component-kind">stack</div></td><td>EPDM</td>
+                    <td class="num edit" contenteditable="true">10</td><td class="num">sets</td>
+                    <td class="num edit" contenteditable="true" data-cost="8">8.00</td><td class="num" data-subtotal>80.00</td></tr>
+
+                  <tr><td><span class="component-name">Tie-rods + Bolts</span><div class="component-kind">stack</div></td><td>A4 stainless M12</td>
+                    <td class="num edit" contenteditable="true">1</td><td class="num">kit</td>
+                    <td class="num edit" contenteditable="true" data-cost="55">55.00</td><td class="num" data-subtotal>55.00</td></tr>
+
+                  <tr><td><span class="component-name">Assembly + QC</span><div class="component-kind">labor</div></td><td>Pauschal</td>
+                    <td class="num edit" contenteditable="true">1</td><td class="num">h</td>
+                    <td class="num edit" contenteditable="true" data-cost="350">350.00</td><td class="num" data-subtotal>350.00</td></tr>
+
+                  <tr class="total">
+                    <td colspan="5" style="text-align:right;">Stack Material+Labor Total:</td>
+                    <td class="num" id="bom-total">4395.00</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="margin-top:10px;display:flex;gap:6px;">
+                <button data-action="Füge BOM-Zeile hinzu">+ Zeile</button>
+                <button data-action="Export BOM als CSV">Export CSV</button>
+                <button data-action="Reset auf Default-Preise">Reset Preise</button>
+                <button class="ghost" data-action="Speichere Preisstand als Snapshot für Vergleich">Snapshot</button>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="kpi">
+                <div class="k">Stack €</div>
+                <div class="v" id="kpi-stack-cost">4 395 €</div>
+                <div class="sub">= <span id="kpi-per-kw">2 390 €/kW</span> · <span style="color:var(--text-dim);">10 cells, 1.84 kW</span></div>
+              </div>
+
+              <div class="ws-card">
+                <h3>LCOH · Levelized Cost of H₂</h3>
+                <dl class="props">
+                  <div><dt>CAPEX (stack + BOP)</dt><dd>× 1.8 = <span id="lcoh-capex">7 911 €</span></dd></div>
+                  <div><dt>Lebensdauer</dt><dd><input type="number" value="15" style="width:50px;font-size:11px;" id="lcoh-years"> Jahre</dd></div>
+                  <div><dt>Betriebsstunden/Jahr</dt><dd><input type="number" value="4000" style="width:70px;font-size:11px;" id="lcoh-hours"></dd></div>
+                  <div><dt>H₂-Rate</dt><dd>7.5 NL/min → 36 kg/Jahr</dd></div>
+                  <div><dt>Stromkosten</dt><dd><input type="number" value="0.12" step="0.01" style="width:60px;font-size:11px;" id="lcoh-power"> €/kWh</dd></div>
+                  <div><dt>OPEX (5% CAPEX/y)</dt><dd id="lcoh-opex">396 €/y</dd></div>
+                  <div style="border:1px solid var(--accent);background:rgba(93,173,226,0.1);padding:6px 8px;border-radius:3px;margin-top:6px;">
+                    <dt style="color:var(--accent);font-weight:600;">LCOH</dt><dd id="lcoh-value" style="color:var(--accent);font-size:14px;font-weight:600;">6.82 €/kg H₂</dd></div>
+                </dl>
+              </div>
+
+              <div class="ws-card">
+                <h3>Kostenanteile</h3>
+                <div id="cost-donut" style="height:180px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EFFICIENCY WORKSPACE -->
+        <div class="workspace-panel" data-ws="efficiency" style="display:none;">
+          <div class="ws-grid" style="grid-template-columns: 1.4fr 1fr; padding: 12px;">
+            <div class="ws-card">
+              <h3>Spannungs-Waterfall @ 2 A/cm², 80 °C</h3>
+              <div class="subtitle" style="margin-bottom:10px;">U_cell = U_rev + η_act + η_ohm + η_mt · Verluste mechanistisch aufgeschlüsselt</div>
+              <div id="efficiency-waterfall" style="height:300px;"></div>
+              <div class="grid-3" style="margin-top:12px;">
+                <div class="kpi">
+                  <div class="k">η_electrolysis HHV</div>
+                  <div class="v">80.3 %</div>
+                  <div class="sub">U_th / U_cell</div>
+                </div>
+                <div class="kpi" style="border-left-color:var(--accent-2);">
+                  <div class="k">η_electrolysis LHV</div>
+                  <div class="v" style="color:var(--accent-2);">67.9 %</div>
+                  <div class="sub">niederer Heizwert</div>
+                </div>
+                <div class="kpi" style="border-left-color:var(--warn);">
+                  <div class="k">η_Faraday</div>
+                  <div class="v" style="color:var(--warn);">98.5 %</div>
+                  <div class="sub">crossover-limitiert</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="ws-card">
+                <h3>η(j, T) Heatmap</h3>
+                <div id="efficiency-heatmap" style="height:200px;"></div>
+              </div>
+              <div class="ws-card">
+                <h3>Specific Energy Input</h3>
+                <dl class="props">
+                  <div><dt>kWh/kg H₂ (HHV)</dt><dd>49.1</dd></div>
+                  <div><dt>kWh/kg H₂ (LHV)</dt><dd>41.5</dd></div>
+                  <div><dt>kWh/Nm³ H₂</dt><dd>4.41</dd></div>
+                  <div><dt>Target SoA 2030</dt><dd><span class="cite green">&lt; 45 kWh/kg</span></dd></div>
+                </dl>
+              </div>
+              <div class="ws-card">
+                <h3>Was Verbessert Was</h3>
+                <dl class="props">
+                  <div><dt>+10 °C T</dt><dd>−35 mV @ 2A/cm²</dd></div>
+                  <div><dt>−50 µm Membran</dt><dd>−22 mV</dd></div>
+                  <div><dt>×2 Catalyst loading</dt><dd>−18 mV</dd></div>
+                  <div><dt>+0.2 GDL Porosität</dt><dd>−6 mV</dd></div>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VALIDATION WORKSPACE -->
+        <div class="workspace-panel" data-ws="validation" style="display:none;">
+          <div class="ws-grid" style="grid-template-columns: 1fr 1fr; padding: 12px;">
+            <div class="ws-card">
+              <h3>Validation Papers · Test Status</h3>
+              <table class="bom">
+                <thead><tr><th>Paper</th><th>Typ</th><th>Target</th><th>Ergebnis</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>Carmo 2013 IJHE</td><td>Analytical</td>
+                    <td>Tafel-Slope 40–60 mV/dec</td>
+                    <td class="num">52 mV/dec</td>
+                    <td><span class="cite green">✓ pass</span></td>
+                  </tr>
+                  <tr>
+                    <td>Bernt 2020 JES</td><td>Single-paper</td>
+                    <td>RMSE &lt; 60 mV (Fig. 1a)</td>
+                    <td class="num">48 mV</td>
+                    <td><span class="cite green">✓ pass</span></td>
+                  </tr>
+                  <tr>
+                    <td>Zimmer 2026</td><td>Ensemble</td>
+                    <td>Innerhalb σ-Envelope</td>
+                    <td class="num">in-range</td>
+                    <td><span class="cite green">✓ pass</span></td>
+                  </tr>
+                  <tr>
+                    <td>Marangio 2009</td><td>Planned</td>
+                    <td>RMSE benchmark</td>
+                    <td class="num">—</td>
+                    <td><span class="cite yellow">⊘ v1.1</span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="margin-top:10px;display:flex;gap:6px;">
+                <button data-action="Führe alle Validation-Tests aus (pytest)">Run All</button>
+                <button data-action="Re-baseline: speichere aktuelle Ergebnisse als Referenz">Re-baseline</button>
+                <button class="ghost" data-action="Öffne validation/ report HTML">Report anzeigen</button>
+              </div>
+            </div>
+            <div class="ws-card">
+              <h3>Vergleichs-Plot · Modell vs. Bernt 2020</h3>
+              <div id="validation-plot" style="height:320px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXPORT WORKSPACE -->
+        <div class="workspace-panel" data-ws="export" style="display:none;">
+          <div class="ws-grid" style="grid-template-columns: 1fr 1fr; padding: 12px;">
+            <div class="ws-card">
+              <h3>Geometrie-Export · via build123d</h3>
+              <div class="row"><label class="muted">Format</label>
+                <select style="width:100%;" data-action="Wähle Export-Format">
+                  <option>STEP (AP214)</option><option>STL (binary)</option><option>STL (ascii)</option><option>glTF 2.0</option><option>IGES</option>
+                </select></div>
+              <div class="row"><label class="muted">Scope</label>
+                <select style="width:100%;" data-action="Wähle Export-Scope">
+                  <option>Kompletter Stack (assembly)</option>
+                  <option>Einzelne Zelle</option>
+                  <option>Selektiertes Bauteil</option>
+                  <option>Endplates only</option>
+                </select></div>
+              <div class="row row-inline">
+                <label class="muted"><input type="checkbox" checked> Flow-Channels inkludieren</label>
+              </div>
+              <div class="row row-inline">
+                <label class="muted"><input type="checkbox"> Manifold-Bohrungen</label>
+              </div>
+              <div class="row row-inline">
+                <label class="muted"><input type="checkbox"> Gaskets (approximiert)</label>
+              </div>
+              <button class="primary" style="width:100%;margin-top:10px;" data-action="Generiere STEP via build123d, download">Generiere STEP</button>
+              <div class="muted" style="margin-top:8px;">⚠ Scope v1.0 · nur straight-parallel channels. Serpentine in v1.1.</div>
+            </div>
+
+            <div class="ws-card">
+              <h3>Daten-Export</h3>
+              <div class="row row-inline"><label class="muted"><input type="checkbox" checked> stack-config.json</label></div>
+              <div class="row row-inline"><label class="muted"><input type="checkbox" checked> polarisation-curve.csv</label></div>
+              <div class="row row-inline"><label class="muted"><input type="checkbox" checked> bom.csv</label></div>
+              <div class="row row-inline"><label class="muted"><input type="checkbox"> validation-report.html</label></div>
+              <div class="row row-inline"><label class="muted"><input type="checkbox"> thermal-profile.csv</label></div>
+              <div class="row row-inline"><label class="muted"><input type="checkbox"> flow-balance.csv</label></div>
+              <button class="primary" style="width:100%;margin-top:10px;" data-action="Bundle gewählte Daten als ZIP download">Bundle als ZIP</button>
+              <div class="muted" style="margin-top:8px;">Snapshot enthält Git-SHA von pem-ec-0d Physics-Copy (reproducible).</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL (content swaps with workspace) -->
+    <aside class="panel right">
+      <div class="right-body">
+
+        <!-- Design right -->
+        <div class="right-ws" data-right-ws="design">
+          <div class="selected-card">
+            <div class="label">Cell 1 · Selected</div>
+            <div class="name">Anode Catalyst Layer</div>
+          </div>
+          <div class="prop-tabs">
+            <button class="prop-tab active" data-prop-tab="material"><span class="ico">⬢</span> Material</button>
+            <button class="prop-tab" data-prop-tab="physics"><span class="ico">∂</span> Physics</button>
+            <button class="prop-tab" data-prop-tab="geometry"><span class="ico">▣</span> Geom</button>
+            <button class="prop-tab" data-prop-tab="source"><span class="ico">📄</span> Source</button>
+          </div>
+          <dl class="props" id="prop-material">
+            <div><dt>Name</dt><dd>IrO₂ / TiO₂</dd></div>
+            <div><dt>Substrate</dt><dd>TiO₂ support</dd></div>
+            <div><dt>Active phase</dt><dd>IrO₂ (75 wt%)</dd></div>
+            <div><dt>Loading</dt><dd>2.0 mg/cm²</dd></div>
+            <div><dt>Density</dt><dd>11.66 g/cm³</dd></div>
+            <div><dt>Porosity</dt><dd>0.30</dd></div>
+            <div><dt>ECSA</dt><dd>40 m²/g</dd></div>
+          </dl>
+          <dl class="props" id="prop-physics" style="display:none;">
+            <div><dt>j₀ (ref)</dt><dd>1.0e-3 A/m² <span class="cite" data-cite="carmo13">Carmo13</span></dd></div>
+            <div><dt>α (anode)</dt><dd>0.5 <span class="cite" data-cite="bernt20">Bernt20</span></dd></div>
+            <div><dt>E_act</dt><dd>52 kJ/mol <span class="cite" data-cite="carmo13">Carmo13</span></dd></div>
+            <div><dt>n electrons</dt><dd>4</dd></div>
+            <div><dt>T_ref</dt><dd>298.15 K</dd></div>
+            <div><dt>p_ref</dt><dd>1.0 bar</dd></div>
+            <div><dt>Valid range</dt><dd>273…373 K</dd></div>
+          </dl>
+          <dl class="props" id="prop-geometry" style="display:none;">
+            <div><dt>Width</dt><dd>70.7 mm</dd></div>
+            <div><dt>Height</dt><dd>70.7 mm</dd></div>
+            <div><dt>Thickness</dt><dd>8 µm</dd></div>
+            <div><dt>Active area</dt><dd>50 cm²</dd></div>
+            <div><dt>Manifold holes</dt><dd>4 × Ø 4 mm</dd></div>
+          </dl>
+          <dl class="props" id="prop-source" style="display:none;">
+            <div><dt>Paper</dt><dd style="font-size:10px;">Carmo 2013 IJHE</dd></div>
+            <div><dt>DOI</dt><dd style="font-size:10px;">10.1016/j...</dd></div>
+            <div><dt>Equations used</dt><dd>Eq. 12, 14, 17</dd></div>
+            <div><dt>Open access</dt><dd>no</dd></div>
+            <div><dt>Added in</dt><dd>v0.1</dd></div>
+            <div><dt>Last verified</dt><dd>2026-04-20</dd></div>
+          </dl>
+
+          <h3 class="section-h">Stack-Metriken</h3>
+          <div class="metric-grid">
+            <div class="metric"><div class="k">Cells</div><div class="v">10</div></div>
+            <div class="metric"><div class="k">Active Area</div><div class="v">50 cm²</div></div>
+            <div class="metric"><div class="k">U_cell @2A/cm²</div><div class="v">1.84 V</div></div>
+            <div class="metric"><div class="k">U_stack</div><div class="v">18.4 V</div></div>
+            <div class="metric"><div class="k">P_stack</div><div class="v">1.84 kW</div></div>
+            <div class="metric"><div class="k">η (HHV)</div><div class="v">80.3 %</div></div>
+            <div class="metric"><div class="k">H₂-Rate</div><div class="v">7.5 NL/min</div></div>
+            <div class="metric"><div class="k">R_total</div><div class="v">0.105 Ωcm²</div></div>
+          </div>
+          <h3 class="section-h">Validation Quick-Check</h3>
+          <dl class="props">
+            <div><dt>Bernt RMSE</dt><dd style="color:var(--accent-2)">48 mV ✓</dd></div>
+            <div><dt>Zimmer Env.</dt><dd style="color:var(--accent-2)">in-range ✓</dd></div>
+            <div><dt>Tafel</dt><dd style="color:var(--accent-2)">ok ✓</dd></div>
+          </dl>
+        </div>
+
+        <!-- Physics right -->
+        <div class="right-ws" data-right-ws="physics" style="display:none;">
+          <h3 class="section-h">Aktive Modelle</h3>
+          <dl class="props">
+            <div><dt>Kinetics</dt><dd>Butler-Volmer (full)</dd></div>
+            <div><dt>Thermodynamics</dt><dd>Nernst + T-correction</dd></div>
+            <div><dt>Ohmic</dt><dd>Springer-Membran + ASR</dd></div>
+            <div><dt>Mass transport</dt><dd>limiting current (empirical)</dd></div>
+          </dl>
+          <h3 class="section-h">Dominanter Verlust @ 2 A/cm²</h3>
+          <div class="kpi" style="border-left-color:var(--accent-3);">
+            <div class="k">ohmic (R·j)</div>
+            <div class="v" style="color:var(--accent-3);">210 mV</div>
+            <div class="sub">34% des Overpotentials</div>
+          </div>
+          <h3 class="section-h">Shortcuts</h3>
+          <button style="width:100%;margin-top:4px;" data-action="Öffne Physik-Diagnose-View (Residual gegen j)">Diagnose-View</button>
+          <button style="width:100%;margin-top:4px;" data-action="Zeige mathematisches Modell als LaTeX">Gleichungen (LaTeX)</button>
+        </div>
+
+        <!-- Thermal right -->
+        <div class="right-ws" data-right-ws="thermal" style="display:none;">
+          <h3 class="section-h">Thermal Setup</h3>
+          <dl class="props">
+            <div><dt>Model</dt><dd>0D lumped · per cell</dd></div>
+            <div><dt>Boundary</dt><dd>Endplate isothermal</dd></div>
+            <div><dt>k_membrane</dt><dd>0.21 W/mK</dd></div>
+            <div><dt>k_BPP</dt><dd>22 W/mK</dd></div>
+          </dl>
+          <h3 class="section-h">Probes</h3>
+          <div class="kpi"><div class="k">T max (Membran)</div><div class="v">83 °C</div><div class="sub">@ center cell</div></div>
+          <div class="kpi" style="margin-top:6px;border-left-color:var(--warn);"><div class="k">ΔT across stack</div><div class="v" style="color:var(--warn);">7 K</div><div class="sub">edge → center</div></div>
+          <h3 class="section-h">Actions</h3>
+          <button style="width:100%;margin-top:4px;" data-action="Solver-Einstellungen öffnen">Solver</button>
+          <button style="width:100%;margin-top:4px;" data-action="Export Temperature-Profile als CSV">Export CSV</button>
+        </div>
+
+        <!-- Flow right -->
+        <div class="right-ws" data-right-ws="flow" style="display:none;">
+          <h3 class="section-h">Flow Setup</h3>
+          <dl class="props">
+            <div><dt>Model</dt><dd>0D · DW + HP</dd></div>
+            <div><dt>Channels/cell</dt><dd>16 parallel</dd></div>
+            <div><dt>Channel w × h</dt><dd>1.0 × 0.8 mm</dd></div>
+            <div><dt>Rib width</dt><dd>1.0 mm</dd></div>
+          </dl>
+          <h3 class="section-h">Targets</h3>
+          <div class="kpi"><div class="k">Total Δp (anode)</div><div class="v">400 mbar</div><div class="sub">Target &lt; 350</div></div>
+          <div class="kpi" style="margin-top:6px;border-left-color:var(--accent-2);"><div class="k">Flow Maldistribution</div><div class="v" style="color:var(--accent-2);">4.1 %</div><div class="sub">Target &lt; 10%</div></div>
+          <h3 class="section-h">Actions</h3>
+          <button style="width:100%;margin-top:4px;" data-action="Optimiere Channel-Breite für min Δp">Δp minimieren</button>
+          <button style="width:100%;margin-top:4px;" data-action="Tausche Flow-Field auf serpentine, re-analyze">Flow-Field swap</button>
+        </div>
+
+        <!-- Cost right -->
+        <div class="right-ws" data-right-ws="cost" style="display:none;">
+          <h3 class="section-h">Annahmen</h3>
+          <dl class="props">
+            <div><dt>Scale</dt><dd>Prototype (1 stack)</dd></div>
+            <div><dt>BOP-Multiplikator</dt><dd><input type="number" value="1.8" step="0.1" style="width:50px;"></dd></div>
+            <div><dt>Iridium Preis</dt><dd>€/g <input type="number" value="135" style="width:60px;"></dd></div>
+            <div><dt>Platin Preis</dt><dd>€/g <input type="number" value="30" style="width:60px;"></dd></div>
+          </dl>
+          <h3 class="section-h">Sensitivitäts-Top-3</h3>
+          <dl class="props">
+            <div><dt>Iridium Loading</dt><dd style="color:var(--warn);">±26%</dd></div>
+            <div><dt>BPP Material</dt><dd style="color:var(--accent-3);">±18%</dd></div>
+            <div><dt>Membran-Typ</dt><dd>±12%</dd></div>
+          </dl>
+          <button style="width:100%;margin-top:10px;" data-action="Run Sensitivitäts-Analyse">Monte Carlo Run</button>
+          <button style="width:100%;margin-top:4px;" data-action="Vergleiche mit IEA 2023 Roadmap">IEA-Benchmark</button>
+        </div>
+
+        <!-- Efficiency right -->
+        <div class="right-ws" data-right-ws="efficiency" style="display:none;">
+          <h3 class="section-h">Betriebspunkt</h3>
+          <dl class="props">
+            <div><dt>j</dt><dd>2.0 A/cm²</dd></div>
+            <div><dt>T</dt><dd>80 °C</dd></div>
+            <div><dt>U_cell</dt><dd>1.84 V</dd></div>
+            <div><dt>U_thermoneutral</dt><dd>1.48 V</dd></div>
+          </dl>
+          <h3 class="section-h">Verlust-Aufschlüsselung</h3>
+          <dl class="props">
+            <div><dt>η_activation</dt><dd>280 mV</dd></div>
+            <div><dt>η_ohmic</dt><dd>210 mV</dd></div>
+            <div><dt>η_mt</dt><dd>60 mV</dd></div>
+            <div style="border-top:1px solid var(--accent);padding-top:4px;"><dt>Σ overpotential</dt><dd>550 mV</dd></div>
+          </dl>
+          <h3 class="section-h">Optimierungs-Vorschläge</h3>
+          <button style="width:100%;margin-top:4px;" data-action="Auto-tune Betriebspunkt für Max η">Optimizer run</button>
+          <button style="width:100%;margin-top:4px;" data-action="Vergleich mit IEA Targets 2030">IEA-Target</button>
+        </div>
+
+        <!-- Validation right -->
+        <div class="right-ws" data-right-ws="validation" style="display:none;">
+          <h3 class="section-h">Test-Suite</h3>
+          <dl class="props">
+            <div><dt>Tests total</dt><dd>34</dd></div>
+            <div><dt>Pass</dt><dd style="color:var(--accent-2);">32 ✓</dd></div>
+            <div><dt>Xfail (strict)</dt><dd style="color:var(--warn);">2 ⊘</dd></div>
+            <div><dt>Laufzeit</dt><dd>14.3 s</dd></div>
+          </dl>
+          <h3 class="section-h">Xfail Diagnose</h3>
+          <div class="muted" style="color:var(--warn);font-size:11px;line-height:1.4;">
+            #1 Preset-System für catalyst-specific kinetics pending (v1.1 scope)<br>
+            #2 Marangio 2009 baseline unassigned
+          </div>
+          <button style="width:100%;margin-top:10px;" data-action="Öffne HTML-Report validation/report.html">Open Report</button>
+          <button style="width:100%;margin-top:4px;" data-action="git log von validation/ Ordner">Git Log</button>
+        </div>
+
+        <!-- Export right -->
+        <div class="right-ws" data-right-ws="export" style="display:none;">
+          <h3 class="section-h">Export-Ziele</h3>
+          <dl class="props">
+            <div><dt>CAD</dt><dd>stack.step (build123d)</dd></div>
+            <div><dt>Data</dt><dd>bundle.zip</dd></div>
+            <div><dt>Docs</dt><dd>report.pdf</dd></div>
+          </dl>
+          <h3 class="section-h">Reproducibility</h3>
+          <dl class="props">
+            <div><dt>Physics hash</dt><dd>pem-ec-0d@v0.6</dd></div>
+            <div><dt>Config hash</dt><dd>sha256 a1b2…</dd></div>
+            <div><dt>Mockup date</dt><dd>2026-04-23</dd></div>
+          </dl>
+          <button style="width:100%;margin-top:10px;" data-action="Erzeuge komplettes Reproducibility-Bundle (code+config+results)">Full Bundle</button>
+        </div>
+
+      </div>
+    </aside>
+  </div>
+
+  <!-- Tooltip -->
+  <div class="tooltip" id="tooltip"></div>
+
+  <!-- Library hover preview -->
+  <div class="lib-preview" id="lib-preview"></div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Action log -->
+  <div class="log-toggle" id="log-toggle">▲ Action Log</div>
+  <div class="action-log" id="action-log"></div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span>Config: <span class="ok">unsaved</span></span>
+    <span>Physics: <span class="ok">0D · pem-ec-0d @ v0.6</span></span>
+    <span>Validation: <span class="ok">32/34 grün (2 xfail)</span></span>
+    <span>CAD-Export: <span class="pending">build123d · straight-channel</span></span>
+    <span class="pill" id="status-ws">design</span>
+    <span style="margin-left:auto;">mockup 2026-04-23 · UI-Refs: COMSOL·Fusion·Blender·Ansys·DWSIM</span>
+  </div>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  // ─── Toast + Action Log ─────────────────────────────
+  const toastContainer = document.getElementById('toast-container');
+  const actionLog = document.getElementById('action-log');
+  const logToggle = document.getElementById('log-toggle');
+
+  function toast(title, body='', type='info') {
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.innerHTML = `<div class="t-head">${title}</div>${body ? `<div class="t-body">${body}</div>` : ''}`;
+    toastContainer.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 280); }, 3200);
+  }
+  function log(action, detail='') {
+    const t = new Date().toLocaleTimeString('de-DE');
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.innerHTML = `<span class="log-time">${t}</span><span class="badge-act">click</span><b>${action}</b> ${detail ? `<span style="color:var(--text-dim);">— ${detail}</span>` : ''}`;
+    actionLog.prepend(line);
+  }
+  logToggle.addEventListener('click', () => {
+    actionLog.classList.toggle('open');
+    logToggle.textContent = actionLog.classList.contains('open') ? '▼ Action Log' : '▲ Action Log';
+  });
+
+  // All buttons/selects with data-action → simulate
+  document.body.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-action]');
+    if (!t) return;
+    const action = t.dataset.action;
+    const label = (t.textContent || t.value || '').trim().substring(0, 40);
+    toast(label || t.tagName, action, 'info');
+    log(label || t.tagName, action);
+  });
+  document.body.addEventListener('change', (e) => {
+    const t = e.target.closest('select[data-action]');
+    if (!t) return;
+    toast(t.value, t.dataset.action, 'info');
+    log(t.value, t.dataset.action);
+  });
+
+  // ─── Workspace switcher ─────────────────────────────
+  const wsTitles = {
+    design:     ['Design', 'geometry + stack tree + 3D view'],
+    physics:    ['Physics', '0D electrochemistry · polarisation + sweep'],
+    thermal:    ['Thermal Analysis', 'preview · heat balance + cooling'],
+    flow:       ['Flow Analysis', 'preview · Darcy-Weisbach + mass balance'],
+    cost:       ['Cost Calculator', 'editable BOM + LCOH'],
+    efficiency: ['Efficiency Calculator', 'voltage waterfall + η maps'],
+    validation: ['Validation', 'paper-by-paper test status'],
+    export:     ['Export', 'STEP/STL/data bundle'],
+  };
+  const plotsRendered = new Set();
+  function activateWorkspace(name) {
+    document.querySelectorAll('.workspace-panel').forEach(p => {
+      p.style.display = p.dataset.ws === name ? '' : 'none';
+    });
+    document.querySelectorAll('.right-ws').forEach(p => {
+      p.style.display = p.dataset.rightWs === name ? '' : 'none';
+    });
+    document.querySelectorAll('#workspace-nav .step').forEach(s => {
+      s.classList.toggle('active', s.dataset.ws === name);
+    });
+    const [title, sub] = wsTitles[name];
+    document.getElementById('ws-title').innerHTML = `${title}<span class="ws-tag">${sub}</span>`;
+    document.getElementById('status-ws').textContent = name;
+
+    log('Workspace switch', name);
+    if (!plotsRendered.has(name)) { renderWorkspacePlots(name); plotsRendered.add(name); }
+    if (name === 'design') onResize();
+  }
+  document.querySelectorAll('#workspace-nav .step').forEach(s => {
+    s.addEventListener('click', () => activateWorkspace(s.dataset.ws));
+  });
+
+  // ─── 3D Scene (Design workspace) ────────────────────
+  const container = document.getElementById('three-container');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, container.clientWidth / container.clientHeight, 0.1, 2000);
+  camera.position.set(140, 80, 140);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  container.appendChild(renderer.domElement);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.08;
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9); dir.position.set(80, 120, 80); scene.add(dir);
+  const rim = new THREE.DirectionalLight(0x5dade2, 0.35); rim.position.set(-80, 40, -80); scene.add(rim);
+  const grid = new THREE.GridHelper(200, 20, 0x2d3542, 0x1a2028); grid.position.y = -45; scene.add(grid);
+
+  const LAYERS = [
+    { name: 'Endplate', t: 6, color: 0x607080 },
+    { name: 'BPP', t: 3, color: 0x8b94a3 },
+    { name: 'GDL Anode', t: 1, color: 0x444a55 },
+    { name: 'Anode Catalyst', t: 0.4, color: 0x5dade2 },
+    { name: 'Membran', t: 0.4, color: 0xe4e6eb },
+    { name: 'Cathode Catalyst', t: 0.4, color: 0x48c9b0 },
+    { name: 'GDL Cathode', t: 1, color: 0x444a55 },
+    { name: 'BPP', t: 3, color: 0x8b94a3 },
+  ];
+  const REPEAT = LAYERS.slice(1, -1);
+  const stackGroup = new THREE.Group();
+  const layerMeshes = [];
+  const W = 60, H = 60;
+  function buildStack(cellCount) {
+    while (stackGroup.children.length) stackGroup.remove(stackGroup.children[0]);
+    layerMeshes.length = 0;
+    addLayer(LAYERS[0], 0);
+    let y = LAYERS[0].t;
+    for (let c = 0; c < cellCount; c++) {
+      for (const L of REPEAT) { addLayer(L, y + L.t / 2, c); y += L.t; }
+    }
+    addLayer(LAYERS[0], y + LAYERS[0].t / 2);
+    y += LAYERS[0].t;
+    stackGroup.position.y = -y / 2 + LAYERS[0].t / 2;
+  }
+  function addLayer(L, yCenter, cellIdx = -1) {
+    const geom = new THREE.BoxGeometry(W, L.t, H);
+    const mat = new THREE.MeshStandardMaterial({ color: L.color, roughness: 0.55, metalness: 0.35, transparent: true, opacity: 0.96 });
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.position.y = yCenter;
+    mesh.userData = { name: L.name, cell: cellIdx, baseY: yCenter };
+    stackGroup.add(mesh); layerMeshes.push(mesh);
+    const edges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(geom),
+      new THREE.LineBasicMaterial({ color: 0x0a0d12, transparent: true, opacity: 0.6 })
+    );
+    mesh.add(edges);
+  }
+  scene.add(stackGroup);
+  buildStack(10);
+
+  const explodeSlider = document.getElementById('explode-slider');
+  const cellSlider = document.getElementById('cell-slider');
+  const cellCountLbl = document.getElementById('cell-count');
+  function applyExplode() {
+    const f = parseFloat(explodeSlider.value) / 100 * 3.0;
+    for (const m of layerMeshes) m.position.y = m.userData.baseY * (1 + f);
+  }
+  explodeSlider.addEventListener('input', applyExplode);
+  cellSlider.addEventListener('input', () => {
+    const n = parseInt(cellSlider.value); cellCountLbl.textContent = n;
+    buildStack(n); applyExplode();
+  });
+  document.getElementById('btn-exploded').addEventListener('click', () => {
+    explodeSlider.value = explodeSlider.value > 0 ? 0 : 50;
+    applyExplode();
+  });
+  function setView(axis) {
+    const d = 200;
+    const targets = { front:[0,0,d], back:[0,0,-d], right:[d,0,0], left:[-d,0,0], top:[0,d,0.1], bottom:[0,-d,0.1] };
+    const t = targets[axis]; camera.position.set(t[0], t[1], t[2]); controls.target.set(0,0,0);
+    toast('View: ' + axis.toUpperCase(), 'Kamera orientiert', 'info');
+  }
+  document.querySelectorAll('.view-cube .face').forEach(f => f.addEventListener('click', () => setView(f.dataset.view)));
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    camera.position.set(140, 80, 140); controls.target.set(0, 0, 0);
+  });
+  const vc = document.getElementById('view-cube');
+  function syncViewCube() {
+    const spherical = new THREE.Spherical().setFromVector3(camera.position);
+    const yDeg = -THREE.MathUtils.radToDeg(spherical.theta) + 180;
+    const xDeg = THREE.MathUtils.radToDeg(spherical.phi) - 90;
+    vc.style.transform = `rotateX(${-xDeg}deg) rotateY(${yDeg}deg)`;
+  }
+  function onResize() {
+    const w = container.clientWidth, h = container.clientHeight;
+    if (w === 0 || h === 0) return;
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  window.addEventListener('resize', onResize);
+  document.getElementById('shade-mode').addEventListener('change', (e) => {
+    const mode = e.target.value;
+    for (const m of layerMeshes) {
+      if (mode === 'X-Ray') { m.material.opacity = 0.35; }
+      else if (mode === 'Wireframe') { m.material.wireframe = true; m.material.opacity = 1; }
+      else { m.material.opacity = 0.96; m.material.wireframe = false; }
+    }
+    toast('Shading: ' + mode, 'Mesh-Material-Props aktualisiert', 'info');
+  });
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update(); syncViewCube();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ─── Slider-Labels (Physics) ────────────────────────
+  const bind = (sid, vid, fmt) => {
+    const s = document.getElementById(sid), v = document.getElementById(vid);
+    if (!s) return;
+    s.addEventListener('input', () => v.textContent = fmt(s.value));
+  };
+  bind('s-temp', 'v-temp', x => `${x} °C`);
+  bind('s-pa',   'v-pa',   x => `${parseFloat(x).toFixed(1)} bar`);
+  bind('s-pc',   'v-pc',   x => `${parseFloat(x).toFixed(1)} bar`);
+  bind('s-j',    'v-j',    x => `${(x/10).toFixed(1)} A/cm²`);
+
+  // ─── Tabs: left + right ─────────────────────────────
+  document.querySelectorAll('[data-left-tab]').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('[data-left-tab]').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const which = t.dataset.leftTab;
+      document.getElementById('left-tree').style.display = which === 'tree' ? '' : 'none';
+      document.getElementById('left-library').style.display = which === 'library' ? '' : 'none';
+    });
+  });
+  document.querySelectorAll('[data-prop-tab]').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('[data-prop-tab]').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const which = t.dataset.propTab;
+      ['material','physics','geometry','source'].forEach(k => {
+        const el = document.getElementById('prop-' + k);
+        if (el) el.style.display = (k === which) ? '' : 'none';
+      });
+    });
+  });
+
+  // ─── Citation tooltip ───────────────────────────────
+  const CITATIONS = {
+    'carmo13': { paper: 'Carmo et al. 2013 — IJHE', detail: 'A comprehensive review on PEM water electrolysis.\nInt. J. Hydrogen Energy 38(12):4901–4934.\nDOI: 10.1016/j.ijhydene.2013.01.151\nEqs. 12, 14, 17 used for Butler-Volmer + thermal.\nValid range: 40–85 °C, 1–30 bar.' },
+    'bernt20': { paper: 'Bernt et al. 2020 — JES', detail: 'Analysis of Voltage Losses in PEMWE of 100 cm² MEAs.\nJ. Electrochem. Soc. 167(12):124502.\nDOI: 10.1149/1945-7111/abaa68\nSource for α = 0.5 anode transfer coefficient.\nReference dataset for RMSE target.' },
+  };
+  const tooltip = document.getElementById('tooltip');
+  document.body.addEventListener('mouseover', (e) => {
+    const chip = e.target.closest('.cite');
+    if (!chip || !chip.dataset.cite) return;
+    const c = CITATIONS[chip.dataset.cite]; if (!c) return;
+    tooltip.innerHTML = `<div class="paper">${c.paper}</div><div class="cite-detail">${c.detail}</div>`;
+    tooltip.style.display = 'block';
+    const r = chip.getBoundingClientRect();
+    tooltip.style.left = Math.min(window.innerWidth - 300, r.left) + 'px';
+    tooltip.style.top = (r.bottom + 6) + 'px';
+  });
+  document.body.addEventListener('mouseout', (e) => {
+    if (e.target.closest('.cite')) tooltip.style.display = 'none';
+  });
+
+  // ─── Left search ────────────────────────────────────
+  document.getElementById('left-search').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('#left-library .lib-item').forEach(it => {
+      it.style.display = it.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+    document.querySelectorAll('#left-tree .tree-node').forEach(n => {
+      n.style.display = !q || n.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
+  // ─── Library hover preview ──────────────────────────
+  const LIB_PREVIEWS = {
+    'nafion-117':       { title: 'Nafion 117', sub: 'DuPont · PFSA · 175 µm', svg: svgMembrane('#5dade2'),
+      specs: {'Thickness':'175 µm','EW':'1100 g/eq','Density':'1.97 g/cm³','σ @ 80°C':'10 S/m','Cost':'~€120/cell'},
+      cites: ['Carmo13'] },
+    'nafion-212':       { title: 'Nafion 212', sub: 'DuPont · PFSA · 50 µm', svg: svgMembrane('#5dade2'),
+      specs: {'Thickness':'50 µm','EW':'1100 g/eq','Density':'1.97 g/cm³','σ @ 80°C':'12 S/m','Cost':'~€70/cell'}, cites: ['Carmo13'] },
+    'aquivion-e79':     { title: 'Aquivion E79', sub: 'Solvay · SSC-PFSA · 80 µm', svg: svgMembrane('#f1c40f'),
+      specs: {'Thickness':'80 µm','EW':'790 g/eq','σ @ 80°C':'15 S/m','Cost':'~€95/cell'}, cites: [] },
+    'iro2-tio2':        { title: 'IrO₂ / TiO₂', sub: '75 wt% IrO₂ on TiO₂', svg: svgCatalyst('#5dade2', '#222a35'),
+      specs: {'Loading':'2.0 mg/cm²','j₀ ref':'1e-3 A/m²','α':'0.5','E_act':'52 kJ/mol','Cost':'~€85/cell'}, cites:['Carmo13'] },
+    'ir-black':         { title: 'Ir-Black', sub: 'unsupported Ir-oxide', svg: svgCatalyst('#48c9b0', '#0f1419'),
+      specs: {'Loading':'3.0 mg/cm²','j₀':'2e-3','α':'0.55','Cost':'~€150/cell'}, cites: [] },
+    'iro2-ruo2':        { title: 'Ir₀.₇Ru₀.₃O₂', sub: 'mixed oxide', svg: svgCatalyst('#9b59b6', '#1a2028'),
+      specs: {'Loading':'2.5 mg/cm²','j₀':'3e-3','α':'0.5','Cost':'~€100/cell'}, cites:['Bernt20'] },
+    'pt-c-40':          { title: 'Pt/C 40%', sub: 'Pt on Vulcan', svg: svgCatalyst('#e4e6eb', '#1a2028'),
+      specs: {'Pt loading':'0.4 mg/cm²','j₀':'0.1 A/m²','Cost':'~€24/cell'}, cites: [] },
+    'pt-black':         { title: 'Pt-Black', sub: 'unsupported Pt', svg: svgCatalyst('#e4e6eb', '#0a0d12'),
+      specs: {'Loading':'1.0 mg/cm²','j₀':'0.15 A/m²','Cost':'~€45/cell'}, cites: [] },
+    'ti-felt':          { title: 'Ti-Felt', sub: 'sintered Ti fibers', svg: svgGDL('#8b94a3'),
+      specs: {'Thickness':'250 µm','Porosity':'0.65','k_perm':'1e-11 m²','Cost':'~€18/pc'}, cites: [] },
+    'sgl-29bc':         { title: 'SGL Sigracet 29 BC', sub: 'carbon GDL + MPL', svg: svgGDL('#444a55'),
+      specs: {'Thickness':'235 µm','Porosity':'0.80','PTFE':'5 wt%','Cost':'~€12/pc'}, cites: [] },
+    'toray-060':        { title: 'Toray TGP-H-060', sub: 'carbon paper', svg: svgGDL('#2a3240'),
+      specs: {'Thickness':'190 µm','Porosity':'0.78','Cost':'~€10/pc'}, cites: [] },
+    'ti-parallel':      { title: 'Ti · straight-parallel', sub: '16 channels × 1.0 mm', svg: svgFlowParallel('#8b94a3'),
+      specs: {'Channel w':'1.0 mm','Channel h':'0.8 mm','Rib':'1.0 mm','Cost':'~€45/pc','Δp':'28 mbar/cell'}, cites: [] },
+    'ti-serpentine':    { title: 'Ti · serpentine', sub: 'single-path serpentine', svg: svgFlowSerpentine('#8b94a3'),
+      specs: {'Channel w':'0.8 mm','Path length':'880 mm','Cost':'~€65/pc','Δp':'90 mbar/cell','Status':'v1.1'}, cites: [] },
+    'graphite-parallel':{ title: 'Graphite · parallel', sub: 'compression molded', svg: svgFlowParallel('#444a55'),
+      specs: {'Channel w':'1.2 mm','Rib':'1.0 mm','Density':'1.85 g/cm³','Cost':'~€28/pc'}, cites: [] },
+    'ss-316':           { title: 'Stainless 316', sub: 'endplate 20 mm', svg: svgEndplate('#607080'),
+      specs: {'Thickness':'20 mm','Holes':'4 × M12','Cost':'~€180/pc'}, cites: [] },
+    'al-6061':          { title: 'Al-6061 T6', sub: 'endplate 15 mm', svg: svgEndplate('#8b94a3'),
+      specs: {'Thickness':'15 mm','Holes':'4 × M10','Cost':'~€95/pc','Risk':'passivation'}, cites: [] },
+  };
+
+  function svgMembrane(c) {
+    return `<svg width="220" height="70" viewBox="0 0 220 70">
+      <rect x="10" y="20" width="200" height="30" fill="${c}" opacity="0.35" stroke="${c}"/>
+      ${[...Array(18)].map((_,i)=>`<line x1="${20+i*10}" y1="22" x2="${20+i*10}" y2="48" stroke="${c}" stroke-width="0.5" opacity="0.5"/>`).join('')}
+      <text x="110" y="64" text-anchor="middle" fill="#8b94a3" font-size="9" font-family="monospace">Polymer electrolyte</text>
+    </svg>`;
+  }
+  function svgCatalyst(c, bg) {
+    const dots = [];
+    for (let i = 0; i < 60; i++) dots.push(`<circle cx="${15+Math.random()*190}" cy="${22+Math.random()*26}" r="${1+Math.random()*1.5}" fill="${c}" opacity="${0.3+Math.random()*0.7}"/>`);
+    return `<svg width="220" height="70" viewBox="0 0 220 70">
+      <rect x="10" y="20" width="200" height="30" fill="${bg}" stroke="${c}" opacity="0.8"/>
+      ${dots.join('')}
+      <text x="110" y="64" text-anchor="middle" fill="#8b94a3" font-size="9" font-family="monospace">Catalyst nanoparticles</text>
+    </svg>`;
+  }
+  function svgGDL(c) {
+    return `<svg width="220" height="70" viewBox="0 0 220 70">
+      <defs><pattern id="hatch-${c.replace('#','')}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="6" stroke="${c}" stroke-width="1.2"/>
+      </pattern></defs>
+      <rect x="10" y="20" width="200" height="30" fill="url(#hatch-${c.replace('#','')})" stroke="${c}"/>
+      <text x="110" y="64" text-anchor="middle" fill="#8b94a3" font-size="9" font-family="monospace">Porous diffusion media</text>
+    </svg>`;
+  }
+  function svgFlowParallel(c) {
+    const lines = [];
+    for (let i = 0; i < 12; i++) lines.push(`<line x1="${25+i*15}" y1="12" x2="${25+i*15}" y2="55" stroke="${c}" stroke-width="2.5"/>`);
+    return `<svg width="220" height="70" viewBox="0 0 220 70">
+      <rect x="10" y="8" width="200" height="52" fill="none" stroke="${c}" stroke-width="1.2"/>
+      ${lines.join('')}
+      <text x="110" y="68" text-anchor="middle" fill="#8b94a3" font-size="9" font-family="monospace">Parallel straight channels</text>
+    </svg>`;
+  }
+  function svgFlowSerpentine(c) {
+    return `<svg width="220" height="70" viewBox="0 0 220 70">
+      <rect x="10" y="8" width="200" height="52" fill="none" stroke="${c}" stroke-width="1.2"/>
+      <path d="M25 15 H195 V25 H25 V35 H195 V45 H25 V55" stroke="${c}" stroke-width="2.5" fill="none"/>
+      <text x="110" y="68" text-anchor="middle" fill="#8b94a3" font-size="9" font-family="monospace">Single-path serpentine</text>
+    </svg>`;
+  }
+  function svgEndplate(c) {
+    return `<svg width="220" height="70" viewBox="0 0 220 70">
+      <rect x="20" y="15" width="180" height="40" fill="${c}" stroke="#0f1419"/>
+      <circle cx="35" cy="25" r="3" fill="#0f1419"/>
+      <circle cx="185" cy="25" r="3" fill="#0f1419"/>
+      <circle cx="35" cy="45" r="3" fill="#0f1419"/>
+      <circle cx="185" cy="45" r="3" fill="#0f1419"/>
+      <text x="110" y="38" text-anchor="middle" fill="#0f1419" font-size="10" font-family="monospace">ENDPLATE</text>
+      <text x="110" y="66" text-anchor="middle" fill="#8b94a3" font-size="9" font-family="monospace">Compressive closure</text>
+    </svg>`;
+  }
+
+  const libPreview = document.getElementById('lib-preview');
+  function showPreview(key, x, y) {
+    const p = LIB_PREVIEWS[key]; if (!p) return;
+    const specsHtml = Object.entries(p.specs).map(([k,v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+    const citesHtml = p.cites.length ? p.cites.map(c => `<span class="cite" data-cite="${c.toLowerCase()}">${c}</span>`).join('') : '<span class="muted">no refs</span>';
+    libPreview.innerHTML = `
+      <div class="prev-title">${p.title}</div>
+      <div class="prev-sub">${p.sub}</div>
+      <div class="prev-svg">${p.svg}</div>
+      <dl>${specsHtml}</dl>
+      <div class="prev-cite">${citesHtml}</div>
+    `;
+    libPreview.style.display = 'block';
+    const rect = libPreview.getBoundingClientRect();
+    libPreview.style.left = Math.min(window.innerWidth - 270, x + 12) + 'px';
+    libPreview.style.top = Math.min(window.innerHeight - rect.height - 8, y - 20) + 'px';
+  }
+  document.querySelectorAll('.lib-item').forEach(it => {
+    it.addEventListener('mouseenter', (e) => showPreview(it.dataset.lib, e.clientX, e.clientY));
+    it.addEventListener('mousemove', (e) => showPreview(it.dataset.lib, e.clientX, e.clientY));
+    it.addEventListener('mouseleave', () => libPreview.style.display = 'none');
+  });
+
+  // ─── Plot rendering per workspace (lazy) ───────────
+  function renderWorkspacePlots(ws) {
+    const pltBase = {
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: '#8b94a3', size: 10 },
+    };
+
+    if (ws === 'physics') {
+      function polCurve(Tc) {
+        const T = 273.15 + Tc, js = [], Us = [];
+        for (let i = 0; i <= 60; i++) {
+          const j = i * 0.05;
+          const tempFactor = 1 - (T - 353.15) * 0.0018;
+          const U = 1.23 + 0.07 * Math.log10(Math.max(j, 0.001) / 0.001) * 0.9 + 0.2 * j * tempFactor;
+          js.push(j); Us.push(U);
+        }
+        return { x: js, y: Us };
+      }
+      const sweepTemps = [40, 46, 52, 58, 64, 70, 76, 82, 88, 95];
+      const sweepTraces = sweepTemps.map((Tc, i) => {
+        const c = polCurve(Tc);
+        const alpha = 0.25 + 0.65 * (i / sweepTemps.length);
+        return { x: c.x, y: c.y, mode: 'lines', name: `${Tc} °C`,
+          line: { color: `rgba(155, 89, 182, ${alpha})`, width: 1 }, showlegend: false, hoverinfo: 'skip' };
+      });
+      const primary = polCurve(80);
+      const bernt = { x: [0.1, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0], y: [1.42, 1.54, 1.64, 1.72, 1.82, 1.91, 2.02],
+        mode: 'markers', name: 'Bernt 2020', marker: { color: '#e67e22', size: 7, symbol: 'circle-open', line: { width: 1.5 } } };
+      Plotly.newPlot('polcurve-main', [...sweepTraces,
+        { x: primary.x, y: primary.y, mode: 'lines', name: '0D @ 80 °C', line: { color: '#5dade2', width: 2.5 } },
+        bernt,
+      ], { ...pltBase, margin: { t: 6, r: 10, b: 36, l: 46 },
+        xaxis: { title: 'j [A/cm²]', gridcolor: '#2d3542', zerolinecolor: '#2d3542' },
+        yaxis: { title: 'U_cell [V]', gridcolor: '#2d3542', zerolinecolor: '#2d3542', range: [1.2, 2.25] },
+        legend: { x: 0.02, y: 0.98, bgcolor: 'rgba(0,0,0,0)', font: { size: 9 } }, showlegend: true },
+        { displayModeBar: false, responsive: true });
+    }
+
+    if (ws === 'thermal') {
+      // SVG heatmap cross-section
+      const colors = ['#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#e74c3c'];
+      const cells = 10;
+      const Tmax = 83, Tmin = 76;
+      let svg = `<svg width="100%" height="200" viewBox="0 0 600 200">
+        <defs><linearGradient id="gradT" x1="0" x2="1" y1="0" y2="0">
+          ${colors.map((c,i)=>`<stop offset="${i/(colors.length-1)*100}%" stop-color="${c}"/>`).join('')}
+        </linearGradient></defs>`;
+      // Endplates
+      svg += `<rect x="10" y="70" width="25" height="80" fill="#607080" stroke="#0f1419"/>`;
+      svg += `<rect x="555" y="70" width="25" height="80" fill="#607080" stroke="#0f1419"/>`;
+      svg += `<text x="22" y="165" fill="#8b94a3" font-size="9" text-anchor="middle" font-family="monospace">Endplate</text>`;
+      svg += `<text x="567" y="165" fill="#8b94a3" font-size="9" text-anchor="middle" font-family="monospace">Endplate</text>`;
+      // Cells
+      const cellW = (555 - 40) / cells;
+      for (let i = 0; i < cells; i++) {
+        const x = 40 + i * cellW;
+        // Temperature band for this cell
+        const Tnorm = Math.abs(i - 4.5) / 4.5; // distance from center
+        const T = Tmax - Tnorm * (Tmax - Tmin);
+        const tIdx = Math.min(colors.length - 1, Math.floor((T - 76) / (Tmax - Tmin) * colors.length));
+        svg += `<rect x="${x}" y="70" width="${cellW-2}" height="80" fill="${colors[tIdx]}" opacity="0.6" stroke="#0f1419"/>`;
+        svg += `<text x="${x+cellW/2}" y="115" fill="#fff" font-size="9" text-anchor="middle" font-family="monospace" font-weight="bold">${T.toFixed(1)}</text>`;
+        svg += `<text x="${x+cellW/2}" y="162" fill="#8b94a3" font-size="8" text-anchor="middle" font-family="monospace">C${i+1}</text>`;
+      }
+      // Scale
+      svg += `<rect x="40" y="175" width="515" height="12" fill="url(#gradT)"/>`;
+      svg += `<text x="40" y="198" fill="#8b94a3" font-size="9" font-family="monospace">76 °C (cool)</text>`;
+      svg += `<text x="555" y="198" fill="#8b94a3" font-size="9" text-anchor="end" font-family="monospace">83 °C (hot)</text>`;
+      // Water loop arrows
+      svg += `<path d="M10 50 L575 50 L575 60" stroke="#5dade2" stroke-width="2" fill="none" marker-end="url(#arrow1)"/>`;
+      svg += `<defs><marker id="arrow1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5dade2"/></marker></defs>`;
+      svg += `<text x="280" y="44" fill="#5dade2" font-size="10" text-anchor="middle" font-family="monospace">Cooling water · endplate loop</text>`;
+      svg += `</svg>`;
+      document.getElementById('thermal-svg').innerHTML = svg;
+
+      // Temperature profile along stack
+      const xs = Array.from({length: cells}, (_, i) => i + 1);
+      const ys = xs.map(i => Tmax - Math.abs(i - 5.5) / 4.5 * (Tmax - Tmin));
+      Plotly.newPlot('thermal-profile', [{
+        x: xs, y: ys, mode: 'lines+markers', name: 'T avg',
+        line: { color: '#e67e22', width: 2 }, marker: { size: 7, color: '#e67e22' }
+      }, {
+        x: xs, y: xs.map(() => 80), mode: 'lines', name: 'T nominal',
+        line: { color: '#48c9b0', width: 1, dash: 'dash' }
+      }], { ...pltBase, margin: { t: 6, r: 10, b: 32, l: 40 },
+        xaxis: { title: 'Cell #', gridcolor: '#2d3542' }, yaxis: { title: '°C', gridcolor: '#2d3542', range: [72, 86] },
+        legend: { x: 0.02, y: 0.98, bgcolor: 'rgba(0,0,0,0)', font: { size: 9 } } },
+        { displayModeBar: false, responsive: true });
+    }
+
+    if (ws === 'flow') {
+      // Flow schematic as SVG
+      let svg = `<svg width="100%" height="230" viewBox="0 0 600 230">`;
+      // Stack box
+      svg += `<rect x="180" y="60" width="240" height="120" fill="rgba(72, 201, 176, 0.1)" stroke="#48c9b0" stroke-width="1.5" stroke-dasharray="4 3" rx="4"/>`;
+      svg += `<text x="300" y="78" text-anchor="middle" fill="#48c9b0" font-size="11" font-family="monospace">STACK (10 cells)</text>`;
+      // Internal channels
+      for (let i = 0; i < 10; i++) {
+        svg += `<rect x="190" y="${88+i*9}" width="220" height="4" fill="#5dade2" opacity="0.25"/>`;
+      }
+      // Water in (anode top)
+      svg += `<path d="M30 30 L190 30 L190 60" stroke="#5dade2" stroke-width="2.5" fill="none" marker-end="url(#arr-in)"/>`;
+      svg += `<text x="35" y="26" fill="#5dade2" font-size="10" font-family="monospace">H₂O in · 0.56 g/min</text>`;
+      // O2 out (anode bottom)
+      svg += `<path d="M190 180 L190 210 L30 210" stroke="#e67e22" stroke-width="2.5" fill="none" marker-end="url(#arr-o2)"/>`;
+      svg += `<text x="35" y="204" fill="#e67e22" font-size="10" font-family="monospace">O₂ + H₂O out · 0.50 g/min</text>`;
+      // H2 out (cathode)
+      svg += `<path d="M420 180 L420 210 L570 210" stroke="#9b59b6" stroke-width="2.5" fill="none" marker-end="url(#arr-h2)"/>`;
+      svg += `<text x="570" y="204" fill="#9b59b6" font-size="10" font-family="monospace" text-anchor="end">H₂ out · 0.063 g/min · 7.5 NL/min</text>`;
+      // Cooling loop
+      svg += `<path d="M420 30 L570 30 L570 60" stroke="#48c9b0" stroke-width="1.5" stroke-dasharray="3 2" fill="none"/>`;
+      svg += `<text x="570" y="26" fill="#48c9b0" font-size="10" font-family="monospace" text-anchor="end">Cooling loop</text>`;
+      // Arrow markers
+      svg += `<defs>
+        <marker id="arr-in" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5dade2"/></marker>
+        <marker id="arr-o2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#e67e22"/></marker>
+        <marker id="arr-h2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9b59b6"/></marker>
+      </defs>`;
+      svg += `</svg>`;
+      document.getElementById('flow-svg').innerHTML = svg;
+
+      // Pressure drop plot
+      const segments = ['Inlet Manifold', 'Anode BPP', 'GDL', 'Cell body', 'Outlet Manifold'];
+      const dps = [45, 110, 48, 175, 22];
+      Plotly.newPlot('flow-dp-plot', [{
+        type: 'bar', x: segments, y: dps,
+        marker: { color: ['#5dade2', '#9b59b6', '#f1c40f', '#e67e22', '#5dade2'] },
+        text: dps.map(d => `${d} mbar`), textposition: 'auto'
+      }], { ...pltBase, margin: { t: 10, r: 10, b: 40, l: 50 },
+        xaxis: { gridcolor: '#2d3542', tickfont: { size: 9 } },
+        yaxis: { title: 'Δp [mbar]', gridcolor: '#2d3542' } },
+        { displayModeBar: false, responsive: true });
+    }
+
+    if (ws === 'cost') {
+      Plotly.newPlot('cost-donut', [{
+        type: 'pie', hole: 0.55,
+        labels: ['Membran', 'Anode CL (Ir)', 'Cathode CL (Pt)', 'GDL', 'BPP', 'Endplate', 'Gaskets', 'Other'],
+        values: [1200, 850, 240, 360, 900, 360, 80, 405],
+        marker: { colors: ['#5dade2', '#9b59b6', '#e4e6eb', '#444a55', '#8b94a3', '#607080', '#e67e22', '#48c9b0'] },
+        textinfo: 'percent', textposition: 'inside',
+      }], { ...pltBase, margin: { t: 10, r: 10, b: 10, l: 10 },
+        showlegend: true, legend: { font: { size: 9 }, orientation: 'v', x: 1.0, y: 0.5 } },
+        { displayModeBar: false, responsive: true });
+    }
+
+    if (ws === 'efficiency') {
+      Plotly.newPlot('efficiency-waterfall', [{
+        type: 'waterfall', orientation: 'v',
+        x: ['U_rev', 'η_act anode', 'η_act cathode', 'η_ohm memb', 'η_ohm BPP/contact', 'η_mt', 'U_cell'],
+        measure: ['absolute', 'relative', 'relative', 'relative', 'relative', 'relative', 'total'],
+        y: [1.23, 0.20, 0.08, 0.14, 0.07, 0.12, 1.84],
+        text: ['1.23 V', '+200 mV', '+80 mV', '+140 mV', '+70 mV', '+60 mV', '1.84 V'],
+        textposition: 'outside',
+        connector: { line: { color: '#2d3542' } },
+        increasing: { marker: { color: '#e67e22' } },
+        decreasing: { marker: { color: '#48c9b0' } },
+        totals: { marker: { color: '#5dade2' } },
+      }], { ...pltBase, margin: { t: 20, r: 10, b: 80, l: 50 },
+        xaxis: { tickfont: { size: 9 }, tickangle: -35, gridcolor: '#2d3542' },
+        yaxis: { title: 'Voltage [V]', gridcolor: '#2d3542', range: [1.1, 2.1] } },
+        { displayModeBar: false, responsive: true });
+
+      // Efficiency heatmap
+      const js_ = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0];
+      const Ts_ = [50, 60, 70, 80, 90];
+      const z = Ts_.map(T => js_.map(j => {
+        const U = 1.23 + 0.07 * Math.log10(j/0.001) * 0.9 + 0.2 * j * (1 - (T+273-353)*0.0018);
+        return 1.48 / U * 100;
+      }));
+      Plotly.newPlot('efficiency-heatmap', [{
+        type: 'heatmap', z, x: js_, y: Ts_, colorscale: [[0, '#e74c3c'], [0.5, '#f1c40f'], [1, '#48c9b0']],
+        colorbar: { thickness: 10, len: 0.7, tickfont: { size: 9 } },
+      }], { ...pltBase, margin: { t: 10, r: 10, b: 40, l: 36 },
+        xaxis: { title: 'j [A/cm²]', tickfont: { size: 9 } },
+        yaxis: { title: 'T [°C]', tickfont: { size: 9 } } },
+        { displayModeBar: false, responsive: true });
+    }
+
+    if (ws === 'validation') {
+      const bx = [0.1, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0];
+      const by = [1.42, 1.54, 1.64, 1.72, 1.82, 1.91, 2.02];
+      const mx = [], my = [];
+      for (let i = 0; i <= 60; i++) { const j = i * 0.05; mx.push(j); my.push(1.23 + 0.07*Math.log10(Math.max(j,0.001)/0.001)*0.9 + 0.2*j); }
+      Plotly.newPlot('validation-plot', [
+        { x: mx, y: my, mode: 'lines', name: 'Modell 0D', line: { color: '#5dade2', width: 2 } },
+        { x: bx, y: by, mode: 'markers', name: 'Bernt 2020 (ref)', marker: { color: '#e67e22', size: 8, symbol: 'circle-open' } },
+      ], { ...pltBase, margin: { t: 10, r: 10, b: 36, l: 46 },
+        xaxis: { title: 'j [A/cm²]', gridcolor: '#2d3542' },
+        yaxis: { title: 'U_cell [V]', gridcolor: '#2d3542', range: [1.2, 2.2] },
+        legend: { x: 0.02, y: 0.98, bgcolor: 'rgba(0,0,0,0)', font: { size: 9 } } },
+        { displayModeBar: false, responsive: true });
+    }
+  }
+
+  // ─── Cost calculator: live recalc ───────────────────
+  function recomputeBOM() {
+    const rows = document.querySelectorAll('#bom-table tbody tr:not(.total)');
+    let total = 0;
+    rows.forEach(r => {
+      const qtyCell = r.children[2], costCell = r.children[4], subCell = r.children[5];
+      const qty = parseFloat(qtyCell.textContent.replace(',', '.')) || 0;
+      const cost = parseFloat(costCell.textContent.replace(',', '.')) || 0;
+      const sub = qty * cost;
+      subCell.textContent = sub.toFixed(2);
+      total += sub;
+    });
+    document.getElementById('bom-total').textContent = total.toFixed(2);
+    document.getElementById('kpi-stack-cost').textContent = total.toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €';
+    document.getElementById('kpi-per-kw').textContent = (total / 1.84).toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €/kW';
+    recomputeLCOH(total);
+  }
+  function recomputeLCOH(stackCost) {
+    const years = parseFloat(document.getElementById('lcoh-years').value) || 15;
+    const hours = parseFloat(document.getElementById('lcoh-hours').value) || 4000;
+    const power = parseFloat(document.getElementById('lcoh-power').value) || 0.12;
+    const capex = stackCost * 1.8;
+    const opex = capex * 0.05;
+    const kgPerYear = 36;
+    const powerCost = 49.1 * power; // kWh/kg × €/kWh
+    const lcoh = (capex / (years * kgPerYear)) + (opex / kgPerYear) + powerCost;
+    document.getElementById('lcoh-capex').textContent = capex.toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €';
+    document.getElementById('lcoh-opex').textContent = opex.toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €/y';
+    document.getElementById('lcoh-value').textContent = lcoh.toFixed(2) + ' €/kg H₂';
+  }
+  document.querySelectorAll('#bom-table [contenteditable]').forEach(el => {
+    el.addEventListener('input', recomputeBOM);
+    el.addEventListener('blur', recomputeBOM);
+  });
+  ['lcoh-years', 'lcoh-hours', 'lcoh-power'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.addEventListener('input', () => {
+      const total = parseFloat(document.getElementById('bom-total').textContent) || 0;
+      recomputeLCOH(total);
+    });
+  });
+
+  // ─── Init ───────────────────────────────────────────
+  activateWorkspace('design');
+  toast('Mockup geladen', '8 Workspaces · alle Buttons simulieren', 'success');
+  log('Init', '8 workspaces · click any button to see its intent');
+</script>
+</body>
+</html>
