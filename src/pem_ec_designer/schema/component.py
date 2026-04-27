@@ -66,7 +66,7 @@ class Component(BaseModel):
 
 class Membrane(Component):
     category: Literal["membrane"] = "membrane"
-    sigma_S_per_m: SourcedValue[Quantity] | None = Field(
+    sigma_S_per_m: SourcedValue[Quantity] | None = Field(  # noqa: N815  (S = Siemens, physics symbol)
         default=None,
         description="Override material conductivity for this specific membrane",
     )

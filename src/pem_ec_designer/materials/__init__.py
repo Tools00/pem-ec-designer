@@ -7,8 +7,8 @@ library/sources.bib.
 """
 
 from .loader import (
-    LibraryLoadError,
     Library,
+    LibraryLoadError,
     load_library,
 )
 

@@ -17,7 +17,7 @@ still resolve to a non-empty BibTeX key (e.g. 'internal.estimate.YYYY').
 
 from __future__ import annotations
 
-from typing import Any, Generic, Literal, TypeVar
+from typing import Generic, Literal, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 

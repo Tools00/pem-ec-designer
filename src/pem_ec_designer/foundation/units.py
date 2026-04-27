@@ -33,7 +33,7 @@ _TO_SI: dict[str, tuple[float, str]] = {
     # conductivity
     "S/m":   (1.0,    "S/m"),
     "S/cm":  (100.0,  "S/m"),
-    # resistance × area
+    # area-specific resistance
     "ohm·m^2":   (1.0,   "ohm·m^2"),
     "Ω·m^2":     (1.0,   "ohm·m^2"),
     "ohm·cm^2":  (1e-4,  "ohm·m^2"),

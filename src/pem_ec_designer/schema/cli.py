@@ -19,8 +19,8 @@ from .component import (
     Component,
     Endplate,
     FlowField,
-    Gasket,
     GasDiffusionLayer,
+    Gasket,
     Membrane,
 )
 from .material import Material

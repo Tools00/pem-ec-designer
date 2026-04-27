@@ -39,7 +39,7 @@ class Material(BaseModel):
     density: SourcedValue[Quantity] | None = None
 
     # Membrane-relevant
-    sigma_S_per_m: SourcedValue[Quantity] | None = Field(
+    sigma_S_per_m: SourcedValue[Quantity] | None = Field(  # noqa: N815  (S = Siemens, physics symbol)
         default=None,
         description="Through-plane conductivity at 80 °C, fully hydrated",
     )

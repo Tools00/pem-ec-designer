@@ -18,8 +18,8 @@ from .component import (
     Component,
     Endplate,
     FlowField,
-    Gasket,
     GasDiffusionLayer,
+    Gasket,
     Membrane,
 )
 from .material import Material, MaterialRef
@@ -27,18 +27,18 @@ from .source import SourcedValue, SourceId
 from .units import Quantity
 
 __all__ = [
-    "Quantity",
-    "SourcedValue",
-    "SourceId",
+    "AnodeCatalystLayer",
+    "BipolarPlate",
+    "CathodeCatalystLayer",
+    "Component",
+    "Endplate",
+    "FlowField",
+    "GasDiffusionLayer",
+    "Gasket",
     "Material",
     "MaterialRef",
-    "Component",
     "Membrane",
-    "AnodeCatalystLayer",
-    "CathodeCatalystLayer",
-    "GasDiffusionLayer",
-    "BipolarPlate",
-    "FlowField",
-    "Endplate",
-    "Gasket",
+    "Quantity",
+    "SourceId",
+    "SourcedValue",
 ]

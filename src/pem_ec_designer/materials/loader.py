@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from pydantic import TypeAdapter, ValidationError
+from pydantic import ValidationError
 
 from ..schema import (
     AnodeCatalystLayer,
@@ -27,8 +27,8 @@ from ..schema import (
     Component,
     Endplate,
     FlowField,
-    Gasket,
     GasDiffusionLayer,
+    Gasket,
     Material,
     Membrane,
 )

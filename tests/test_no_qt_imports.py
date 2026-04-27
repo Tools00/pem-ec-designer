@@ -49,6 +49,6 @@ def test_no_qt_in_physics_layer() -> None:
         ):
             mod = sys.modules[name]
             for forbidden_mod in forbidden:
-                assert forbidden_mod not in (
-                    getattr(mod, "__dict__", {}).keys()
-                ), f"{name} unexpectedly imports {forbidden_mod}"
+                assert forbidden_mod not in getattr(mod, "__dict__", {}), (
+                    f"{name} unexpectedly imports {forbidden_mod}"
+                )

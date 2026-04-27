@@ -25,9 +25,9 @@ __all__ = [
     "ELECTRON_CHARGE",
     "FARADAY",
     "GAS_CONSTANT",
+    "SI_BASE",
     "STANDARD_PRESSURE",
     "STANDARD_TEMPERATURE",
-    "SI_BASE",
     "convert_to_si",
     "si_to",
 ]
