@@ -29,7 +29,7 @@ Kein `requirements.txt`, kein `src/`, kein `pyproject.toml`, bevor die
 ## Session-Start
 
 ```bash
-cd /Users/abed.qadi/projects/Simulation-tools/pem-ec-designer
+cd path/to/Simulation-tools/pem-ec-designer
 claude
 # Erste Aufgabe: Pflichtfragen aus simulation-project-framework.md beantworten,
 # Framework-ADR schreiben, dann erst scaffolden.

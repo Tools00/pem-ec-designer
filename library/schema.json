@@ -1,0 +1,1293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pem-ec-designer library schema",
+  "description": "Generated from Pydantic. Do not edit by hand.",
+  "$defs": {
+    "Component": {
+      "$defs": {
+        "AnodeCatalystLayer": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "description": "Hierarchical slug, e.g. 'membrane.nafion.117'",
+              "pattern": "^[a-z0-9]+(\\.[a-z0-9]+){1,3}$",
+              "title": "Id",
+              "type": "string"
+            },
+            "category": {
+              "const": "anode_cl",
+              "default": "anode_cl",
+              "title": "Category",
+              "type": "string"
+            },
+            "name": {
+              "description": "Human-readable EN",
+              "title": "Name",
+              "type": "string"
+            },
+            "name_de": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional DE label for UI",
+              "title": "Name De"
+            },
+            "material": {
+              "$ref": "#/$defs/MaterialRef"
+            },
+            "thickness": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            "cost": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Cost per unit (cell, pcs, kg, m^2). Null = unknown."
+            },
+            "footprint": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Footprint"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "2D footprint for build123d generation. Null = stack-default."
+            },
+            "catalyst_loading": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "material",
+            "thickness",
+            "catalyst_loading"
+          ],
+          "title": "AnodeCatalystLayer",
+          "type": "object"
+        },
+        "BipolarPlate": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "description": "Hierarchical slug, e.g. 'membrane.nafion.117'",
+              "pattern": "^[a-z0-9]+(\\.[a-z0-9]+){1,3}$",
+              "title": "Id",
+              "type": "string"
+            },
+            "category": {
+              "const": "bpp",
+              "default": "bpp",
+              "title": "Category",
+              "type": "string"
+            },
+            "name": {
+              "description": "Human-readable EN",
+              "title": "Name",
+              "type": "string"
+            },
+            "name_de": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional DE label for UI",
+              "title": "Name De"
+            },
+            "material": {
+              "$ref": "#/$defs/MaterialRef"
+            },
+            "thickness": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            "cost": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Cost per unit (cell, pcs, kg, m^2). Null = unknown."
+            },
+            "footprint": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Footprint"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "2D footprint for build123d generation. Null = stack-default."
+            },
+            "coating": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Coating"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "material",
+            "thickness"
+          ],
+          "title": "BipolarPlate",
+          "type": "object"
+        },
+        "CathodeCatalystLayer": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "description": "Hierarchical slug, e.g. 'membrane.nafion.117'",
+              "pattern": "^[a-z0-9]+(\\.[a-z0-9]+){1,3}$",
+              "title": "Id",
+              "type": "string"
+            },
+            "category": {
+              "const": "cathode_cl",
+              "default": "cathode_cl",
+              "title": "Category",
+              "type": "string"
+            },
+            "name": {
+              "description": "Human-readable EN",
+              "title": "Name",
+              "type": "string"
+            },
+            "name_de": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional DE label for UI",
+              "title": "Name De"
+            },
+            "material": {
+              "$ref": "#/$defs/MaterialRef"
+            },
+            "thickness": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            "cost": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Cost per unit (cell, pcs, kg, m^2). Null = unknown."
+            },
+            "footprint": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Footprint"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "2D footprint for build123d generation. Null = stack-default."
+            },
+            "catalyst_loading": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "material",
+            "thickness",
+            "catalyst_loading"
+          ],
+          "title": "CathodeCatalystLayer",
+          "type": "object"
+        },
+        "Endplate": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "description": "Hierarchical slug, e.g. 'membrane.nafion.117'",
+              "pattern": "^[a-z0-9]+(\\.[a-z0-9]+){1,3}$",
+              "title": "Id",
+              "type": "string"
+            },
+            "category": {
+              "const": "endplate",
+              "default": "endplate",
+              "title": "Category",
+              "type": "string"
+            },
+            "name": {
+              "description": "Human-readable EN",
+              "title": "Name",
+              "type": "string"
+            },
+            "name_de": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional DE label for UI",
+              "title": "Name De"
+            },
+            "material": {
+              "$ref": "#/$defs/MaterialRef"
+            },
+            "thickness": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            "cost": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Cost per unit (cell, pcs, kg, m^2). Null = unknown."
+            },
+            "footprint": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Footprint"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "2D footprint for build123d generation. Null = stack-default."
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "material",
+            "thickness"
+          ],
+          "title": "Endplate",
+          "type": "object"
+        },
+        "FlowField": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "description": "Hierarchical slug, e.g. 'membrane.nafion.117'",
+              "pattern": "^[a-z0-9]+(\\.[a-z0-9]+){1,3}$",
+              "title": "Id",
+              "type": "string"
+            },
+            "category": {
+              "const": "flow_field",
+              "default": "flow_field",
+              "title": "Category",
+              "type": "string"
+            },
+            "name": {
+              "description": "Human-readable EN",
+              "title": "Name",
+              "type": "string"
+            },
+            "name_de": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional DE label for UI",
+              "title": "Name De"
+            },
+            "material": {
+              "$ref": "#/$defs/MaterialRef"
+            },
+            "thickness": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            "cost": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Cost per unit (cell, pcs, kg, m^2). Null = unknown."
+            },
+            "footprint": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Footprint"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "2D footprint for build123d generation. Null = stack-default."
+            },
+            "pattern": {
+              "enum": [
+                "straight_parallel",
+                "serpentine",
+                "interdigitated",
+                "mesh",
+                "pin_fin"
+              ],
+              "title": "Pattern",
+              "type": "string"
+            },
+            "channel_width": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "channel_depth": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "channel_pitch": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "material",
+            "thickness",
+            "pattern"
+          ],
+          "title": "FlowField",
+          "type": "object"
+        },
+        "Footprint": {
+          "additionalProperties": false,
+          "properties": {
+            "shape": {
+              "enum": [
+                "circular",
+                "square",
+                "rectangular"
+              ],
+              "title": "Shape",
+              "type": "string"
+            },
+            "diameter": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Quantity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "circular only"
+            },
+            "width": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Quantity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "rectangular/square"
+            },
+            "height": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Quantity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "rectangular only"
+            },
+            "corner_radius": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Quantity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "optional fillet"
+            }
+          },
+          "required": [
+            "shape"
+          ],
+          "title": "Footprint",
+          "type": "object"
+        },
+        "GasDiffusionLayer": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "description": "Hierarchical slug, e.g. 'membrane.nafion.117'",
+              "pattern": "^[a-z0-9]+(\\.[a-z0-9]+){1,3}$",
+              "title": "Id",
+              "type": "string"
+            },
+            "category": {
+              "const": "gdl",
+              "default": "gdl",
+              "title": "Category",
+              "type": "string"
+            },
+            "name": {
+              "description": "Human-readable EN",
+              "title": "Name",
+              "type": "string"
+            },
+            "name_de": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional DE label for UI",
+              "title": "Name De"
+            },
+            "material": {
+              "$ref": "#/$defs/MaterialRef"
+            },
+            "thickness": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            "cost": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Cost per unit (cell, pcs, kg, m^2). Null = unknown."
+            },
+            "footprint": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Footprint"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "2D footprint for build123d generation. Null = stack-default."
+            },
+            "porosity": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "permeability": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "material",
+            "thickness"
+          ],
+          "title": "GasDiffusionLayer",
+          "type": "object"
+        },
+        "Gasket": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "description": "Hierarchical slug, e.g. 'membrane.nafion.117'",
+              "pattern": "^[a-z0-9]+(\\.[a-z0-9]+){1,3}$",
+              "title": "Id",
+              "type": "string"
+            },
+            "category": {
+              "const": "gasket",
+              "default": "gasket",
+              "title": "Category",
+              "type": "string"
+            },
+            "name": {
+              "description": "Human-readable EN",
+              "title": "Name",
+              "type": "string"
+            },
+            "name_de": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional DE label for UI",
+              "title": "Name De"
+            },
+            "material": {
+              "$ref": "#/$defs/MaterialRef"
+            },
+            "thickness": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            "cost": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Cost per unit (cell, pcs, kg, m^2). Null = unknown."
+            },
+            "footprint": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Footprint"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "2D footprint for build123d generation. Null = stack-default."
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "material",
+            "thickness"
+          ],
+          "title": "Gasket",
+          "type": "object"
+        },
+        "MaterialRef": {
+          "additionalProperties": false,
+          "description": "A pointer to an entry in library/materials.json by ID.",
+          "properties": {
+            "ref": {
+              "description": "Material ID, e.g. 'nafion-117'",
+              "minLength": 1,
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref"
+          ],
+          "title": "MaterialRef",
+          "type": "object"
+        },
+        "Membrane": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "description": "Hierarchical slug, e.g. 'membrane.nafion.117'",
+              "pattern": "^[a-z0-9]+(\\.[a-z0-9]+){1,3}$",
+              "title": "Id",
+              "type": "string"
+            },
+            "category": {
+              "const": "membrane",
+              "default": "membrane",
+              "title": "Category",
+              "type": "string"
+            },
+            "name": {
+              "description": "Human-readable EN",
+              "title": "Name",
+              "type": "string"
+            },
+            "name_de": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional DE label for UI",
+              "title": "Name De"
+            },
+            "material": {
+              "$ref": "#/$defs/MaterialRef"
+            },
+            "thickness": {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            "cost": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Cost per unit (cell, pcs, kg, m^2). Null = unknown."
+            },
+            "footprint": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Footprint"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "2D footprint for build123d generation. Null = stack-default."
+            },
+            "sigma_S_per_m": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourcedValue_Quantity_"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Override material conductivity for this specific membrane"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "material",
+            "thickness"
+          ],
+          "title": "Membrane",
+          "type": "object"
+        },
+        "Quantity": {
+          "additionalProperties": false,
+          "description": "A scalar with units.\n\nStored canonically as SI in `value_si`. The original (`value`, `unit`)\npair is preserved so the UI can round-trip back to the user's unit.",
+          "properties": {
+            "value": {
+              "description": "Numerical value in given unit",
+              "title": "Value",
+              "type": "number"
+            },
+            "unit": {
+              "description": "Engineering unit, see foundation.units._TO_SI",
+              "title": "Unit",
+              "type": "string"
+            },
+            "value_si": {
+              "default": 0.0,
+              "description": "Auto-computed SI value",
+              "title": "Value Si",
+              "type": "number"
+            }
+          },
+          "required": [
+            "value",
+            "unit"
+          ],
+          "title": "Quantity",
+          "type": "object"
+        },
+        "SourcedValue_Quantity_": {
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "$ref": "#/$defs/Quantity"
+            },
+            "source": {
+              "description": "BibTeX-key reference",
+              "minLength": 3,
+              "title": "Source",
+              "type": "string"
+            },
+            "confidence": {
+              "default": "paper",
+              "description": "Quality of the source. 'estimate'/'guess' must still cite a key.",
+              "enum": [
+                "paper",
+                "datasheet",
+                "estimate",
+                "guess"
+              ],
+              "title": "Confidence",
+              "type": "string"
+            },
+            "note": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Free-text qualifier",
+              "title": "Note"
+            }
+          },
+          "required": [
+            "value",
+            "source"
+          ],
+          "title": "SourcedValue[Quantity]",
+          "type": "object"
+        }
+      },
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Membrane"
+        },
+        {
+          "$ref": "#/$defs/AnodeCatalystLayer"
+        },
+        {
+          "$ref": "#/$defs/CathodeCatalystLayer"
+        },
+        {
+          "$ref": "#/$defs/GasDiffusionLayer"
+        },
+        {
+          "$ref": "#/$defs/BipolarPlate"
+        },
+        {
+          "$ref": "#/$defs/FlowField"
+        },
+        {
+          "$ref": "#/$defs/Endplate"
+        },
+        {
+          "$ref": "#/$defs/Gasket"
+        }
+      ]
+    },
+    "ComponentBase": {
+      "$defs": {
+        "Footprint": {
+          "additionalProperties": false,
+          "properties": {
+            "shape": {
+              "enum": [
+                "circular",
+                "square",
+                "rectangular"
+              ],
+              "title": "Shape",
+              "type": "string"
+            },
+            "diameter": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Quantity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "circular only"
+            },
+            "width": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Quantity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "rectangular/square"
+            },
+            "height": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Quantity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "rectangular only"
+            },
+            "corner_radius": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Quantity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "optional fillet"
+            }
+          },
+          "required": [
+            "shape"
+          ],
+          "title": "Footprint",
+          "type": "object"
+        },
+        "MaterialRef": {
+          "additionalProperties": false,
+          "description": "A pointer to an entry in library/materials.json by ID.",
+          "properties": {
+            "ref": {
+              "description": "Material ID, e.g. 'nafion-117'",
+              "minLength": 1,
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref"
+          ],
+          "title": "MaterialRef",
+          "type": "object"
+        },
+        "Quantity": {
+          "additionalProperties": false,
+          "description": "A scalar with units.\n\nStored canonically as SI in `value_si`. The original (`value`, `unit`)\npair is preserved so the UI can round-trip back to the user's unit.",
+          "properties": {
+            "value": {
+              "description": "Numerical value in given unit",
+              "title": "Value",
+              "type": "number"
+            },
+            "unit": {
+              "description": "Engineering unit, see foundation.units._TO_SI",
+              "title": "Unit",
+              "type": "string"
+            },
+            "value_si": {
+              "default": 0.0,
+              "description": "Auto-computed SI value",
+              "title": "Value Si",
+              "type": "number"
+            }
+          },
+          "required": [
+            "value",
+            "unit"
+          ],
+          "title": "Quantity",
+          "type": "object"
+        },
+        "SourcedValue_Quantity_": {
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "$ref": "#/$defs/Quantity"
+            },
+            "source": {
+              "description": "BibTeX-key reference",
+              "minLength": 3,
+              "title": "Source",
+              "type": "string"
+            },
+            "confidence": {
+              "default": "paper",
+              "description": "Quality of the source. 'estimate'/'guess' must still cite a key.",
+              "enum": [
+                "paper",
+                "datasheet",
+                "estimate",
+                "guess"
+              ],
+              "title": "Confidence",
+              "type": "string"
+            },
+            "note": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Free-text qualifier",
+              "title": "Note"
+            }
+          },
+          "required": [
+            "value",
+            "source"
+          ],
+          "title": "SourcedValue[Quantity]",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Base component spec. All categories extend this.",
+      "properties": {
+        "id": {
+          "description": "Hierarchical slug, e.g. 'membrane.nafion.117'",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9]+){1,3}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "name": {
+          "description": "Human-readable EN",
+          "title": "Name",
+          "type": "string"
+        },
+        "name_de": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional DE label for UI",
+          "title": "Name De"
+        },
+        "material": {
+          "$ref": "#/$defs/MaterialRef"
+        },
+        "thickness": {
+          "$ref": "#/$defs/SourcedValue_Quantity_"
+        },
+        "cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cost per unit (cell, pcs, kg, m^2). Null = unknown."
+        },
+        "footprint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Footprint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "2D footprint for build123d generation. Null = stack-default."
+        }
+      },
+      "required": [
+        "id",
+        "category",
+        "name",
+        "material",
+        "thickness"
+      ],
+      "title": "Component",
+      "type": "object"
+    },
+    "Material": {
+      "$defs": {
+        "Quantity": {
+          "additionalProperties": false,
+          "description": "A scalar with units.\n\nStored canonically as SI in `value_si`. The original (`value`, `unit`)\npair is preserved so the UI can round-trip back to the user's unit.",
+          "properties": {
+            "value": {
+              "description": "Numerical value in given unit",
+              "title": "Value",
+              "type": "number"
+            },
+            "unit": {
+              "description": "Engineering unit, see foundation.units._TO_SI",
+              "title": "Unit",
+              "type": "string"
+            },
+            "value_si": {
+              "default": 0.0,
+              "description": "Auto-computed SI value",
+              "title": "Value Si",
+              "type": "number"
+            }
+          },
+          "required": [
+            "value",
+            "unit"
+          ],
+          "title": "Quantity",
+          "type": "object"
+        },
+        "SourcedValue_Quantity_": {
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "$ref": "#/$defs/Quantity"
+            },
+            "source": {
+              "description": "BibTeX-key reference",
+              "minLength": 3,
+              "title": "Source",
+              "type": "string"
+            },
+            "confidence": {
+              "default": "paper",
+              "description": "Quality of the source. 'estimate'/'guess' must still cite a key.",
+              "enum": [
+                "paper",
+                "datasheet",
+                "estimate",
+                "guess"
+              ],
+              "title": "Confidence",
+              "type": "string"
+            },
+            "note": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Free-text qualifier",
+              "title": "Note"
+            }
+          },
+          "required": [
+            "value",
+            "source"
+          ],
+          "title": "SourcedValue[Quantity]",
+          "type": "object"
+        }
+      },
+      "additionalProperties": true,
+      "description": "Generic material spec.\n\nSubclasses can extend with category-specific fields (e.g.,\ncatalyst loading is a Component property, not a Material property).",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "vendor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vendor"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "e.g. 'PFSA membrane', 'Pt-group catalyst', 'Ti-felt'",
+          "title": "Family"
+        },
+        "density": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sigma_S_per_m": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Through-plane conductivity at 80 °C, fully hydrated"
+        },
+        "ewt_g_per_eq": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Equivalent weight (PFSA membranes)"
+        },
+        "j0_anode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Exchange current density at reference state"
+        },
+        "j0_cathode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tafel_slope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcedValue_Quantity_"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Material",
+      "type": "object"
+    }
+  }
+}

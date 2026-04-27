@@ -82,7 +82,7 @@ def test_id_pattern_accepts_hierarchical() -> None:
         material=MaterialRef(ref="nafion-1100"),
         thickness=SourcedValue[Quantity](
             value=Quantity(value=1, unit="um"),
-            source="x",
+            source="dummy.testkey",
         ),
     )
     assert m.id == "membrane.nafion.117"
