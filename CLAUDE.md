@@ -1,36 +1,33 @@
-# CLAUDE.md — pem-ec-designer (Projekt 2, Placeholder)
+# CLAUDE.md — pem-ec-designer
 
-**Status:** Leeres Skelett. Projekt-Arbeit beginnt in einer **neuen Session**.
+**Manual für Claude. Klein halten — wird bei jeder Session gelesen.**
 
----
+## Bootstrap
 
-## Vor dem ersten Commit — Pflichtlektüre
+1. `cat docs/STATUS.md` → aktueller Stand, offene Pfade, nächste Optionen.
+2. `git log --oneline -5` → was zuletzt passiert ist.
+3. Frag User welcher Pfad — antworte visuell (Tabelle/HTML), nicht in Prosa.
 
-1. **`../docs/simulation-project-framework.md`** — die 8 Pflichtfragen durcharbeiten
-   und als `docs/adr/001-framework-choice.md` beantworten.
-2. **`../docs/lessons/pem-ec-0d.md`** — 5 dokumentierte Strukturfehler aus dem
-   Vorgänger-Projekt. Mindestens einmal lesen, damit sie sich hier nicht
-   wiederholen.
+## Verhaltensregeln
 
-## Scope-Hinweis (vorläufig, bis ADR-001 geschrieben ist)
+- **Visuell statt Prosa-Listen** bei ≥2 Optionen. Tabellen, Karten, HTML.
+- **Senior-Mindset:** widersprich, wenn Annahmen falsch sind. Alternative immer mit.
+- **Strict-Quellen:** jeder Wert in `library/` braucht BibTeX-Key. Kein Erfinden — `null` wenn unklar.
+- **Layer-Trennung:** kein Qt-Import in `physics/`, `schema/`, `foundation/`. CI prüft.
+- **Inkrementell:** 5 Specs prüfen → skalieren. Kein Big-Bang.
+- **Kein Commit ohne explizites OK** vom User.
 
-Nachfolger von `pem-ec-0d`. Ziel: echter **visueller Designer** mit
-3D/CAD-Darstellung und Stack-Konstruktion. Framework-Empfehlung aus Lessons:
-**NiceGUI** oder **Panel + pyvista**, nicht Streamlit (siehe Lesson #1).
+## Token-Hygiene (wichtig)
 
-Physik-Wiederverwendung aus `pem-ec-0d/src/` ist erlaubt und erwünscht —
-Strategie (Submodule / Package / Copy) in ADR-002 entscheiden.
+- **Nicht** auto-lesen: `docs/decisions/*.html`, `docs/mockups/*.html`, `library/schema.json`
+  → user-facing oder generiert; nur lesen wenn explizit gefragt.
+- Bei großen Files: `Read` mit `offset/limit` statt komplett.
+- Recherche-/Such-Aufgaben → Subagent (isolierter Context).
+- Lange Sessions: nach ~30 Nachrichten neue Session vorschlagen.
 
-## Keine Scaffolds ohne ADR-001
+## Kanonische Quellen
 
-Kein `requirements.txt`, kein `src/`, kein `pyproject.toml`, bevor die
-8 Pflichtfragen beantwortet sind. Das war der Kardinalfehler in pem-ec-0d.
-
-## Session-Start
-
-```bash
-cd path/to/Simulation-tools/pem-ec-designer
-claude
-# Erste Aufgabe: Pflichtfragen aus simulation-project-framework.md beantworten,
-# Framework-ADR schreiben, dann erst scaffolden.
-```
+- `docs/STATUS.md` — wo wir stehen + offene Pfade
+- `docs/adr/001-framework-choice.md` — Stack
+- `docs/adr/002-library-architecture.md` — Library-Layout
+- `CHANGELOG.md` — Versions-Log
