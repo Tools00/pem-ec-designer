@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Session-Handoff · ohne Kontextverlust weitermachen</title>
+<style>
+  :root {
+    --bg:#0b0f14; --bg-2:#0f1419;
+    --panel:#1a2028; --panel-2:#222a35; --panel-3:#2a3240;
+    --border:#2d3542; --border-hi:#3d4758;
+    --text:#e4e6eb; --text-dim:#8b94a3; --text-faint:#606773;
+    --accent:#5dade2; --accent-2:#48c9b0; --accent-3:#9b59b6;
+    --warn:#e67e22; --err:#e74c3c; --ok:#27ae60;
+    --gh-bg:#0d1117;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 12px rgba(0,0,0,.25);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font:13px/1.5 -apple-system,"Segoe UI",system-ui,sans-serif;min-height:100vh}
+  code{font-family:var(--mono);font-size:11px;background:var(--bg-2);
+    padding:1px 5px;border-radius:2px;color:var(--accent-2)}
+  .wrap{max-width:1200px;margin:0 auto;padding:32px 24px}
+
+  .hero{margin-bottom:28px}
+  .eyebrow{font-family:var(--mono);font-size:11px;color:var(--text-faint);
+    letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+  h1{font-size:24px;margin:0 0 6px;letter-spacing:-.3px}
+  h1 .accent{color:var(--accent)}
+  .lead{color:var(--text-dim);font-size:13px;max-width:680px;margin:0}
+
+  h2{font-size:15px;margin:28px 0 12px;color:var(--accent);
+    border-bottom:1px solid var(--border);padding-bottom:6px}
+
+  /* Cards */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--border);border-radius:8px;padding:16px 18px;
+    box-shadow:var(--shadow)}
+  .card.hi{border-color:var(--accent-2);
+    box-shadow:0 4px 16px rgba(72,201,176,.12),var(--shadow)}
+  .card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .card-icon{width:32px;height:32px;border-radius:6px;display:flex;
+    align-items:center;justify-content:center;background:var(--panel-2);
+    border:1px solid var(--border);font-size:14px;color:var(--accent)}
+  .card.hi .card-icon{background:rgba(72,201,176,.12);color:var(--accent-2);
+    border-color:var(--accent-2)}
+  .card-title{font-size:13px;font-weight:600;margin:0;flex:1}
+  .card-tag{font-family:var(--mono);font-size:9px;text-transform:uppercase;
+    letter-spacing:.5px;padding:2px 6px;border-radius:2px;background:var(--bg);
+    color:var(--text-dim);border:1px solid var(--border)}
+  .card-tag.rec{background:rgba(72,201,176,.12);color:var(--accent-2);
+    border-color:rgba(72,201,176,.3)}
+  .card-desc{color:var(--text-dim);font-size:12px;margin:0 0 10px;line-height:1.6}
+
+  /* Code block */
+  .cmd{background:var(--gh-bg);border:1px solid var(--border);border-radius:5px;
+    padding:10px 12px;font-family:var(--mono);font-size:11px;line-height:1.6;
+    color:var(--text);overflow-x:auto;margin:8px 0}
+  .cmd .com{color:var(--text-faint);font-style:italic}
+  .cmd .prompt{color:var(--accent-2);user-select:none;margin-right:6px}
+  .cmd .hl{color:var(--accent)}
+
+  /* Steps */
+  .steps{display:flex;flex-direction:column;gap:10px;counter-reset:s}
+  .step-item{display:flex;gap:12px;background:var(--panel);
+    border:1px solid var(--border);border-radius:6px;padding:12px 14px}
+  .step-item::before{counter-increment:s;content:counter(s);
+    width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--bg);
+    font-family:var(--mono);font-size:11px;font-weight:600;display:flex;
+    align-items:center;justify-content:center;flex-shrink:0}
+  .step-body{flex:1;min-width:0}
+  .step-title{font-size:13px;font-weight:600;margin:0 0 4px}
+  .step-title code{font-size:11px}
+  .step-desc{color:var(--text-dim);font-size:11px;line-height:1.5;margin:0}
+
+  /* Compare table */
+  table.cmp{width:100%;border-collapse:collapse;background:var(--panel);
+    border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
+  table.cmp th{background:var(--panel-2);padding:10px 12px;text-align:left;
+    font-size:10px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--text-faint);border-bottom:1px solid var(--border);font-weight:600}
+  table.cmp td{padding:10px 12px;border-bottom:1px solid var(--border);
+    font-size:12px;color:var(--text-dim);vertical-align:top;line-height:1.5}
+  table.cmp td:first-child{color:var(--text);font-weight:500;font-family:var(--mono);
+    font-size:11px;background:var(--panel-2);width:130px}
+  table.cmp tr:last-child td{border-bottom:none}
+  .ck{color:var(--ok);font-weight:600}
+  .nk{color:var(--err);font-weight:600}
+
+  .checklist{background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;padding:14px 18px;box-shadow:var(--shadow)}
+  .checklist li{margin:6px 0;color:var(--text-dim);font-size:12px;list-style:none;
+    padding-left:22px;position:relative}
+  .checklist li::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">Session-Übergabe · ohne Kontext-Verlust</div>
+    <h1>Wie du <span class="accent">in einer neuen Session weitermachst</span></h1>
+    <p class="lead">Drei Mechanismen sorgen dafür, dass eine frische Claude-Session sofort weiß, wo wir stehen. Plus: was Fork/Branch dir bringt — und was nicht.</p>
+  </div>
+
+  <h2>Die 3 Persistenz-Säulen</h2>
+  <div class="grid">
+
+    <div class="card hi">
+      <div class="card-head">
+        <div class="card-icon">📖</div>
+        <h3 class="card-title">CLAUDE.md im Repo</h3>
+        <span class="card-tag rec">primär</span>
+      </div>
+      <p class="card-desc">Bootstrap-Manual. Jede neue Claude-Session liest das automatisch beim Start. Enthält: aktueller Stand, offene Pfade, Verhaltensregeln, Bootstrap-Sequenz.</p>
+      <div class="cmd"><span class="com"># Schon aktualisiert in dieser Session:</span>
+<span class="prompt">$</span> head -20 CLAUDE.md</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">📋</div>
+        <h3 class="card-title">ADRs + Decision-HTML</h3>
+        <span class="card-tag">strukturell</span>
+      </div>
+      <p class="card-desc"><code>docs/adr/*.md</code> = warum so entschieden wurde · <code>docs/decisions/*.html</code> = die interaktiven Entscheidungs-Karten als Beleg.  Roadmap zeigt Status visuell.</p>
+      <div class="cmd"><span class="prompt">$</span> ls docs/adr/ docs/decisions/
+<span class="prompt">$</span> open docs/decisions/000-roadmap.html</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">⛓</div>
+        <h3 class="card-title">Git-Historie + CHANGELOG</h3>
+        <span class="card-tag">technisch</span>
+      </div>
+      <p class="card-desc">Commit-Messages erzählen <i>was</i>, CHANGELOG.md <i>warum</i>. Conventional Commits machen die History grep-bar (<code>feat:</code>, <code>ci:</code>, <code>fix:</code>).</p>
+      <div class="cmd"><span class="prompt">$</span> git log --oneline -10
+<span class="prompt">$</span> cat CHANGELOG.md</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">🤖</div>
+        <h3 class="card-title">CI als externes Gedächtnis</h3>
+        <span class="card-tag">automatisiert</span>
+      </div>
+      <p class="card-desc">Tests + Schema-Drift laufen bei jedem Push. Wenn was kaputt ist, sieht's die nächste Session sofort. Keine still kaputten Branches.</p>
+      <div class="cmd"><span class="prompt">$</span> gh run list --limit 3
+<span class="prompt">$</span> gh run view --log</div>
+    </div>
+
+  </div>
+
+  <h2>Bootstrap-Sequenz für die nächste Session</h2>
+  <div class="steps">
+
+    <div class="step-item">
+      <div class="step-body">
+        <h3 class="step-title">In den Projekt-Ordner wechseln</h3>
+        <p class="step-desc">Claude liest <code>CLAUDE.md</code> automatisch ab dem Moment, wo du in dem Verzeichnis startest.</p>
+        <div class="cmd"><span class="prompt">$</span> cd path/to/Simulation-tools/pem-ec-designer</div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-body">
+        <h3 class="step-title">Claude-Session öffnen — neu oder fortgesetzt</h3>
+        <p class="step-desc"><code>--continue</code> nimmt die letzte Session in diesem Ordner mit Inhalt mit. <code>claude</code> ohne Flag startet frisch (CLAUDE.md ist genug Bootstrap).</p>
+        <div class="cmd"><span class="prompt">$</span> claude --continue   <span class="com"># mit voller Historie</span>
+<span class="prompt">$</span> claude              <span class="com"># frisch, liest CLAUDE.md</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-body">
+        <h3 class="step-title">Status zeigen lassen</h3>
+        <p class="step-desc">Erste Frage in der neuen Session — Claude reagiert auf CLAUDE.md + Git-State + CI-Stand.</p>
+        <div class="cmd"><span class="hl">User:</span> "Wo stehen wir? Welche Pfade sind offen?"</div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-body">
+        <h3 class="step-title">Pfad wählen und weitermachen</h3>
+        <p class="step-desc">A · weiter Specs · B · erster Generator · C · UI-Skelett · D · pause. Aus CLAUDE.md.</p>
+        <div class="cmd"><span class="hl">User:</span> "B"   <span class="com"># oder welcher Pfad auch immer</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2>Fork vs. Branch vs. Clone — was bringt dir was?</h2>
+  <table class="cmp">
+    <thead><tr><th>Feature</th><th>Wofür</th><th>Hilft Session-Wechsel?</th><th>Nutzen für dich gerade</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Fork</td>
+        <td>Repo eines anderen Users <i>kopieren</i>, um eigene Änderungen vorzuschlagen (Pull Request)</td>
+        <td><span class="nk">nein</span></td>
+        <td>Du bist Repo-Owner — Fork ist für Contributors auf <i>fremden</i> Repos. Bei dir irrelevant.</td>
+      </tr>
+      <tr>
+        <td>Branch</td>
+        <td>Parallele Entwicklung im selben Repo, später per Merge zusammengeführt</td>
+        <td><span class="nk">nein</span> — aber nützlich für Experimente</td>
+        <td>Sinnvoll wenn du parallel zwei Pfade probierst (z.B. <code>experiment/build123d-membrane</code>) ohne main zu brechen.</td>
+      </tr>
+      <tr>
+        <td>Clone</td>
+        <td>Repo auf zweitem Gerät bekommen</td>
+        <td><span class="ck">ja</span> — für Multi-Device-Arbeit</td>
+        <td>Wenn du auf einem zweiten Rechner weitermachst: <code>git clone git@github.com:Tools00/pem-ec-designer.git</code></td>
+      </tr>
+      <tr>
+        <td>Tag / Release</td>
+        <td>Versionsstand markieren (v0.1.0, v0.2.0)</td>
+        <td><span class="ck">ja</span> — markiert Meilensteine</td>
+        <td>Setzen wir bei v0.1, wenn der erste Generator läuft. Jetzt noch zu früh.</td>
+      </tr>
+      <tr>
+        <td>GitHub Issues</td>
+        <td>Aufgaben/Bugs strukturiert verfolgen</td>
+        <td><span class="ck">ja</span> — externes Backlog</td>
+        <td>Können wir aus den offenen Pfaden in CLAUDE.md generieren. Sinnvoll wenn mehrere Sessions parallel laufen.</td>
+      </tr>
+      <tr>
+        <td>GitHub Projects</td>
+        <td>Kanban-Board für Issues</td>
+        <td><span class="ck">ja</span> — visuell</td>
+        <td>Overkill für Solo-Projekt. Erst wenn Co-Maintainer dazukommen.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Empfehlung — Branch-Pattern für Experimente</h2>
+  <div class="card">
+    <p class="card-desc">Sobald wir vom Schema-/Spec-Pfad zu echten Generatoren oder UI-Code übergehen, ist es klug, auf Branches zu arbeiten. Nicht weil es nötig ist, sondern weil <code>main</code> dann immer „grün und reviewbar" bleibt.</p>
+    <div class="cmd"><span class="com"># Beispiel: build123d-Generator auf eigenem Branch</span>
+<span class="prompt">$</span> git switch -c experiment/membrane-generator
+<span class="com"># … arbeiten, committen …</span>
+<span class="prompt">$</span> git push -u origin experiment/membrane-generator
+<span class="com"># Dann via gh oder Web-UI Pull Request gegen main</span>
+<span class="prompt">$</span> gh pr create --fill</div>
+  </div>
+
+  <h2>Was schon eingebaut ist · Checkliste</h2>
+  <div class="checklist">
+    <ul>
+      <li><b>CLAUDE.md aktualisiert</b> — keine „leeres Skelett"-Lüge mehr; reflektiert v0.0.1-Stand</li>
+      <li><b>ADR-001 + ADR-002 committed</b> — Entscheidungen mit Begründung im Repo</li>
+      <li><b>CHANGELOG.md geführt</b> — Versions-Log ab v0.0.1</li>
+      <li><b>CI grün auf main</b> — letzte Session hat funktionierenden Stand hinterlassen</li>
+      <li><b>5 Decision-HTMLs unter docs/decisions/</b> — visuelles Klickprotokoll der Wahl</li>
+      <li><b>45/45 Tests grün</b> — Sicherheitsnetz für Refactor</li>
+    </ul>
+  </div>
+
+  <h2>Wenn du jetzt aussteigst</h2>
+  <div class="card hi">
+    <p class="card-desc">Es ist nichts „im Flug". Working tree clean, CI grün, alle Entscheidungen dokumentiert. Die nächste Session — egal ob in 1 Stunde oder 2 Wochen — kann sofort an Pfad A/B/C/D weitermachen, ohne dass irgendwas verloren geht.</p>
+    <p class="card-desc" style="margin-top:8px"><b>Letzter Schritt jetzt:</b> commit + push der aktualisierten CLAUDE.md + diese Handoff-Seite, dann ist der Stand auch auf GitHub gespiegelt.</p>
+  </div>
+
+</div>
+</body>
+</html>
