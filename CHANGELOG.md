@@ -5,6 +5,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
+### Added
+- `geometry/` layer (headless build123d CAD, no Qt).
+- `build_membrane(spec) → Part` — circular/square/rectangular footprints,
+  thickness extrusion, SI→mm conversion at the boundary.
+- Tests: volume check (Nafion 117 ≈ 359 mm³) + STEP export smoke
+  (ISO-10303 magic header).
+- `geometry/` covered by no-Qt layer-separation test.
+
 ## [0.0.1] — 2026-04-27
 
 ### Added

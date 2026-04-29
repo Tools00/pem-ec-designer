@@ -29,6 +29,8 @@ import pytest
         "pem_ec_designer.materials.loader",
         "pem_ec_designer.physics",
         "pem_ec_designer.assembly",
+        "pem_ec_designer.geometry",
+        "pem_ec_designer.geometry.membrane",
     ],
 )
 def test_imports_without_qt(module: str) -> None:
@@ -43,9 +45,12 @@ def test_no_qt_in_physics_layer() -> None:
     # Need to import the package first
     importlib.import_module("pem_ec_designer.physics")
     importlib.import_module("pem_ec_designer.schema")
+    importlib.import_module("pem_ec_designer.geometry")
     for name in list(sys.modules):
-        if name.startswith("pem_ec_designer.physics") or name.startswith(
-            "pem_ec_designer.schema"
+        if (
+            name.startswith("pem_ec_designer.physics")
+            or name.startswith("pem_ec_designer.schema")
+            or name.startswith("pem_ec_designer.geometry")
         ):
             mod = sys.modules[name]
             for forbidden_mod in forbidden:

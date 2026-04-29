@@ -3,15 +3,16 @@
 > Read-on-demand. CLAUDE.md verweist hierher.
 > Halte diese Datei aktuell beim Session-Ende.
 
-## Stand 2026-04-28 · v0.0.1
+## Stand 2026-04-29 · v0.0.1 (unreleased: +geometry)
 
 | Bereich | Stand |
 |---|---|
 | ADR-001 Framework | ✓ PyQt6 + pyvistaqt + build123d |
 | ADR-002 Library | ✓ Pydantic v2, per-cat JSON, BibTeX, Hierarchical IDs |
-| Python-Scaffold | ✓ `src/pem_ec_designer/` mit foundation/schema/materials |
+| Python-Scaffold | ✓ `src/pem_ec_designer/` mit foundation/schema/materials/**geometry** |
 | Library | ✓ 5 Membranen + 2 Materials + 11 BibTeX |
-| Tests | ✓ 45/45 lokal, CI grün auf main |
+| Geometry | ✓ `build_membrane()` — Volume + STEP-Export verifiziert (ADR-001-Risiko entschärft) |
+| Tests | ✓ 49/49 lokal |
 | Repo | private · [Tools00/pem-ec-designer](https://github.com/Tools00/pem-ec-designer) |
 
 ## Offene Pfade (User wählt)
@@ -19,8 +20,8 @@
 | | Pfad | Was |
 |---|---|---|
 | **A** | weiter Specs | anode_cl, cathode_cl, gdl, bpp, flow_field, endplate, gasket — je 5 Items inkrementell |
-| **B** | erster Generator | build123d für Membrane prototypisch — STEP-Export-Smoke |
-| **C** | UI-Skelett | leeres PySide6-MainWindow + pyvistaqt-Test-Cube |
+| **B'** | nächste Generatoren | `build_gdl` (rechteckig) + `build_bpp` — sobald 2-3 da sind: generische `build_extruded_component` |
+| **C** | UI-Skelett | leeres PySide6-MainWindow + pyvistaqt-Test-Cube (zeigt erstes STEP) |
 | **D** | pause | nichts tun |
 
 ## Bekannte TODOs
