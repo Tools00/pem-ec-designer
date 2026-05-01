@@ -11,17 +11,17 @@
 | ADR-002 Library | ✓ Pydantic v2, per-cat JSON, BibTeX, Hierarchical IDs |
 | Python-Scaffold | ✓ `src/pem_ec_designer/` mit foundation/schema/materials/**geometry** |
 | Library | ✓ 5 Membranen + 2 Materials + 11 BibTeX |
-| Geometry | ✓ `build_membrane()` — Volume + STEP-Export verifiziert (ADR-001-Risiko entschärft) |
-| Tests | ✓ 49/49 lokal |
+| Geometry | ✓ generischer `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane`-Wrapper. STEP-Export verifiziert. |
+| Tests | ✓ 54/54 lokal (inkl. rechteckiger Pfad + Error-Paths) |
 | Repo | private · [Tools00/pem-ec-designer](https://github.com/Tools00/pem-ec-designer) |
 
 ## Offene Pfade (User wählt)
 
 | | Pfad | Was |
 |---|---|---|
-| **A** | weiter Specs | anode_cl, cathode_cl, gdl, bpp, flow_field, endplate, gasket — je 5 Items inkrementell |
-| **B'** | nächste Generatoren | `build_gdl` (rechteckig) + `build_bpp` — sobald 2-3 da sind: generische `build_extruded_component` |
-| **C** | UI-Skelett | leeres PySide6-MainWindow + pyvistaqt-Test-Cube (zeigt erstes STEP) |
+| **A** | Specs erweitern | gdl/bpp/anode_cl/... je 2-5 Items mit echten BibTeX-Quellen — füttert den vorhandenen generischen Builder |
+| **B''** | Flow-Field-Generator | erste **nicht-extrudierte** Geometrie (Kanäle, Stege) — neues Pattern, eigener Generator nötig |
+| **C** | UI-Skelett | PyQt6-MainWindow + pyvistaqt zeigt geladene STEPs |
 | **D** | pause | nichts tun |
 
 ## Bekannte TODOs

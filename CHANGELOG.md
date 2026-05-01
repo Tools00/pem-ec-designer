@@ -7,11 +7,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ### Added
 - `geometry/` layer (headless build123d CAD, no Qt).
-- `build_membrane(spec) → Part` — circular/square/rectangular footprints,
-  thickness extrusion, SI→mm conversion at the boundary.
-- Tests: volume check (Nafion 117 ≈ 359 mm³) + STEP export smoke
-  (ISO-10303 magic header).
+- `build_extruded(component) → Part` — generic extruder for any
+  `Component` with `footprint` + `thickness`. Handles circular, square,
+  rectangular footprints; SI→mm at the boundary.
+- `build_membrane(spec)` — thin type-narrowing wrapper.
+- `Footprint` re-exported from `pem_ec_designer.schema`.
+- Tests:
+  - real Nafion 117 → volume + STEP smoke (ISO-10303 magic header);
+  - synthetic GDL → rectangular + square branches, missing-footprint
+    and missing-diameter error paths;
+  - real Membrane round-trip via generic builder.
 - `geometry/` covered by no-Qt layer-separation test.
+
+### Changed
+- `geometry.membrane.build_membrane` now delegates to `build_extruded`
+  (logic moved to `geometry/extruded.py`). API unchanged.
 
 ## [0.0.1] — 2026-04-27
 
