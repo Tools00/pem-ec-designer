@@ -23,6 +23,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 - `geometry.membrane.build_membrane` now delegates to `build_extruded`
   (logic moved to `geometry/extruded.py`). API unchanged.
 
+### Validated
+- UI render stack on macOS arm64: PySide6 + pyvistaqt + VTK pipeline
+  proven end-to-end via `scripts/smoke_pyvistaqt.py` (membrane STL →
+  embedded VTK render → PNG screenshot, 8 KB). 3 platform-specific
+  pitfalls documented in `docs/UI-LAUNCH-NOTES.md` (QT_PLUGIN_PATH,
+  no offscreen on macOS arm64, render-before-screenshot order).
+
 ### Decided
 - ADR-003: Qt-Binding = **PySide6 (LGPL)**. Formalisiert die im
   pyproject schon implizit getroffene Wahl. Hält Produkt-Lizenz frei

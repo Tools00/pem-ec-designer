@@ -14,6 +14,7 @@
 | Library | ✓ 5 Membranen + 2 Materials + 11 BibTeX |
 | Geometry | ✓ `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane` + `build_flow_field` (straight_parallel). STEP-Export verifiziert. |
 | Tests | ✓ 62/62 lokal (Geometry inkl. Boolean-Subtraktion exakt validiert) |
+| UI-Stack-Smoke | ✓ PySide6 6.11 + pyvistaqt 0.11 + VTK rendert Membrane-STL → PNG (`scripts/smoke_pyvistaqt.py`). Findings in `docs/UI-LAUNCH-NOTES.md`. |
 | Repo | private · [Tools00/pem-ec-designer](https://github.com/Tools00/pem-ec-designer) |
 
 ## Offene Pfade (User wählt)
