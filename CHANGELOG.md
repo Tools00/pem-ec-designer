@@ -23,6 +23,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 - `geometry.membrane.build_membrane` now delegates to `build_extruded`
   (logic moved to `geometry/extruded.py`). API unchanged.
 
+### Decided
+- ADR-003: Qt-Binding = **PySide6 (LGPL)**. Formalisiert die im
+  pyproject schon implizit getroffene Wahl. Hält Produkt-Lizenz frei
+  (proprietär oder GPL möglich). PyQt6 explizit verworfen.
+
 ### Added (flow-field)
 - `build_flow_field(spec)` — first non-pure-extrusion generator.
   Subtracts a parallel channel pattern from a base plate.

@@ -9,6 +9,7 @@
 |---|---|
 | ADR-001 Framework | ✓ PyQt6 + pyvistaqt + build123d |
 | ADR-002 Library | ✓ Pydantic v2, per-cat JSON, BibTeX, Hierarchical IDs |
+| ADR-003 Qt-Binding | ✓ PySide6 (LGPL) — formalisiert, was im pyproject schon stand |
 | Python-Scaffold | ✓ `src/pem_ec_designer/` mit foundation/schema/materials/**geometry** |
 | Library | ✓ 5 Membranen + 2 Materials + 11 BibTeX |
 | Geometry | ✓ `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane` + `build_flow_field` (straight_parallel). STEP-Export verifiziert. |
@@ -27,8 +28,9 @@
 
 ## Bekannte TODOs
 
-- ADR-003 Lizenz (PyQt6 GPL → PySide6 LGPL?) — Late binding
-- ADR-004 Geometry-Generator-Binding — nach 5 Generatoren entscheiden
+- ~~ADR-003 Qt-Binding~~ ✓ entschieden (PySide6/LGPL)
+- ADR-004 Geometry-Generator-Binding — `build_extruded` deckt 3 Kategorien, FF separat → Pattern bestätigt; ADR optional bis Stack-Composer kommt
+- Produkt-Lizenz-System (FlexLM o.ä.) — out of scope, eigenes ADR wenn jemals nötig
 - ADR-005 Stack-Composition — nach Library + Geometry
 - 55 weitere Komponenten-Specs (Wide-60 — inkrementell)
 - Cost-Felder durchgängig `null` → Preis-Recherche TODO
