@@ -23,6 +23,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 - `geometry.membrane.build_membrane` now delegates to `build_extruded`
   (logic moved to `geometry/extruded.py`). API unchanged.
 
+### Added (UI v0)
+- `python -m pem_ec_designer` opens a MainWindow with library sidebar
+  + embedded VTK viewer. Selecting a component renders it via
+  `build_extruded` -> STL -> pyvista. ADR-001 launch gate satisfied.
+- `ui/qt_env.py` — sets QT_PLUGIN_PATH for anaconda Python (must be
+  imported before any PySide6 import).
+- `ui/main_window.py` — sidebar + QtInteractor + status bar with
+  source citation.
+- `ui/viewer.py` — build123d Part -> pyvista mesh bridge.
+- `scripts/smoke_mainwindow.py` — headless launch + screenshot
+  verification (re-runnable after every UI change).
+
 ### Validated
 - UI render stack on macOS arm64: PySide6 + pyvistaqt + VTK pipeline
   proven end-to-end via `scripts/smoke_pyvistaqt.py` (membrane STL →

@@ -14,16 +14,17 @@
 | Library | ✓ 5 Membranen + 2 Materials + 11 BibTeX |
 | Geometry | ✓ `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane` + `build_flow_field` (straight_parallel). STEP-Export verifiziert. |
 | Tests | ✓ 62/62 lokal (Geometry inkl. Boolean-Subtraktion exakt validiert) |
-| UI-Stack-Smoke | ✓ PySide6 6.11 + pyvistaqt 0.11 + VTK rendert Membrane-STL → PNG (`scripts/smoke_pyvistaqt.py`). Findings in `docs/UI-LAUNCH-NOTES.md`. |
+| UI-Stack-Smoke | ✓ PySide6 6.11 + pyvistaqt 0.11 + VTK rendert Membrane-STL → PNG. Findings in `docs/UI-LAUNCH-NOTES.md`. |
+| UI v0 | ✓ `python -m pem_ec_designer` öffnet MainWindow: Library-Sidebar + VTK-Viewer. Klick → Generator → Mesh. Screenshot 115 KB. |
 | Repo | private · [Tools00/pem-ec-designer](https://github.com/Tools00/pem-ec-designer) |
 
 ## Offene Pfade (User wählt)
 
 | | Pfad | Was |
 |---|---|---|
-| **A** | Specs erweitern | gdl/bpp/anode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen — eigene Recherche-Session |
-| **B'''** | weitere FF-Patterns | serpentine (1D-Pfad mit Sweep), interdigitated. Aufwendiger als straight_parallel. |
-| **C** | UI-Skelett mit Viewer | PyQt6-MainWindow + pyvistaqt zeigt Membrane + Flow-Field STEPs |
+| **A** | Specs erweitern | gdl/bpp/anode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen — eigene Recherche-Session. **Größter Hebel jetzt: UI ist nur so spannend wie die Library tief.** |
+| **B'''** | weitere FF-Patterns | serpentine (Sweep), interdigitated |
+| **C+** | UI-Politur | Material-Card seitlich, STEP-Export-Button, Footprint-Form-Filter |
 | **E** | Stack-Composer | Membrane + 2× FF + 2× Endplate stapeln, ADR-005 ziehen |
 | **D** | pause | nichts tun |
 

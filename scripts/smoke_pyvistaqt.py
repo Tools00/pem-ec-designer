@@ -15,6 +15,7 @@ Run:  python scripts/smoke_pyvistaqt.py
 Exit: 0 = green pipeline, !=0 = something is broken — read traceback.
 """
 
+# ruff: noqa: I001  -- import order matters for Qt platform plugin discovery
 from __future__ import annotations
 
 import sys
