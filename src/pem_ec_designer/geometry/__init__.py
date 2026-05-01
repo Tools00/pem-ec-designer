@@ -5,6 +5,7 @@ type narrowing.
 """
 
 from .extruded import build_extruded
+from .flow_field import build_flow_field
 from .membrane import build_membrane
 
-__all__ = ["build_extruded", "build_membrane"]
+__all__ = ["build_extruded", "build_flow_field", "build_membrane"]

@@ -31,6 +31,8 @@ import pytest
         "pem_ec_designer.assembly",
         "pem_ec_designer.geometry",
         "pem_ec_designer.geometry.membrane",
+        "pem_ec_designer.geometry.extruded",
+        "pem_ec_designer.geometry.flow_field",
     ],
 )
 def test_imports_without_qt(module: str) -> None:

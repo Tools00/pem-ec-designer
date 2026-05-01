@@ -23,6 +23,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 - `geometry.membrane.build_membrane` now delegates to `build_extruded`
   (logic moved to `geometry/extruded.py`). API unchanged.
 
+### Added (flow-field)
+- `build_flow_field(spec)` — first non-pure-extrusion generator.
+  Subtracts a parallel channel pattern from a base plate.
+  Pattern `straight_parallel` implemented; serpentine / interdigitated
+  / mesh / pin_fin raise `NotImplementedError`.
+- Validation: rejects circular footprint, channel overlap
+  (pitch < width), channels deeper than plate.
+- 6 tests (volume = plate − n·channel exact; STEP smoke; 4 error paths).
+- `geometry.flow_field` covered by no-Qt layer-separation test.
+
 ## [0.0.1] — 2026-04-27
 
 ### Added
