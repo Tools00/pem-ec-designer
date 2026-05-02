@@ -24,7 +24,7 @@
 |---|---|---|
 | **A** | Specs erweitern | gdl/bpp/anode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen — eigene Recherche-Session. **Größter Hebel jetzt: UI ist nur so spannend wie die Library tief.** |
 | **B'''** | weitere FF-Patterns | serpentine (Sweep), interdigitated |
-| **C+** | UI-Politur | Material-Card seitlich, STEP-Export-Button, Footprint-Form-Filter |
+| **C+** | UI-Politur | Material-Card seitlich, STEP-Export-Button, Footprint-Form-Filter, **Maßstabs-Lineal im Viewer (mm)**, Edge-Toggle, Z-Faktor frei wählbar (10/100/1000) |
 | **E** | Stack-Composer | Membrane + 2× FF + 2× Endplate stapeln, ADR-005 ziehen |
 | **D** | pause | nichts tun |
 
