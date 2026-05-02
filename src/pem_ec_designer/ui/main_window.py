@@ -43,9 +43,18 @@ class MainWindow(QMainWindow):
 
         self._lib = load_library(library_dir)
 
+        # Sort by thickness so the list order mirrors what the viewer
+        # shows — user can verify visual scaling against the numbers.
         self._list = QListWidget()
-        for cid in sorted(self._lib.components):
-            item = QListWidgetItem(cid)
+        sorted_ids = sorted(
+            self._lib.components,
+            key=lambda c: self._lib.components[c].thickness.value.value_si,
+        )
+        for cid in sorted_ids:
+            comp = self._lib.components[cid]
+            t_um = comp.thickness.value.value_si * 1e6  # m -> um
+            label = f"{cid}    {t_um:>6.1f} um"
+            item = QListWidgetItem(label)
             item.setData(Qt.ItemDataRole.UserRole, cid)
             self._list.addItem(item)
         self._list.currentItemChanged.connect(self._on_selection)
