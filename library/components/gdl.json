@@ -54,6 +54,172 @@
     }
   },
 
+  "gdl.toray.tgph030": {
+    "category": "gdl",
+    "name": "Toray TGP-H-030 — 110 µm, no MPL",
+    "name_de": "Toray TGP-H-030 — 110 µm, ohne MPL",
+    "manufacturer": "Toray Industries, Inc.",
+    "has_mpl": false,
+    "thickness": {
+      "value": { "value": 110, "unit": "um" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet"
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "gdl.toray.tgph090": {
+    "category": "gdl",
+    "name": "Toray TGP-H-090 — 280 µm, no MPL",
+    "name_de": "Toray TGP-H-090 — 280 µm, ohne MPL",
+    "manufacturer": "Toray Industries, Inc.",
+    "has_mpl": false,
+    "thickness": {
+      "value": { "value": 280, "unit": "um" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet"
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "gdl.sgl.22bb": {
+    "category": "gdl",
+    "name": "SGL SIGRACET 22 BB — 215 µm, with MPL",
+    "name_de": "SGL SIGRACET 22 BB — 215 µm, mit MPL",
+    "manufacturer": "SGL Carbon SE",
+    "has_mpl": true,
+    "thickness": {
+      "value": { "value": 215, "unit": "um" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "areal_weight": {
+      "value": { "value": 70, "unit": "g/m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "gas_permeability_through_plane_gurley": {
+      "value": { "value": 1.2, "unit": "s" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "gas_permeability_through_plane": {
+      "value": { "value": 0.47e-12, "unit": "m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "At 1 MPa compression."
+    },
+    "gas_permeability_in_plane": {
+      "value": { "value": 2.8e-12, "unit": "m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "area_specific_resistance_through_plane": {
+      "value": { "value": 10, "unit": "mohm·cm^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "Datasheet states <10 mΩ·cm² at 1 MPa compression — value here is the spec upper bound."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "gdl.sgl.28bc": {
+    "category": "gdl",
+    "name": "SGL SIGRACET 28 BC — 235 µm, with MPL",
+    "name_de": "SGL SIGRACET 28 BC — 235 µm, mit MPL",
+    "manufacturer": "SGL Carbon SE",
+    "has_mpl": true,
+    "thickness": {
+      "value": { "value": 235, "unit": "um" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "areal_weight": {
+      "value": { "value": 105, "unit": "g/m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "gas_permeability_through_plane_gurley": {
+      "value": { "value": 4.5, "unit": "s" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "gas_permeability_through_plane": {
+      "value": { "value": 0.10e-12, "unit": "m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "At 1 MPa compression."
+    },
+    "gas_permeability_in_plane": {
+      "value": { "value": 0.9e-12, "unit": "m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "area_specific_resistance_through_plane": {
+      "value": { "value": 11, "unit": "mohm·cm^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "Datasheet states <11 mΩ·cm² at 1 MPa compression — value here is the spec upper bound."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "gdl.sgl.36bb": {
+    "category": "gdl",
+    "name": "SGL SIGRACET 36 BB — 280 µm, with MPL",
+    "name_de": "SGL SIGRACET 36 BB — 280 µm, mit MPL",
+    "manufacturer": "SGL Carbon SE",
+    "has_mpl": true,
+    "thickness": {
+      "value": { "value": 280, "unit": "um" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "areal_weight": {
+      "value": { "value": 105, "unit": "g/m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "gas_permeability_through_plane_gurley": {
+      "value": { "value": 3.0, "unit": "s" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "gas_permeability_through_plane": {
+      "value": { "value": 0.21e-12, "unit": "m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "At 1 MPa compression."
+    },
+    "gas_permeability_in_plane": {
+      "value": { "value": 1.8e-12, "unit": "m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "area_specific_resistance_through_plane": {
+      "value": { "value": 12, "unit": "mohm·cm^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "Datasheet states <12 mΩ·cm² at 1 MPa compression — value here is the spec upper bound."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
   "gdl.sgl.39bb": {
     "category": "gdl",
     "name": "SGL SIGRACET 39 BB — 315 µm, with MPL",
