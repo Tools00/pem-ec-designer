@@ -55,5 +55,16 @@ htmlcov/
 .notes/
 TODO.local.md
 
+# Claude Code: commit project-shared skills, ignore local/user state
+.claude/settings.local.json
+.claude/cache/
+.claude/logs/
+.claude/projects/
+.claude/shell-snapshots/
+.claude/todos/
+.claude/statsig/
+.claude/ide/
+.claude/__store.db*
+
 # OS
 Thumbs.db
