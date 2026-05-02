@@ -12,6 +12,34 @@
 %   Website:  @misc                     — 'wikipedia.electrolysis' (avoid)
 % =====================================================================
 
+% ─── Reference textbooks ──────────────────────────────────────────
+
+@book{newman2021em,
+  author    = {Newman, John and Balsara, Nitash P.},
+  title     = {Electrochemical Systems},
+  edition   = {4},
+  publisher = {Wiley},
+  address   = {Hoboken, NJ},
+  year      = {2021},
+  isbn      = {978-1-119-51460-2},
+  note      = {Standard reference for electrochemical transport, Butler-Volmer
+               kinetics, concentrated-solution theory. 4th edition adds
+               polymer-electrolyte chapters (Balsara).}
+}
+
+@book{smolinka2021h2,
+  editor    = {Smolinka, Tom and Garche, J{\"u}rgen},
+  title     = {Electrochemical Power Sources: Fundamentals, Systems, and
+               Applications --- Hydrogen Production by Water Electrolysis},
+  publisher = {Elsevier},
+  address   = {Amsterdam},
+  year      = {2021},
+  month     = {November},
+  isbn      = {978-0-12-819424-9},
+  note      = {Current PEM-WE reference handbook (Fraunhofer ISE et al.).
+               Covers stack design, BoP, degradation, cost, system integration.}
+}
+
 % ─── Comprehensive PEM-WE reviews ──────────────────────────────────
 
 @article{carmo2013ijhe,
@@ -126,6 +154,76 @@
   year   = {2023},
   note   = {Technical data sheet, accessed 2026-04},
   url    = {https://www.solvay.com/}
+}
+
+% ─── GDL datasheets (manufacturer Product Information) ───────────
+
+@misc{toray.datasheet.tgph,
+  author = {{Toray Industries, Inc.}},
+  title  = {Toray Carbon Fiber Paper "TGP-H" — Gas Diffusion Layer
+            (TGP-H-030/060/090/120, basic data sheet)},
+  year   = {n.d.},
+  note   = {Original Toray Industries product datasheet (no date on document).
+            Covers thickness 0.11/0.19/0.28/0.37 mm, bulk density, porosity,
+            surface roughness, gas permeability, through- and in-plane
+            electrical resistivity, thermal conductivity, flexural/tensile
+            strength. Manufacturer current product page redirected
+            2025-09 to https://www.cf-composites.toray/ ; PDF retrieved
+            2026-05 from fuelcellearth.com mirror, identical to original.},
+  url    = {https://www.fuelcellearth.com/wp-content/uploads/converted_files/pdf/Toray_specs.pdf}
+}
+
+@misc{sgl.whitepaper.sigracet,
+  author = {Schweiss, R{\"u}diger and Hofmeister, Simon and Meiser, Christian
+            and Dan, Dana and Baumann, Alois and Kuster, Tobias and
+            Haak, Nico and Bacher, Susanne},
+  title  = {Powering up fuel cells — Our gas diffusion layer
+            (SIGRACET White Paper)},
+  year   = {2021},
+  month  = {May},
+  howpublished = {SGL Carbon GmbH, Meitingen / Wiesbaden, Germany},
+  note   = {Document code 05 2021/0 2NÄ. Section "Typical properties of
+            fully-treated SIGRACET GDL grades" tabulates 22 BB / 28 BC /
+            36 BB / 39 BB (thickness, area weight, TP/IP gas permeability,
+            TP area-specific resistance, IP electric resistance, TP thermal
+            conductivity, bending stiffness, compressibility, tensile
+            strength, water contact angle, Ra). Retrieved 2026-05 from
+            manufacturer-direct URL.},
+  url    = {https://www.sglcarbon.com/data/pdf/SIGRACET-Whitepaper.pdf}
+}
+
+% ─── GDL characterization papers (peer-reviewed) ──────────────────
+
+@article{aquah2024scirep,
+  author  = {Aquah, Grace Esu-Ejemot and Niblett, Daniel and Shokri, Javad and
+             Niasar, Vahid},
+  title   = {Characterisation of hydraulic properties of commercial gas
+             diffusion layers: {Toray}, {SGL}, {MGL}, woven carbon cloth},
+  journal = {Scientific Reports},
+  volume  = {14},
+  pages   = {18812},
+  year    = {2024},
+  doi     = {10.1038/s41598-024-68681-4},
+  note    = {Reports for Toray TGP-H-060 (uncompressed): porosity 0.84,
+             in-plane permeability 39.0 / 35.5 (x/y) × 10⁻¹² m²,
+             through-plane permeability 21.7 × 10⁻¹² m². Independent
+             cross-reference to manufacturer datasheet (78\% porosity).}
+}
+
+@article{chen2022jpowsour,
+  author  = {Chen, Yen-Chun and Karageorgiou, Chrysoula and Eller, Jens and
+             Schmidt, Thomas J. and B{\"u}chi, Felix N.},
+  title   = {Determination of the porosity and its heterogeneity of fuel cell
+             microporous layers by {X}-ray tomographic microscopy},
+  journal = {Journal of Power Sources},
+  volume  = {539},
+  pages   = {231612},
+  year    = {2022},
+  doi     = {10.1016/j.jpowsour.2022.231612},
+  note    = {X-ray tomography of 15 commercial GDL/MPL materials from three
+             manufacturers (incl. SIGRACET); reports total/microporosity,
+             heterogeneity, thickness statistics. Cross-reference for
+             SIGRACET 39 BB MPL structure.}
 }
 
 % ─── Internal placeholders (NOT for paper-grade data) ─────────────

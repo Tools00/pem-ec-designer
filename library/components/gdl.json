@@ -1,0 +1,137 @@
+{
+  "gdl.toray.tgph060": {
+    "category": "gdl",
+    "name": "Toray TGP-H-060 — 190 µm, no MPL",
+    "name_de": "Toray TGP-H-060 — 190 µm, ohne MPL",
+    "manufacturer": "Toray Industries, Inc.",
+    "has_mpl": false,
+    "cross_references": [
+      {
+        "source": "aquah2024scirep",
+        "note": "Independent characterization (X-ray μCT + LBM): porosity 0.84 (vs. datasheet 0.78), K_in_plane 39.0/35.5e-12 m², K_through_plane 21.7e-12 m². Datasheet remains primary; this paper documents real-world variability."
+      }
+    ],
+    "thickness": {
+      "value": { "value": 190, "unit": "um" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet"
+    },
+    "porosity": {
+      "value": { "value": 78, "unit": "percent" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet"
+    },
+    "bulk_density": {
+      "value": { "value": 0.44, "unit": "g/cm^3" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet"
+    },
+    "electrical_resistivity_through_plane": {
+      "value": { "value": 80, "unit": "mohm·cm" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet"
+    },
+    "electrical_resistivity_in_plane": {
+      "value": { "value": 5.8, "unit": "mohm·cm" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet"
+    },
+    "thermal_conductivity_through_plane": {
+      "value": { "value": 1.7, "unit": "W/(m·K)" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet",
+      "note": "Room temperature, value in parentheses on datasheet (indicative)."
+    },
+    "thermal_conductivity_in_plane": {
+      "value": { "value": 21, "unit": "W/(m·K)" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet",
+      "note": "Room temperature."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "gdl.sgl.39bb": {
+    "category": "gdl",
+    "name": "SGL SIGRACET 39 BB — 315 µm, with MPL",
+    "name_de": "SGL SIGRACET 39 BB — 315 µm, mit MPL",
+    "manufacturer": "SGL Carbon SE",
+    "has_mpl": true,
+    "cross_references": [
+      {
+        "source": "chen2022jpowsour",
+        "note": "X-ray tomographic microscopy of SIGRACET MPL materials (15 commercial GDLs, three manufacturers). Provides MPL total porosity, microporosity and thickness heterogeneity for SIGRACET-family GDLs."
+      }
+    ],
+    "ptfe_loading_substrate": {
+      "value": { "value": 5, "unit": "percent_w_w" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "ptfe_loading_mpl": {
+      "value": { "value": 22.5, "unit": "percent_w_w" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "White paper states 20-25% w/w; midpoint reported here."
+    },
+    "thickness": {
+      "value": { "value": 315, "unit": "um" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "Uncompressed thickness."
+    },
+    "areal_weight": {
+      "value": { "value": 95, "unit": "g/m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "area_specific_resistance_through_plane": {
+      "value": { "value": 13, "unit": "mohm·cm^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "Datasheet states <13 mΩ·cm² at 1 MPa compression — value here is the spec upper bound."
+    },
+    "electric_resistance_in_plane": {
+      "value": { "value": 0.56, "unit": "ohm·mm" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "van der Pauw method."
+    },
+    "gas_permeability_through_plane_gurley": {
+      "value": { "value": 1.5, "unit": "s" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet"
+    },
+    "gas_permeability_through_plane": {
+      "value": { "value": 0.12e-12, "unit": "m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "At 1 MPa compression."
+    },
+    "gas_permeability_in_plane": {
+      "value": { "value": 8.40e-12, "unit": "m^2" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "van der Pauw method."
+    },
+    "thermal_conductivity_through_plane": {
+      "value": { "value": 0.20, "unit": "W/(m·K)" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "Uncompressed."
+    },
+    "water_contact_angle_mpl": {
+      "value": { "value": 130, "unit": "deg" },
+      "source": "sgl.whitepaper.sigracet",
+      "confidence": "datasheet",
+      "note": "Datasheet states >130°; value here is the spec lower bound."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  }
+}

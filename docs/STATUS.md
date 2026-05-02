@@ -3,7 +3,7 @@
 > Read-on-demand. CLAUDE.md verweist hierher.
 > Halte diese Datei aktuell beim Session-Ende.
 
-## Stand 2026-04-29 · v0.0.1 (unreleased: +geometry)
+## Stand 2026-05-02 · v0.0.1 (unreleased: +geometry +gdl)
 
 | Bereich | Stand |
 |---|---|
@@ -11,9 +11,11 @@
 | ADR-002 Library | ✓ Pydantic v2, per-cat JSON, BibTeX, Hierarchical IDs |
 | ADR-003 Qt-Binding | ✓ PySide6 (LGPL) — formalisiert, was im pyproject schon stand |
 | Python-Scaffold | ✓ `src/pem_ec_designer/` mit foundation/schema/materials/**geometry** |
-| Library | ✓ 5 Membranen + 2 Materials + 11 BibTeX |
+| Library | ✓ 5 Membranen + **2 GDL** + 2 Materials + **18 BibTeX** (inkl. 2 books, 2 GDL-DOI-Papers) |
+| Schema-E1 | ✓ `Component.material` optional · `manufacturer` + `cross_references` auf Component-Ebene · `GasDiffusionLayer` mit 14 Feldern · neuer `CrossReference` BaseModel |
+| Units | ✓ +20 Engineering-Units (areal density, ρ-Varianten, λ thermisch, Zeit, Winkel, dimensionslose Brüche) |
 | Geometry | ✓ `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane` + `build_flow_field` (straight_parallel). STEP-Export verifiziert. |
-| Tests | ✓ 62/62 lokal (Geometry inkl. Boolean-Subtraktion exakt validiert) |
+| Tests | ✓ **85/85** lokal (vorher 62; +23 für E1) |
 | UI-Stack-Smoke | ✓ PySide6 6.11 + pyvistaqt 0.11 + VTK rendert Membrane-STL → PNG. Findings in `docs/UI-LAUNCH-NOTES.md`. |
 | UI v0 | ✓ `python -m pem_ec_designer` öffnet MainWindow: Library-Sidebar + VTK-Viewer. Klick → Generator → Mesh. Screenshot 115 KB. |
 | Repo | private · [Tools00/pem-ec-designer](https://github.com/Tools00/pem-ec-designer) |
@@ -22,7 +24,7 @@
 
 | | Pfad | Was |
 |---|---|---|
-| **A** | Specs erweitern | gdl/bpp/anode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen — eigene Recherche-Session. **Größter Hebel jetzt: UI ist nur so spannend wie die Library tief.** |
+| **A** | Specs erweitern | gdl/bpp/anode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen. **Stand:** GDL hat 2 Specs (Toray TGP-H-060 ohne MPL, SIGRACET 39 BB mit MPL); Schema kann jetzt alle weiteren Toray-Dicken (-030/-090/-120) und SIGRACET-Grades (22 BB / 28 BC / 36 BB) ohne weitere Schema-Arbeit aufnehmen — beide Datasheets bereits zitiert. BPP/CL/FF noch unangetastet. |
 | **B'''** | weitere FF-Patterns | serpentine (Sweep), interdigitated |
 | **C+** | UI-Politur | Material-Card seitlich, STEP-Export-Button, Footprint-Form-Filter, **Maßstabs-Lineal im Viewer (mm)**, Edge-Toggle, Z-Faktor frei wählbar (10/100/1000) |
 | **E** | Stack-Composer | Membrane + 2× FF + 2× Endplate stapeln, ADR-005 ziehen |
