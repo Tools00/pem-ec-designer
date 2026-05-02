@@ -19,10 +19,13 @@ from . import qt_env  # noqa: F401
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QCheckBox,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
     QSplitter,
+    QVBoxLayout,
+    QWidget,
 )
 from pyvistaqt import QtInteractor
 
@@ -47,12 +50,26 @@ class MainWindow(QMainWindow):
             self._list.addItem(item)
         self._list.currentItemChanged.connect(self._on_selection)
 
+        # Aspect ratio of real PEM components is brutal (membrane: 50 mm
+        # diameter * 0.025 mm thick = 2000:1). Z-exaggeration toggle is
+        # the standard fix in geo / wafer viewers — purely visual, the
+        # underlying geometry stays untouched.
+        self._z_exag = QCheckBox("Exaggerate Z x 100 (visual only)")
+        self._z_exag.setChecked(True)
+        self._z_exag.toggled.connect(self._rerender_current)
+
+        sidebar = QWidget()
+        sidebar_layout = QVBoxLayout(sidebar)
+        sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        sidebar_layout.addWidget(self._z_exag)
+        sidebar_layout.addWidget(self._list, stretch=1)
+
         self._plotter = QtInteractor(self)
         self._plotter.set_background("white")
         self._plotter.add_axes()
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.addWidget(self._list)
+        splitter.addWidget(sidebar)
         splitter.addWidget(self._plotter.interactor)
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
@@ -86,13 +103,24 @@ class MainWindow(QMainWindow):
             return
 
         mesh = part_to_mesh(part)
+        if self._z_exag.isChecked():
+            mesh = mesh.scale([1.0, 1.0, 100.0], inplace=False)
         self._plotter.clear()
+        self._plotter.add_axes()
         self._plotter.add_mesh(mesh, color="cornflowerblue", show_edges=True)
         self._plotter.reset_camera()
+        self._plotter.view_isometric()
         self._plotter.render()
 
         thickness_mm = component.thickness.value.value_si * 1000.0
+        z_note = "  |  Zx100" if self._z_exag.isChecked() else ""
         self.statusBar().showMessage(
             f"{cid}  ·  {component.name}  ·  thickness {thickness_mm:.3f} mm  "
-            f"·  source {component.thickness.source}"
+            f"·  source {component.thickness.source}{z_note}"
         )
+
+    def _rerender_current(self) -> None:
+        """Re-render the currently selected item, e.g. after a Z-toggle."""
+        item = self._list.currentItem()
+        if item is not None:
+            self._on_selection(item, None)
