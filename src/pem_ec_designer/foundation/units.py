@@ -55,6 +55,37 @@ _TO_SI: dict[str, tuple[float, str]] = {
     # equivalent weight
     "g/eq":  (1e-3, "kg/eq"),
     "kg/eq": (1.0,  "kg/eq"),
+    # areal density
+    "kg/m^2": (1.0,   "kg/m^2"),
+    "g/m^2":  (1e-3,  "kg/m^2"),
+    # resistivity (volume) — SI base ohm·m
+    "ohm·m":     (1.0,   "ohm·m"),
+    "Ω·m":       (1.0,   "ohm·m"),
+    "ohm·cm":    (1e-2,  "ohm·m"),
+    "Ω·cm":      (1e-2,  "ohm·m"),
+    "mohm·cm":   (1e-5,  "ohm·m"),
+    "mΩ·cm":     (1e-5,  "ohm·m"),
+    # area-specific resistance — milli-prefixed variants
+    "mohm·cm^2": (1e-7,  "ohm·m^2"),
+    "mΩ·cm^2":   (1e-7,  "ohm·m^2"),
+    # in-plane sheet resistance × thickness (ohm·length)
+    "ohm·mm":    (1e-3,  "ohm·m"),
+    "Ω·mm":      (1e-3,  "ohm·m"),
+    # thermal conductivity
+    "W/(m·K)":   (1.0,   "W/(m·K)"),
+    "W/(m.K)":   (1.0,   "W/(m·K)"),
+    # time
+    "s":   (1.0, "s"),
+    "sec": (1.0, "s"),
+    # angle (geometric, no SI conversion needed)
+    "deg": (1.0, "deg"),
+    "°":   (1.0, "deg"),
+    # dimensionless fractions — stored as 0..1
+    "fraction":     (1.0,  "fraction"),
+    "percent":      (0.01, "fraction"),
+    "%":            (0.01, "fraction"),
+    "percent_w_w":  (0.01, "fraction"),
+    "percent_v_v":  (0.01, "fraction"),
     # money: passed through, no conversion (annotated for clarity)
     "EUR":         (1.0, "EUR"),
     "EUR/cell":    (1.0, "EUR/cell"),

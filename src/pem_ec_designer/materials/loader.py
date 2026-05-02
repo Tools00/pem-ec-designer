@@ -166,10 +166,11 @@ def _cross_validate(lib: Library) -> None:
     errors: list[str] = []
 
     for cid, comp in lib.components.items():
-        # Material ref must exist
-        ref_id = comp.material.ref
-        if ref_id not in lib.materials:
-            errors.append(f"component {cid}: unknown material ref {ref_id!r}")
+        # Material ref must exist (when set — composites may omit it)
+        if comp.material is not None:
+            ref_id = comp.material.ref
+            if ref_id not in lib.materials:
+                errors.append(f"component {cid}: unknown material ref {ref_id!r}")
 
         # Every source-id must resolve into BibTeX keys
         for source_id in _walk_source_ids(comp):

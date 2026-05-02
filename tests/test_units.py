@@ -30,7 +30,50 @@ ROUND_TRIP_CASES: list[tuple[float, str]] = [
     (1100.0, "g/eq"),
     (1.98, "g/cm^3"),
     (50.0, "EUR/cell"),
+    # GDL / electrochem additions
+    (95.0, "g/m^2"),
+    (80.0, "mohm·cm"),
+    (5.8, "mohm·cm"),
+    (13.0, "mohm·cm^2"),
+    (0.56, "ohm·mm"),
+    (0.20, "W/(m·K)"),
+    (1.7, "W/(m·K)"),
+    (1.5, "s"),
+    (130.0, "deg"),
+    (78.0, "percent"),
+    (5.0, "percent_w_w"),
+    (8.4e-12, "m^2"),
 ]
+
+
+# Cross-unit equivalence cases — same physical quantity, different units
+# in SI must agree.
+EQUIVALENCE_CASES: list[tuple[tuple[float, str], tuple[float, str]]] = [
+    # 80 mohm·cm == 8e-4 ohm·m
+    ((80.0, "mohm·cm"), (8e-4, "ohm·m")),
+    # 13 mohm·cm^2 == 1.3e-6 ohm·m^2
+    ((13.0, "mohm·cm^2"), (1.3e-6, "ohm·m^2")),
+    # 95 g/m^2 == 0.095 kg/m^2
+    ((95.0, "g/m^2"), (0.095, "kg/m^2")),
+    # 78 percent == 0.78 fraction
+    ((78.0, "percent"), (0.78, "fraction")),
+    # 5 percent_w_w == 0.05 fraction
+    ((5.0, "percent_w_w"), (0.05, "fraction")),
+    # 0.56 ohm·mm == 5.6e-4 ohm·m
+    ((0.56, "ohm·mm"), (5.6e-4, "ohm·m")),
+    # W/(m.K) (ASCII alias) == W/(m·K)
+    ((1.7, "W/(m.K)"), (1.7, "W/(m·K)")),
+]
+
+
+@pytest.mark.parametrize(("a", "b"), EQUIVALENCE_CASES)
+def test_unit_equivalence(a: tuple[float, str], b: tuple[float, str]) -> None:
+    """Two engineering forms of the same quantity must yield equal SI values."""
+    si_a = convert_to_si(*a)
+    si_b = convert_to_si(*b)
+    assert math.isclose(si_a, si_b, rel_tol=1e-12, abs_tol=1e-18), (
+        f"{a} → {si_a} but {b} → {si_b}"
+    )
 
 
 @pytest.mark.parametrize(("value", "unit"), ROUND_TRIP_CASES)
