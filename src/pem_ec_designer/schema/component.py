@@ -26,7 +26,10 @@ class Footprint(BaseModel):
     corner_radius: Quantity | None = Field(default=None, description="optional fillet")
 
 
-_HIERARCHICAL_ID = r"^[a-z0-9]+(\.[a-z0-9]+){1,3}$"
+_HIERARCHICAL_ID = r"^[a-z0-9_]+(\.[a-z0-9_]+){1,3}$"
+# Underscores allowed in segments so multi-word categories
+# (anode_cl / cathode_cl / flow_field) can use their canonical name as
+# the leading segment, e.g. 'anode_cl.bernt2016.optimal'.
 
 
 class CrossReference(BaseModel):

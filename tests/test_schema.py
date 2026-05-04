@@ -90,6 +90,29 @@ def test_id_pattern_accepts_hierarchical() -> None:
     assert m.id == "membrane.nafion.117"
 
 
+def test_id_pattern_accepts_underscored_category() -> None:
+    """Multi-word categories (anode_cl, cathode_cl, flow_field) need
+    underscore-tolerant ID segments so the category name can be the leading
+    slug (e.g. 'anode_cl.bernt2016.optimal')."""
+    from pem_ec_designer.schema.component import AnodeCatalystLayer
+
+    cl = AnodeCatalystLayer(
+        id="anode_cl.bernt2016.optimal",
+        name="IrO2/TiO2 anode CL",
+        thickness=SourcedValue[Quantity](
+            value=Quantity(value=10, unit="um"),
+            source="bernt2016jes",
+            confidence="paper",
+        ),
+        catalyst_loading=SourcedValue[Quantity](
+            value=Quantity(value=2.0, unit="mg/cm^2"),
+            source="bernt2016jes",
+            confidence="paper",
+        ),
+    )
+    assert cl.id == "anode_cl.bernt2016.optimal"
+
+
 # ─── GDL + CrossReference (added with E1 schema extension) ──────────
 
 
