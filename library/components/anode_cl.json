@@ -1,0 +1,47 @@
+{
+  "anode_cl.bernt2016.optimal": {
+    "category": "anode_cl",
+    "name": "IrO2/TiO2 anode CL — 2.0 mg_Ir/cm², 11.6 wt% ionomer (Bernt 2016 optimum)",
+    "name_de": "IrO2/TiO2 Anoden-CL — 2.0 mg_Ir/cm², 11.6 wt% Ionomer (Bernt 2016 Optimum)",
+    "manufacturer": null,
+    "thickness": {
+      "value": { "value": 10, "unit": "um" },
+      "source": "bernt2016jes",
+      "confidence": "paper",
+      "note": "Reported range 8–12 µm; midpoint used. Cross-section determined post-MEA fabrication."
+    },
+    "catalyst_loading": {
+      "value": { "value": 2.0, "unit": "mg/cm^2" },
+      "source": "bernt2016jes",
+      "confidence": "paper",
+      "note": "Primary loading 2.00 ± 0.25 mg_Ir/cm² across the ionomer-content series. Supported on TiO2."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "anode_cl.bernt2016.low_ionomer": {
+    "category": "anode_cl",
+    "name": "IrO2/TiO2 anode CL — 1.46 mg_Ir/cm², 2.2 wt% ionomer (Bernt 2016 low-ionomer)",
+    "name_de": "IrO2/TiO2 Anoden-CL — 1.46 mg_Ir/cm², 2.2 wt% Ionomer (Bernt 2016, ionomerarm)",
+    "manufacturer": null,
+    "thickness": {
+      "value": { "value": 10, "unit": "um" },
+      "source": "bernt2016jes",
+      "confidence": "paper",
+      "note": "Reported range 8–12 µm for the ionomer-content series; midpoint used."
+    },
+    "catalyst_loading": {
+      "value": { "value": 1.46, "unit": "mg/cm^2" },
+      "source": "bernt2016jes",
+      "confidence": "paper",
+      "note": "Low-ionomer reference sample (2.2 wt% Nafion); slightly lower Ir loading than primary 2.0 mg/cm² series."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  }
+}
