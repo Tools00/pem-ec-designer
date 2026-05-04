@@ -43,6 +43,7 @@ ROUND_TRIP_CASES: list[tuple[float, str]] = [
     (78.0, "percent"),
     (5.0, "percent_w_w"),
     (8.4e-12, "m^2"),
+    (2.0, "mg/cm^2"),
 ]
 
 
@@ -63,6 +64,8 @@ EQUIVALENCE_CASES: list[tuple[tuple[float, str], tuple[float, str]]] = [
     ((0.56, "ohm·mm"), (5.6e-4, "ohm·m")),
     # W/(m.K) (ASCII alias) == W/(m·K)
     ((1.7, "W/(m.K)"), (1.7, "W/(m·K)")),
+    # 2 mg/cm² == 0.02 kg/m² (catalyst loading)
+    ((2.0, "mg/cm^2"), (0.02, "kg/m^2")),
 ]
 
 

@@ -8,7 +8,7 @@ Source-ID format (convention):
 e.g.
     carmo2013ijhe.tab2     → BibTeX key 'carmo2013ijhe', Table 2
     chemours.datasheet.n117 → BibTeX key 'chemours.datasheet.n117'
-    bernt2018jes.fig1a     → BibTeX key 'bernt2018jes', Figure 1a
+    bernt2016jes.fig1a     → BibTeX key 'bernt2016jes', Figure 1a
 
 Confidence is implicitly 'paper' if the BibTeX key resolves;
 estimates / TODO go through `confidence='estimate'` and source MUST

@@ -58,6 +58,7 @@ _TO_SI: dict[str, tuple[float, str]] = {
     # areal density
     "kg/m^2": (1.0,   "kg/m^2"),
     "g/m^2":  (1e-3,  "kg/m^2"),
+    "mg/cm^2": (1e-2, "kg/m^2"),  # catalyst loading (1 mg/cm² = 0.01 kg/m²)
     # resistivity (volume) — SI base ohm·m
     "ohm·m":     (1.0,   "ohm·m"),
     "Ω·m":       (1.0,   "ohm·m"),
