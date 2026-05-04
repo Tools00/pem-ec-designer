@@ -11,7 +11,7 @@
 | ADR-002 Library | ✓ Pydantic v2, per-cat JSON, BibTeX, Hierarchical IDs |
 | ADR-003 Qt-Binding | ✓ PySide6 (LGPL) — formalisiert, was im pyproject schon stand |
 | Python-Scaffold | ✓ `src/pem_ec_designer/` mit foundation/schema/materials/**geometry** |
-| Library | ✓ 5 Membranen + **7 GDL** + 2 Materials + **18 BibTeX** (inkl. 2 books, 2 GDL-DOI-Papers) |
+| Library | ✓ 5 Membranen + **8 GDL** + 2 Materials + **18 BibTeX** (inkl. 2 books, 2 GDL-DOI-Papers) |
 | Schema-E1 | ✓ `Component.material` optional · `manufacturer` + `cross_references` auf Component-Ebene · `GasDiffusionLayer` mit 14 Feldern · neuer `CrossReference` BaseModel |
 | Units | ✓ +20 Engineering-Units (areal density, ρ-Varianten, λ thermisch, Zeit, Winkel, dimensionslose Brüche) |
 | Geometry | ✓ `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane` + `build_flow_field` (straight_parallel). STEP-Export verifiziert. |
@@ -24,7 +24,7 @@
 
 | | Pfad | Was |
 |---|---|---|
-| **A** | Specs erweitern | gdl/bpp/anode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen. **Stand:** GDL hat 7 Specs (Toray TGP-H-030/-060/-090, SIGRACET 22 BB / 28 BC / 36 BB / 39 BB); für weitere Toray-Dicken (-120) und Hersteller (MGL, Freudenberg) könnte Schema ohne Änderung erweitert werden, falls Datasheets beschafft. BPP/CL/FF noch unangetastet. |
+| **A** | Specs erweitern | gdl/bpp/anode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen. **Stand:** GDL **vollständig** (Toray TGP-H-030/-060/-090/-120, SIGRACET 22 BB / 28 BC / 36 BB / 39 BB — beide Datasheet-Familien komplett). Nächster sinnvoller Schritt: BPP (POCO/Schunk Datasheets nötig) oder Anode CL (IrO₂-Loadings aus Bernt 2018/2020 — Papers schon zitiert). |
 | **B'''** | weitere FF-Patterns | serpentine (Sweep), interdigitated |
 | **C+** | UI-Politur | Material-Card seitlich, STEP-Export-Button, Footprint-Form-Filter, **Maßstabs-Lineal im Viewer (mm)**, Edge-Toggle, Z-Faktor frei wählbar (10/100/1000) |
 | **E** | Stack-Composer | Membrane + 2× FF + 2× Endplate stapeln, ADR-005 ziehen |

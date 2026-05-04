@@ -88,6 +88,23 @@
     }
   },
 
+  "gdl.toray.tgph120": {
+    "category": "gdl",
+    "name": "Toray TGP-H-120 — 370 µm, no MPL",
+    "name_de": "Toray TGP-H-120 — 370 µm, ohne MPL",
+    "manufacturer": "Toray Industries, Inc.",
+    "has_mpl": false,
+    "thickness": {
+      "value": { "value": 370, "unit": "um" },
+      "source": "toray.datasheet.tgph",
+      "confidence": "datasheet"
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
   "gdl.sgl.22bb": {
     "category": "gdl",
     "name": "SGL SIGRACET 22 BB — 215 µm, with MPL",
