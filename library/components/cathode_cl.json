@@ -1,0 +1,47 @@
+{
+  "cathode_cl.zhang2024.baseline": {
+    "category": "cathode_cl",
+    "name": "Pt/HSAC cathode CL — 0.1 mg_Pt/cm² baseline (Zhang 2024)",
+    "name_de": "Pt/HSAC Kathoden-CL — 0.1 mg_Pt/cm² Baseline (Zhang 2024)",
+    "manufacturer": null,
+    "thickness": {
+      "value": { "value": 4, "unit": "um" },
+      "source": "zhang2024acsami",
+      "confidence": "paper",
+      "note": "Estimated from Zhang 2024: 50 wt% Pt on HSAC at 0.025 mg/cm² gives ~1 µm; scaling linearly to 0.1 mg/cm² ≈ 4 µm. CL thickness varies strongly with carbon support and Pt wt%."
+    },
+    "catalyst_loading": {
+      "value": { "value": 0.1, "unit": "mg/cm^2" },
+      "source": "zhang2024acsami",
+      "confidence": "paper",
+      "note": "Baseline cathode loading used for comparison against ultra-low (0.025) and SOA (0.5-1.0) mg_Pt/cm². Pt on high surface area carbon (HSAC), I/C = 0.35."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  },
+
+  "cathode_cl.zhang2024.ultralow": {
+    "category": "cathode_cl",
+    "name": "Pt/HSAC cathode CL — 0.025 mg_Pt/cm² ultralow (Zhang 2024)",
+    "name_de": "Pt/HSAC Kathoden-CL — 0.025 mg_Pt/cm² Ultra-Low (Zhang 2024)",
+    "manufacturer": null,
+    "thickness": {
+      "value": { "value": 1, "unit": "um" },
+      "source": "zhang2024acsami",
+      "confidence": "paper",
+      "note": "50 wt% Pt on HSAC at 0.025 mg/cm² with I/C = 0.35; reported by Zhang 2024."
+    },
+    "catalyst_loading": {
+      "value": { "value": 0.025, "unit": "mg/cm^2" },
+      "source": "zhang2024acsami",
+      "confidence": "paper",
+      "note": "Ultra-low Pt loading — Zhang 2024 demonstrates comparable performance to baseline at 80 °C, 0.5 A/cm²."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  }
+}
