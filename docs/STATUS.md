@@ -11,7 +11,7 @@
 | ADR-002 Library | ✓ Pydantic v2, per-cat JSON, BibTeX, Hierarchical IDs |
 | ADR-003 Qt-Binding | ✓ PySide6 (LGPL) — formalisiert, was im pyproject schon stand |
 | Python-Scaffold | ✓ `src/pem_ec_designer/` mit foundation/schema/materials/**geometry** |
-| Library | ✓ 5 Membranen + **8 GDL** + **2 Anode-CL** + **2 Cathode-CL** + 2 Materials + **19 BibTeX** (inkl. 2 books, 2 GDL-DOI-Papers, 1 Cathode-CL-Paper) |
+| Library | ✓ 5 Membranen + **8 GDL** + **2 Anode-CL** + **2 Cathode-CL** + **1 BPP** + **3 Materials** + **20 BibTeX** (inkl. 2 books, 2 GDL-DOI-Papers, 1 Cathode-CL-Paper, 1 POCO-Datasheet) |
 | Schema-E1 | ✓ `Component.material` optional · `manufacturer` + `cross_references` auf Component-Ebene · `GasDiffusionLayer` mit 14 Feldern · neuer `CrossReference` BaseModel · ID-Pattern erlaubt Underscore (für `anode_cl.*` u.a.) |
 | Units | ✓ +21 Engineering-Units (areal density, ρ-Varianten, λ thermisch, Zeit, Winkel, dimensionslose Brüche, **mg/cm² Katalysator-Loading**) |
 | Geometry | ✓ `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane` + `build_flow_field` (straight_parallel). STEP-Export verifiziert. |
@@ -24,7 +24,7 @@
 
 | | Pfad | Was |
 |---|---|---|
-| **A** | Specs erweitern | gdl/bpp/anode_cl/cathode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen. **Stand:** GDL **vollständig** (8 Specs). Anode CL: 2 (Bernt 2016, IrO₂/TiO₂). Cathode CL: 2 (Zhang 2024, Pt/HSAC ultralow + baseline). Nächster sinnvoller Schritt: BPP (POCO/Schunk Datasheets nötig — Web-Recherche) oder Materials erweitern (IrO₂/Pt als Materials) oder Flow Field Patterns (serpentine, interdigitated — Geometry-only). |
+| **A** | Specs erweitern | gdl/bpp/anode_cl/cathode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen. **Stand:** GDL **vollständig** (8 Specs). Anode CL: 2 (Bernt 2016, IrO₂/TiO₂). Cathode CL: 2 (Zhang 2024, Pt/HSAC). BPP: 1 (POCO AXF-5Q 5 mm, Entegris-Datasheet). Materials: 3 (Nafion-1100, Aquivion-870, POCO-AXF5Q). Nächster Schritt: zweite BPP-Variante (Schunk/MERSEN), Endplate (typ. Aluminium oder Edelstahl), Flow Field Patterns (Geometrie-only). |
 | **B'''** | weitere FF-Patterns | serpentine (Sweep), interdigitated |
 | **C+** | UI-Politur | Material-Card seitlich, STEP-Export-Button, Footprint-Form-Filter, **Maßstabs-Lineal im Viewer (mm)**, Edge-Toggle, Z-Faktor frei wählbar (10/100/1000) |
 | **E** | Stack-Composer | Membrane + 2× FF + 2× Endplate stapeln, ADR-005 ziehen |

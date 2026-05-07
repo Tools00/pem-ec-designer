@@ -22,6 +22,24 @@
     }
   },
 
+  "poco-axf5q": {
+    "name": "POCO AXF-5Q (premium fine-grain graphite)",
+    "vendor": "Entegris (POCO)",
+    "family": "Isotropic graphite — BPP substrate",
+    "density": {
+      "value": { "value": 1.78, "unit": "g/cm^3" },
+      "source": "entegris.datasheet.axf5q",
+      "confidence": "datasheet",
+      "note": "Apparent (bulk) density per manufacturer datasheet."
+    },
+    "sigma_S_per_m": {
+      "value": { "value": 6.8e4, "unit": "S/m" },
+      "source": "entegris.datasheet.axf5q",
+      "confidence": "datasheet",
+      "note": "Computed from datasheet resistivity 1470 µΩ·cm: σ = 1 / (1.47e-5 Ω·m) ≈ 6.8e4 S/m. Bulk (volumetric) — not BPP-stack-relevant ASR, that is dominated by interface contacts."
+    }
+  },
+
   "aquivion-870": {
     "name": "Aquivion (SSC-PFSA, EW 870)",
     "vendor": "Solvay",

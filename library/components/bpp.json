@@ -1,0 +1,20 @@
+{
+  "bpp.poco.axf5q_5mm": {
+    "category": "bpp",
+    "name": "Research-cell BPP — POCO AXF-5Q graphite, 5 mm",
+    "name_de": "Forschungs-Bipolarplatte — POCO AXF-5Q Graphit, 5 mm",
+    "manufacturer": "Entegris (POCO)",
+    "material": { "ref": "poco-axf5q" },
+    "coating": null,
+    "thickness": {
+      "value": { "value": 5, "unit": "mm" },
+      "source": "internal.estimate.2024",
+      "confidence": "estimate",
+      "note": "5 mm is a project-convention research-cell BPP thickness — POCO AXF-5Q is sold by Entegris as semi-finished blocks/plates that are machined to size. Other common research-cell thicknesses: 3 mm, 10 mm. The material properties come from entegris.datasheet.axf5q via the material reference."
+    },
+    "footprint": {
+      "shape": "circular",
+      "diameter": { "value": 50, "unit": "mm" }
+    }
+  }
+}
