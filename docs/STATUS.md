@@ -3,7 +3,7 @@
 > Read-on-demand. CLAUDE.md verweist hierher.
 > Halte diese Datei aktuell beim Session-Ende.
 
-## Stand 2026-05-02 · v0.0.1 (unreleased: +geometry +gdl)
+## Stand 2026-05-12 · v0.0.1 (unreleased: +geometry +library +physics)
 
 | Bereich | Stand |
 |---|---|
@@ -15,7 +15,8 @@
 | Schema-E1 | ✓ `Component.material` optional · `manufacturer` + `cross_references` auf Component-Ebene · `GasDiffusionLayer` mit 14 Feldern · neuer `CrossReference` BaseModel · ID-Pattern erlaubt Underscore (für `anode_cl.*` u.a.) |
 | Units | ✓ +21 Engineering-Units (areal density, ρ-Varianten, λ thermisch, Zeit, Winkel, dimensionslose Brüche, **mg/cm² Katalysator-Loading**) |
 | Geometry | ✓ `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane` + `build_flow_field` (straight_parallel). STEP-Export verifiziert. |
-| Tests | ✓ **88/88** lokal (vorher 85; +1 mg/cm² round-trip, +1 mg/cm² equivalence, +1 underscored-ID) |
+| Tests | ✓ **121/121** lokal (vorher 88; +6 thermodynamics, +12 kinetics, +8 ohmic, +7 polarization) |
+| **Physics-Layer** | ✓ **`physics/` aktiv** — `thermodynamics.E_rev(T,p)`, `kinetics.butler_volmer_overpotential`, `ohmic.OhmicContribution`/`total_asr`, `polarization.cell_voltage`/`polarisation_curve`. Modell per **ADR-004** (0D · steady · isotherm · BV+ASR). Bernt-2016 + Carmo-2013 Validation-Anchor erfüllt. |
 | UI-Stack-Smoke | ✓ PySide6 6.11 + pyvistaqt 0.11 + VTK rendert Membrane-STL → PNG. Findings in `docs/UI-LAUNCH-NOTES.md`. |
 | UI v0 | ✓ `python -m pem_ec_designer` öffnet MainWindow: Library-Sidebar + VTK-Viewer. Klick → Generator → Mesh. Screenshot 115 KB. |
 | Repo | public · [Tools00/pem-ec-designer](https://github.com/Tools00/pem-ec-designer) |
@@ -24,11 +25,12 @@
 
 | | Pfad | Was |
 |---|---|---|
-| **A** | Specs erweitern | gdl/bpp/anode_cl/cathode_cl/flow_field je 2-5 Items mit echten BibTeX-Quellen. **Stand:** GDL **vollständig** (8 Specs). Anode CL: 2 (Bernt 2016, IrO₂/TiO₂). Cathode CL: 2 (Zhang 2024, Pt/HSAC). BPP: 1 (POCO AXF-5Q 5 mm, Entegris-Datasheet). Materials: 3 (Nafion-1100, Aquivion-870, POCO-AXF5Q). Nächster Schritt: zweite BPP-Variante (Schunk/MERSEN), Endplate (typ. Aluminium oder Edelstahl), Flow Field Patterns (Geometrie-only). |
-| **B'''** | weitere FF-Patterns | serpentine (Sweep), interdigitated |
-| **C+** | UI-Politur | Material-Card seitlich, STEP-Export-Button, Footprint-Form-Filter, **Maßstabs-Lineal im Viewer (mm)**, Edge-Toggle, Z-Faktor frei wählbar (10/100/1000) |
-| **E** | Stack-Composer | Membrane + 2× FF + 2× Endplate stapeln, ADR-005 ziehen |
-| **D** | pause | nichts tun |
+| **★ F** | **Simulations-UI** | **Matplotlib-Embed in MainWindow + Operating-Condition-Panel (T-Slider 50–95 °C, p-Slider 1–30 bar) + Live-Replot. Bridge `assembly/` Component→`CellKinetics`/`OhmicContribution`. → erste echte V–I-Kurve in der UI.** Vorbedingung erfüllt: `physics/` läuft (121 Tests, ADR-004). Aufwand: 1 Session. |
+| G | LCOH-Modul | `physics/lcoh.py` — €/kg H₂ aus η_LHV + CapEx + Strompreis. Schmidt 2017 als Validation-Target. Vorbedingung: F (V–I-Kurve liefert η). |
+| H | Assembly-Layer | `assembly/stack.py` — N Zellen × Komponenten zu `Stack`-Objekt. Liefert die Inputs für `polarization.cell_voltage`. ADR-005 ziehen. |
+| A | Specs erweitern | GDL **vollständig** (8). CL: 4 (2 Anode + 2 Cathode). BPP: 1. Endplate/Gasket/FF noch offen. **Niedrige Priorität** — Library hat genug Breite für die Physik-Validation. |
+| C+ | UI-Politur (alt) | Material-Card seitlich, STEP-Export-Button, Skala im Viewer. **Niedrige Priorität** gegenüber F. |
+| D | pause | nichts tun |
 
 ## Bekannte TODOs
 

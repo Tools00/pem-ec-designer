@@ -5,6 +5,29 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
+### Added (physics layer · May 2026) ★
+- **ADR-004** — physics-model choice: 0D · steady-state · isothermal ·
+  symmetric Butler-Volmer + linear ASR-sum. Five axes traded off with
+  rejected alternatives documented; calibration factors explicitly
+  forbidden.
+- `physics/thermodynamics.py` — `reversible_voltage(T, p_h2, p_o2)`
+  with Nernst correction and tabulated dE/dT = −8.46×10⁻⁴ V/K.
+  Validated: 1.229 V @ 25 °C (CODATA), 1.183 V @ 80 °C (Newman 2021).
+- `physics/kinetics.py` — `butler_volmer_overpotential` (symmetric)
+  + `tafel_slope`. Bernt 2016 (47 mV/dec) cross-check.
+- `physics/ohmic.py` — `OhmicContribution` dataclass +
+  `total_asr` / `ohmic_overpotential` (series sum) +
+  `asr_from_thickness_and_conductivity` (membrane helper).
+- `physics/polarization.py` — **master function `cell_voltage(j, …)`
+  + sweep `polarisation_curve(j_values, …)`** composing all of the
+  above. Returns `PolarisationPoint` with each loss term broken out
+  for waterfall display.
+- Validation anchors per ADR-004 met: V(1 A/cm², 80 °C) = 1.632 V
+  ∈ Bernt-2016 band [1.50, 1.70]; V(2 A/cm², 80 °C) = 1.764 V
+  ∈ Carmo-2013 band [1.70, 2.00].
+- Tests: +33 (6 thermodynamics, 12 kinetics, 8 ohmic, 7 polarization).
+  Total 121/121.
+
 ### Added (library expansion · May 2026)
 - **GDL** family completed: Toray TGP-H -030 / -060 / -090 / -120 +
   SIGRACET 22 BB / 28 BC / 36 BB / 39 BB — all from manufacturer
