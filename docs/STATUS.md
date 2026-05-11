@@ -18,7 +18,7 @@
 | Tests | ✓ **88/88** lokal (vorher 85; +1 mg/cm² round-trip, +1 mg/cm² equivalence, +1 underscored-ID) |
 | UI-Stack-Smoke | ✓ PySide6 6.11 + pyvistaqt 0.11 + VTK rendert Membrane-STL → PNG. Findings in `docs/UI-LAUNCH-NOTES.md`. |
 | UI v0 | ✓ `python -m pem_ec_designer` öffnet MainWindow: Library-Sidebar + VTK-Viewer. Klick → Generator → Mesh. Screenshot 115 KB. |
-| Repo | private · [Tools00/pem-ec-designer](https://github.com/Tools00/pem-ec-designer) |
+| Repo | public · [Tools00/pem-ec-designer](https://github.com/Tools00/pem-ec-designer) |
 
 ## Offene Pfade (User wählt)
 

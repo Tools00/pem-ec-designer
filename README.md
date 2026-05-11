@@ -3,8 +3,11 @@
 Visual designer for **PEM water-electrolysis cells** — parametric
 component library, CAD-quality 3D, polarisation physics.
 
-**Status:** v0.0.1 — pre-alpha. Schema + 5 membrane specs scaffolded.
-No UI yet. See [`CHANGELOG.md`](CHANGELOG.md).
+**Status:** v0.0.1 (unreleased) — pre-alpha. Schema scaffolded, **18 components
+across 5 categories** (membrane · GDL · anode CL · cathode CL · BPP) with
+20 BibTeX sources. **UI v0 runs**: PySide6 MainWindow with library sidebar
++ embedded VTK viewer. Launch: `PYTHONPATH=src python -m pem_ec_designer`.
+See [`CHANGELOG.md`](CHANGELOG.md) and [`docs/STATUS.md`](docs/STATUS.md).
 
 ## What this is
 
@@ -43,8 +46,9 @@ See `docs/adr/` for the decision record:
 
 | ADR | Topic |
 |---|---|
-| [001](docs/adr/001-framework-choice.md) | Framework: PyQt + pyvistaqt + build123d |
+| [001](docs/adr/001-framework-choice.md) | Framework: PySide6 + pyvistaqt + build123d |
 | [002](docs/adr/002-library-architecture.md) | Library: Pydantic schema, BibTeX sources, hierarchical IDs |
+| [003](docs/adr/003-qt-binding-license.md) | Qt binding: PySide6 (LGPL) — keeps product license free |
 
 Layer structure (per ADR-001 §3.1):
 
@@ -73,12 +77,13 @@ references break tests.
 
 | Gate | Status |
 |---|---|
-| `import pem_ec_designer.physics` without Qt | tests/test_no_qt_imports.py |
-| Unit round-trip for foundation.units | tests/test_units.py |
-| Pydantic schema rejects flat IDs | tests/test_schema.py |
-| Library cross-validation (5 membranes) | tests/test_library.py |
-| build123d STEP-export smoke | pending v0.1 |
-| pyvistaqt MainWindow opens | pending v0.1 |
+| `import pem_ec_designer.physics` without Qt | ✓ tests/test_no_qt_imports.py |
+| Unit round-trip for foundation.units | ✓ tests/test_units.py |
+| Pydantic schema rejects flat IDs, accepts hierarchical (incl. underscore) | ✓ tests/test_schema.py |
+| Library cross-validation (18 components, 5 categories) | ✓ tests/test_library.py |
+| build123d STEP-export smoke (membrane, GDL, flow-field) | ✓ tests/test_geometry.py |
+| PySide6 + pyvistaqt MainWindow renders headless to PNG | ✓ scripts/smoke_mainwindow.py |
+| **Total** | **88/88 passing** |
 
 ## Roadmap
 
@@ -86,5 +91,7 @@ See [`docs/decisions/000-roadmap.html`](docs/decisions/000-roadmap.html).
 
 ## License
 
-TBD — see ADR-003 (Late Binding). PyQt6 is GPL; switch to PySide6
-likely with the licensing decision.
+Code license TBD for the eventual product release. Qt binding is
+**PySide6 (LGPL)** per [ADR-003](docs/adr/003-qt-binding-license.md),
+which keeps the product license free (proprietary or GPL both possible).
+PyQt6 (GPL) explicitly rejected.

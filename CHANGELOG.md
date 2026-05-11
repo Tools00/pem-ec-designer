@@ -5,6 +5,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
+### Added (library expansion · May 2026)
+- **GDL** family completed: Toray TGP-H -030 / -060 / -090 / -120 +
+  SIGRACET 22 BB / 28 BC / 36 BB / 39 BB — all from manufacturer
+  datasheets (8 specs total).
+- **Anode CL** category: 2 specs from Bernt & Gasteiger 2016 JES
+  (IrO₂/TiO₂, 2.0 + 1.46 mg_Ir/cm², ionomer-content series).
+- **Cathode CL** category: 2 specs from Zhang et al. 2024
+  ACS Appl. Mater. Interfaces (Pt/HSAC, baseline 0.1 + ultralow
+  0.025 mg_Pt/cm²).
+- **BPP** category: research-cell POCO AXF-5Q (5 mm) +
+  `poco-axf5q` material spec.
+- BibTeX +4: `bernt2016jes` (key fixed from `bernt2018jes` — vol. 163
+  of JES is 2016, not 2018), `zhang2024acsami`,
+  `entegris.datasheet.axf5q`, `chen2022jpowsour`.
+- Units: `mg/cm^2` (catalyst loading) registered with round-trip +
+  equivalence tests.
+- Schema: hierarchical-ID pattern loosened to allow underscore in
+  segments so `anode_cl.*` / `cathode_cl.*` / `flow_field.*` IDs validate.
+
 ### Added
 - `geometry/` layer (headless build123d CAD, no Qt).
 - `build_extruded(component) → Part` — generic extruder for any
