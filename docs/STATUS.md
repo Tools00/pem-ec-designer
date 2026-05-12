@@ -18,18 +18,20 @@
 | Tests | ✓ **121/121** lokal (vorher 88; +6 thermodynamics, +12 kinetics, +8 ohmic, +7 polarization) |
 | **Physics-Layer** | ✓ **`physics/` aktiv** — `thermodynamics.E_rev(T,p)`, `kinetics.butler_volmer_overpotential`, `ohmic.OhmicContribution`/`total_asr`, `polarization.cell_voltage`/`polarisation_curve`. Modell per **ADR-004** (0D · steady · isotherm · BV+ASR). Bernt-2016 + Carmo-2013 Validation-Anchor erfüllt. |
 | UI-Stack-Smoke | ✓ PySide6 6.11 + pyvistaqt 0.11 + VTK rendert Membrane-STL → PNG. Findings in `docs/UI-LAUNCH-NOTES.md`. |
-| UI v0 | ✓ `python -m pem_ec_designer` öffnet MainWindow: Library-Sidebar + VTK-Viewer. Klick → Generator → Mesh. Screenshot 115 KB. |
+| UI v0 | ✓ `python -m pem_ec_designer` öffnet MainWindow mit **2 Tabs**: „Components" (Library-Sidebar + VTK-Viewer) und **„Simulation" (T/p-Slider + V–I-Kurve + Loss-Waterfall, live-replot)**. Screenshots in `/tmp/pem_simulation_ui.png`. |
+| Assembly | ✓ `assembly/stack.py:build_stack(...)` — Component/Material → `CellKinetics`/`OhmicContribution`/`OperatingPoint`. Skipped-Layer-Diagnostics. 4 Tests. |
 | Repo | public · [Tools00/pem-ec-designer](https://github.com/Tools00/pem-ec-designer) |
 
 ## Offene Pfade (User wählt)
 
 | | Pfad | Was |
 |---|---|---|
-| **★ F** | **Simulations-UI** | **Matplotlib-Embed in MainWindow + Operating-Condition-Panel (T-Slider 50–95 °C, p-Slider 1–30 bar) + Live-Replot. Bridge `assembly/` Component→`CellKinetics`/`OhmicContribution`. → erste echte V–I-Kurve in der UI.** Vorbedingung erfüllt: `physics/` läuft (121 Tests, ADR-004). Aufwand: 1 Session. |
-| G | LCOH-Modul | `physics/lcoh.py` — €/kg H₂ aus η_LHV + CapEx + Strompreis. Schmidt 2017 als Validation-Target. Vorbedingung: F (V–I-Kurve liefert η). |
-| H | Assembly-Layer | `assembly/stack.py` — N Zellen × Komponenten zu `Stack`-Objekt. Liefert die Inputs für `polarization.cell_voltage`. ADR-005 ziehen. |
-| A | Specs erweitern | GDL **vollständig** (8). CL: 4 (2 Anode + 2 Cathode). BPP: 1. Endplate/Gasket/FF noch offen. **Niedrige Priorität** — Library hat genug Breite für die Physik-Validation. |
-| C+ | UI-Politur (alt) | Material-Card seitlich, STEP-Export-Button, Skala im Viewer. **Niedrige Priorität** gegenüber F. |
+| ✓ F | ~~Simulations-UI~~ | **DONE** — Tab „Simulation" mit T/p-Slidern, V–I-Kurve + Loss-Waterfall. V(1 A/cm²) ≈ 1.61 V aus echtem Library-Stack. `scripts/smoke_simulation_tab.py` als Evidence. |
+| ✓ H | ~~Assembly-Layer~~ | **DONE** — `assembly/stack.py:build_stack(...)`. Bridge Component/Material → physics-Inputs. Skipped-Layer-Diagnostics in StatusBar. |
+| **★ G** | **LCOH-Modul** | `physics/lcoh.py` — €/kg H₂ aus η_LHV(j) + CapEx-Modell + Strompreis-Slider. Schmidt 2017 (4–6 €/kg @ 50 €/MWh) als Validation-Target. UI: dritter Tab oder Erweiterung des Simulation-Tabs. Aufwand: 1 Session. |
+| I | Stack-Composer | UI zum freien Kombinieren von Komponenten statt Hardcoded-Default-Stack. ADR-005 ziehen. Aufwand: 1–2 Sessions. |
+| A | Specs erweitern | GDL **vollständig** (8). CL: 4 (2 Anode + 2 Cathode). BPP: 1. Endplate/Gasket/FF noch offen. **Niedrige Priorität**. |
+| C+ | UI-Politur (alt) | Material-Card, STEP-Export-Button, Skala im 3D-Viewer. **Niedrige Priorität**. |
 | D | pause | nichts tun |
 
 ## Bekannte TODOs
