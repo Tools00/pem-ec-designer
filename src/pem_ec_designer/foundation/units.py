@@ -30,6 +30,9 @@ _TO_SI: dict[str, tuple[float, str]] = {
     "A/m^2":  (1.0,   "A/m^2"),
     "A/cm^2": (1e4,   "A/m^2"),
     "mA/cm^2":(10.0,  "A/m^2"),
+    # Tafel slope (voltage per decade of current density)
+    "V/dec":  (1.0,   "V/dec"),
+    "mV/dec": (1e-3,  "V/dec"),
     # conductivity
     "S/m":   (1.0,    "S/m"),
     "S/cm":  (100.0,  "S/m"),

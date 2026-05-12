@@ -51,7 +51,18 @@ class Material(BaseModel):
     # Catalyst-relevant
     j0_anode: SourcedValue[Quantity] | None = Field(
         default=None,
-        description="Exchange current density at reference state",
+        description="Exchange current density for anode (OER) at reference state",
     )
-    j0_cathode: SourcedValue[Quantity] | None = None
+    j0_cathode: SourcedValue[Quantity] | None = Field(
+        default=None,
+        description="Exchange current density for cathode (HER) at reference state",
+    )
+    alpha_anode: SourcedValue[Quantity] | None = Field(
+        default=None,
+        description="Charge-transfer coefficient α for anode (OER), dimensionless",
+    )
+    alpha_cathode: SourcedValue[Quantity] | None = Field(
+        default=None,
+        description="Charge-transfer coefficient α for cathode (HER), dimensionless",
+    )
     tafel_slope: SourcedValue[Quantity] | None = None

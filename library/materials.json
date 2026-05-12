@@ -40,6 +40,48 @@
     }
   },
 
+  "iro2-tio2-catalyst": {
+    "name": "IrO2/TiO2 anode catalyst (OER)",
+    "vendor": null,
+    "family": "Pt-group oxide catalyst — PEM-EC anode",
+    "j0_anode": {
+      "value": { "value": 1.0e-2, "unit": "A/m^2" },
+      "source": "carmo2013ijhe",
+      "confidence": "paper",
+      "note": "Geometric (not ECSA-normalised) exchange current density for OER on IrO2 — order-of-magnitude from Carmo 2013 review band (typical 1e-6 to 1e-5 A/cm² = 1e-2 to 1e-1 A/m²). Lower bound used as a conservative default."
+    },
+    "alpha_anode": {
+      "value": { "value": 0.75, "unit": "fraction" },
+      "source": "bernt2016jes",
+      "confidence": "paper",
+      "note": "Inferred from Bernt 2016 Tafel slope 47 mV/dec at 80 °C: α·n = (R·T·ln10)/(b·F) ≈ 1.5; with n=2 → α ≈ 0.75. See physics.kinetics.tafel_slope cross-check."
+    },
+    "tafel_slope": {
+      "value": { "value": 47.0, "unit": "mV/dec" },
+      "source": "bernt2016jes",
+      "confidence": "paper",
+      "note": "Reported range 45-50 mV/dec across the ionomer-content series at 80 °C; mid-band 47 mV/dec used."
+    }
+  },
+
+  "pt-c-catalyst": {
+    "name": "Pt/C cathode catalyst (HER)",
+    "vendor": null,
+    "family": "Pt-group catalyst — PEM-EC cathode",
+    "j0_cathode": {
+      "value": { "value": 1.0e3, "unit": "A/m^2" },
+      "source": "carmo2013ijhe",
+      "confidence": "paper",
+      "note": "Geometric exchange current density for HER on Pt/C — order-of-magnitude from Carmo 2013 review. HER kinetics on Pt are several orders of magnitude faster than OER, so cathode overpotential is typically small (<50 mV at 1 A/cm²)."
+    },
+    "alpha_cathode": {
+      "value": { "value": 0.5, "unit": "fraction" },
+      "source": "carmo2013ijhe",
+      "confidence": "paper",
+      "note": "Symmetric Butler-Volmer default for HER on Pt; widely used in PEM-EC literature."
+    }
+  },
+
   "aquivion-870": {
     "name": "Aquivion (SSC-PFSA, EW 870)",
     "vendor": "Solvay",
