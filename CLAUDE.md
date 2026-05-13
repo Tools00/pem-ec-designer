@@ -28,6 +28,8 @@
 ## Kanonische Quellen
 
 - `docs/STATUS.md` — wo wir stehen + offene Pfade
-- `docs/adr/001-framework-choice.md` — Stack
+- **`docs/UX-VISION.md` — UI/UX-Nordstern für v1.0 (lesen vor jeder UI-Session)**
+- `docs/adr/001-framework-choice.md` — Stack (PyQt6 → PySide6 per ADR-003)
 - `docs/adr/002-library-architecture.md` — Library-Layout
+- `docs/adr/004-physics-model.md` — Physik-Modell-Wahl (0-D · steady · isotherm · BV+ASR)
 - `CHANGELOG.md` — Versions-Log

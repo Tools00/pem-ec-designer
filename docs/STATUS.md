@@ -49,6 +49,13 @@
 **Draußen v1.0:** Multi-User · Web-UI · CFD · 1D-Fluid · Lizenz-System
 **Niemals:** Werte ohne Paper-Quelle
 
+## UX-Nordstern
+
+`docs/UX-VISION.md` — bindendes UI/UX-Konzept für v1.0. Lesepflicht für jede UI-Session.
+Kernaussage: Tabs → scrollbare Single-Page-Notebook mit 5 Sektionen (§1 Stack Design ·
+§2 Operating Point · §3 Results · §4 Economics · §5 Export). Live everywhere, kein
+„Calculate"-Button, Quelle hinter jedem Wert, Validation-Badge immer sichtbar.
+
 ## Bootstrap-Sequenz
 
 ```bash
