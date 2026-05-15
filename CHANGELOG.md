@@ -5,6 +5,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
+### Added (economics layer · May 2026) ★
+- **ADR-005** — LCOH model: amortised CapEx + fixed OpEx + grid electricity,
+  Schmidt-2017 style. Rejected alternatives (stack replacement, system-wide
+  boundary, Monte-Carlo, faradaic-η < 1) documented with reasons.
+- `physics/efficiency.py` — `lhv_efficiency(V_cell)`, `hhv_efficiency(V_cell)`,
+  `specific_energy_consumption(V_cell)`. V_LHV_thermoneutral = 1.253 V
+  derived from CODATA LHV_H2.
+- `physics/lcoh.py` — `LCOHInputs` dataclass with Schmidt-2017 defaults,
+  `capital_recovery_factor()`, `levelised_cost_of_hydrogen()` returning
+  per-component breakdown (CapEx / OpEx / Strom).
+- Validation anchor met: 3.71 €/kg @ η_LHV = 0.65, 50 €/MWh, 1100 €/kW,
+  CF 90 %, 25 y, i = 8 % — inside Schmidt-2017 PEM band (3.5–5.5 €/kg
+  at 50 €/MWh).
+- `ui/economics_panel.py` — §4 LCOH live read-out with CapEx + Strompreis
+  sliders, wired into MainWindow `_recompute_polarisation`. V_cell @ 1 A/cm²
+  (design-j anchor) feeds the panel; recomputes < 1 ms per slider change.
+- Tests: +37 (9 efficiency, 28 lcoh inkl. Schmidt-Anker, CRF edge cases,
+  monotonicity). Total **162/162**.
+
 ### Added (physics layer · May 2026) ★
 - **ADR-004** — physics-model choice: 0D · steady-state · isothermal ·
   symmetric Butler-Volmer + linear ASR-sum. Five axes traded off with

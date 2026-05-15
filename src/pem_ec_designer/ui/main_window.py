@@ -36,9 +36,16 @@ from ..geometry import build_extruded
 from ..materials import load_library
 from ..physics.polarization import polarisation_curve
 from ..schema import Component
+from .economics_panel import EconomicsPanel
 from .operating_panel import OperatingPanel
 from .plot_panel import PolarisationPanel
 from .viewer import part_to_mesh
+
+# Design current density for LCOH read-out (1 A/cm² = 1e4 A/m²).
+# UX-VISION C+ plans a user-controllable Design-j slider; for v0 we
+# anchor on 1 A/cm² because that is where the Bernt-2016 validation
+# anchor sits.
+_DESIGN_J_A_PER_M2: float = 1.0e4
 
 
 class MainWindow(QMainWindow):
@@ -98,11 +105,14 @@ class MainWindow(QMainWindow):
 
         self._plot_panel = PolarisationPanel()
 
+        self._econ_panel = EconomicsPanel()
+
         sim_widget = QWidget()
         sim_layout = QVBoxLayout(sim_widget)
         sim_layout.setContentsMargins(6, 6, 6, 6)
         sim_layout.addWidget(self._op_panel)
         sim_layout.addWidget(self._plot_panel, stretch=1)
+        sim_layout.addWidget(self._econ_panel)
 
         tabs = QTabWidget()
         tabs.addTab(splitter, "Components")
@@ -200,6 +210,10 @@ class MainWindow(QMainWindow):
         )
         title = f"PEM-EC cell @ {T_K - 273.15:.0f} °C · p_H2={p_h2/1e5:.0f} bar · p_O2={p_o2/1e5:.0f} bar"
         self._plot_panel.set_curve(curve, title=title)
+
+        # Push V_cell @ design_j into the Economics panel so LCOH stays live.
+        design_point = min(curve.points, key=lambda p: abs(p.j - _DESIGN_J_A_PER_M2))
+        self._econ_panel.set_v_cell(design_point.v_cell)
 
         # Status: ASR breakdown + skipped layers (transparency).
         asr_total_ohm_cm2 = sum(c.asr for c in build.ohmic) / 1e-4
