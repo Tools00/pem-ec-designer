@@ -5,6 +5,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
+### Added (UX polish part 1 · May 2026) ★
+- **Single-page scroll layout** — `QTabWidget` is gone. MainWindow now
+  has a header (title + Validation-Badge) and a `QScrollArea` with five
+  labelled sections per UX-VISION §4: §1 Stack Design (Composer +
+  collapsible 3D viewer, default closed) · §2 Operating Point · §3
+  Results · §4 Economics · §5 Export (placeholder).
+- `ui/source_tooltip.py` — pure HTML-tooltip formatter for
+  `SourcedValue` (and convenience wrappers for thickness / catalyst
+  kinetics). No Qt imports — testable as a string function.
+- `ui/validation_badge.py` — header badge ✓/⚠/✗ comparing model
+  V(1 A/cm²) to the Bernt-2016 anchor (1.60 V midpoint). Click opens a
+  QMessageBox with the anchor band, deviation %, and BibTeX key.
+  Thresholds 5 % / 15 % per UX-VISION §6.4.
+- StackComposer dropdowns + 3D-viewer list now carry per-item tooltips
+  pulled from `format_thickness_tooltip` — hover shows BibTeX source.
+- Tests: +8 source-tooltip, +11 validation-badge (classification logic).
+  Total **190/190**.
+
 ### Added (stack composer · May 2026) ★
 - **ADR-006** — Stack-Composer architecture: 9 Library-Filter-Dropdowns,
   σ-cut-off 100 S/m for membrane materials (separates ionomers from
