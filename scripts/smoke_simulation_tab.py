@@ -13,7 +13,7 @@ from pathlib import Path
 from pem_ec_designer.ui import qt_env  # noqa: F401
 
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QApplication, QTabWidget
+from PySide6.QtWidgets import QApplication
 
 from pem_ec_designer.ui.main_window import MainWindow
 
@@ -22,17 +22,12 @@ def main() -> int:
     app = QApplication.instance() or QApplication(sys.argv)
     library_dir = Path(__file__).resolve().parents[1] / "library"
     win = MainWindow(library_dir)
-    win.resize(1300, 800)
+    win.resize(1300, 900)
     win.show()
     app.processEvents()
 
-    # Switch to the Simulation tab (index 1).
-    tabs = win.centralWidget()
-    assert isinstance(tabs, QTabWidget), "centralWidget is no longer a QTabWidget"
-    tabs.setCurrentIndex(1)
-    app.processEvents()
-
-    # Trigger one extra recompute so the layout has settled.
+    # Single-page layout (UX-VISION §4 / ADR-006-followup). No tab switch
+    # needed any more — composer, sliders, plots, LCOH are on one scroll page.
     win._recompute_polarisation()  # type: ignore[attr-defined]
     app.processEvents()
 
