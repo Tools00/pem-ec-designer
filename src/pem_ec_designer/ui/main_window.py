@@ -39,6 +39,7 @@ from ..schema import Component
 from .economics_panel import EconomicsPanel
 from .operating_panel import OperatingPanel
 from .plot_panel import PolarisationPanel
+from .stack_composer import StackComposer, StackSelection
 from .viewer import part_to_mesh
 
 # Design current density for LCOH read-out (1 A/cm² = 1e4 A/m²).
@@ -107,9 +108,13 @@ class MainWindow(QMainWindow):
 
         self._econ_panel = EconomicsPanel()
 
+        self._composer = StackComposer(self._lib)
+        self._composer.selection_changed.connect(self._recompute_polarisation)
+
         sim_widget = QWidget()
         sim_layout = QVBoxLayout(sim_widget)
         sim_layout.setContentsMargins(6, 6, 6, 6)
+        sim_layout.addWidget(self._composer)
         sim_layout.addWidget(self._op_panel)
         sim_layout.addWidget(self._plot_panel, stretch=1)
         sim_layout.addWidget(self._econ_panel)
@@ -173,22 +178,26 @@ class MainWindow(QMainWindow):
 
     # ── Simulation tab ──────────────────────────────────────────────
 
-    def _build_default_stack(self, T_K: float, p_h2_Pa: float, p_o2_Pa: float):
-        """Hardcoded reference stack for v0 (no Stack-Composer yet).
+    def _build_stack_from_composer(self, T_K: float, p_h2_Pa: float, p_o2_Pa: float):
+        """Build the stack from the StackComposer's current selection.
 
-        Components and materials are picked from the Library by ID;
-        if anything is missing the user sees the error in the status bar.
+        Replaces the old hardcoded reference stack (ADR-006). The composer
+        defaults reproduce the same selection on first open, so v0
+        behaviour is preserved.
         """
+        sel: StackSelection = self._composer.current_selection()
         L = self._lib
         return build_stack(
-            membrane=L.components["membrane.nafion.212"],
-            membrane_material=L.materials["nafion-1100"],
-            anode_catalyst_material=L.materials["iro2-tio2-catalyst"],
-            cathode_catalyst_material=L.materials["pt-c-catalyst"],
-            anode_gdl=L.components.get("gdl.sgl.39bb"),
-            cathode_gdl=L.components.get("gdl.sgl.39bb"),
-            anode_bpp=L.components.get("bpp.poco.axf5q_5mm"),
-            cathode_bpp=L.components.get("bpp.poco.axf5q_5mm"),
+            membrane=L.components[sel.membrane_id],
+            membrane_material=L.materials[sel.membrane_material_id],
+            anode_catalyst_material=L.materials[sel.anode_catalyst_material_id],
+            cathode_catalyst_material=L.materials[sel.cathode_catalyst_material_id],
+            anode_cl=L.components.get(sel.anode_cl_id) if sel.anode_cl_id else None,
+            cathode_cl=L.components.get(sel.cathode_cl_id) if sel.cathode_cl_id else None,
+            anode_gdl=L.components.get(sel.anode_gdl_id) if sel.anode_gdl_id else None,
+            cathode_gdl=L.components.get(sel.cathode_gdl_id) if sel.cathode_gdl_id else None,
+            anode_bpp=L.components.get(sel.anode_bpp_id) if sel.anode_bpp_id else None,
+            cathode_bpp=L.components.get(sel.cathode_bpp_id) if sel.cathode_bpp_id else None,
             T=T_K, p_h2=p_h2_Pa, p_o2=p_o2_Pa,
         )
 
@@ -196,7 +205,7 @@ class MainWindow(QMainWindow):
         """Pull current operating conditions, rebuild stack, re-plot V(j)."""
         T_K, p_h2, p_o2 = self._op_panel.current_values()
         try:
-            build = self._build_default_stack(T_K, p_h2, p_o2)
+            build = self._build_stack_from_composer(T_K, p_h2, p_o2)
         except (KeyError, ValueError) as exc:
             self.statusBar().showMessage(f"Simulation setup failed: {exc}")
             return

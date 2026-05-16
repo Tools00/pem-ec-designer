@@ -5,6 +5,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
+### Added (stack composer · May 2026) ★
+- **ADR-006** — Stack-Composer architecture: 9 Library-Filter-Dropdowns,
+  σ-cut-off 100 S/m for membrane materials (separates ionomers from
+  graphitic BPP substrates without a schema `category` field), rejected
+  alternatives (Drag-&-Drop, JSON-Editor, Tree-Selector) documented.
+- `assembly/library_filter.py` — 8 pure functions
+  (`membranes`, `anode_catalyst_layers`, …, `cathode_catalyst_materials`),
+  no Qt dependency, deterministic sort.
+- `ui/stack_composer.py` — `QGroupBox` mit 9 `QComboBox`-Dropdowns,
+  emittiert `selection_changed` für Live-Replot. Defaults reproduzieren
+  den v0-Hardcoded-Stack (P7 „Default ist sinnvoll").
+- `main_window`: `_build_default_stack` → `_build_stack_from_composer`,
+  liest `composer.current_selection()` und ruft das unveränderte
+  `assembly.stack.build_stack()`.
+- Tests: +9 library-filter (Sortierung, σ-Cut-off, Disjunktheit,
+  Determinismus, no-Qt-import). Total **171/171**.
+
 ### Added (economics layer · May 2026) ★
 - **ADR-005** — LCOH model: amortised CapEx + fixed OpEx + grid electricity,
   Schmidt-2017 style. Rejected alternatives (stack replacement, system-wide
