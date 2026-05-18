@@ -148,9 +148,8 @@ CFD, 1-D fluid, multi-user.
 
 ## License
 
-Code license **TBD** — see [`docs/adr/003-qt-binding-license.md`](docs/adr/003-qt-binding-license.md):
-Qt binding is PySide6 (LGPL), which keeps the product license free
-(proprietary, MIT, Apache, GPL all possible). PyQt6 (GPL) explicitly
-rejected.
+**MIT** — see [`LICENSE`](LICENSE). Copyright © 2026 Abed Qadi.
 
-Pending decision before the v0.1.0 tag.
+Qt binding is PySide6 (LGPL) per
+[ADR-003](docs/adr/003-qt-binding-license.md), which keeps the product
+license free of GPL constraints. PyQt6 (GPL) explicitly rejected.

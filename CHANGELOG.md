@@ -3,13 +3,16 @@
 All notable changes to **pem-ec-designer** are tracked here.
 Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](https://semver.org/).
 
-## [Unreleased] — v0.1.0 release candidate
+## [Unreleased]
 
-> **Release-candidate summary.** First end-to-end usable cut of the
-> designer: single-page UI with composer + operating sliders + V–I plot
-> + loss waterfall + LCOH readout + CSV/BibTeX export, all live and
-> source-cited. 226/226 tests, 7 ADRs (006 LCOH + 006 Stack-Composer
-> dropped in this release). Tag pending LICENSE decision.
+(no changes since v0.1.0)
+
+## [0.1.0] — 2026-05-19
+
+> **First end-to-end usable cut.** Single-page UI with composer +
+> operating sliders + V–I plot + loss waterfall + LCOH readout +
+> CSV/BibTeX export — all live and source-cited. 226/226 tests, ADRs
+> 001–006 accepted. MIT-licensed.
 
 **Highlights vs. v0.0.1:**
 
