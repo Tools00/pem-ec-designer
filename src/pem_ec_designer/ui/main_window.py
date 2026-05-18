@@ -22,6 +22,7 @@ from . import qt_env  # noqa: F401
 
 import numpy as np
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QCheckBox,
     QFileDialog,
@@ -50,16 +51,19 @@ from ..materials import load_library
 from ..physics.polarization import PolarisationCurve, polarisation_curve
 from ..schema import Component
 from .economics_panel import EconomicsPanel
+from .onboarding_banner import OnboardingBanner
 from .operating_panel import OperatingPanel
 from .persistence import (
     default_settings,
     restore_lcoh,
     restore_operating_point,
     restore_stack,
+    restore_ui_flags,
     restore_window_size,
     save_lcoh,
     save_operating_point,
     save_stack,
+    save_ui_flags,
     save_window_size,
 )
 from .plot_panel import PolarisationPanel
@@ -131,11 +135,12 @@ class MainWindow(QMainWindow):
         # 3D component viewer (the old "Components" tab content) is now
         # the §1 collapsible detail — default closed.
         components_viewer = self._build_components_viewer()
-        viewer_group = _collapsible_group(
+        self._viewer_group = _collapsible_group(
             "3D component preview (advanced)",
             components_viewer,
             default_open=False,
         )
+        viewer_group = self._viewer_group
 
         section1_body = QWidget()
         s1_layout = QVBoxLayout(section1_body)
@@ -191,11 +196,16 @@ class MainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         scroll.setWidget(page)
 
+        # ── Onboarding banner (UX-VISION §8) — shown unless flag set ─
+        self._onboarding_banner = OnboardingBanner()
+        self._onboarding_banner.dismissed.connect(self._on_onboarding_dismissed)
+
         outer = QWidget()
         outer_layout = QVBoxLayout(outer)
         outer_layout.setContentsMargins(0, 0, 0, 0)
         outer_layout.setSpacing(0)
         outer_layout.addWidget(header)
+        outer_layout.addWidget(self._onboarding_banner)
         outer_layout.addWidget(scroll, stretch=1)
         self.setCentralWidget(outer)
 
@@ -212,9 +222,71 @@ class MainWindow(QMainWindow):
         # Restore persisted state (silent fallback to defaults).
         self._restore_persisted_state()
 
+        # Keyboard shortcuts per UX-VISION §11.
+        self._wire_shortcuts()
+
         # Wire initial tooltips + run the first polarisation pass.
         self._refresh_composer_tooltips()
         self._recompute_polarisation()
+
+    # ── shortcuts ─────────────────────────────────────────────────────
+
+    def _wire_shortcuts(self) -> None:
+        """Register UX-VISION §11 keyboard shortcuts (v1.0 subset).
+
+        Cmd+E   → Export V–I CSV
+        Cmd+D   → Toggle 3D component preview
+        Cmd+R   → Reset stack + operating point + LCOH to defaults
+        ?       → Help dialog with shortcut list
+        Cmd+Q   → Quit (Qt default)
+        """
+        QShortcut(QKeySequence("Ctrl+E"), self, activated=self._on_export_csv)
+        QShortcut(QKeySequence("Ctrl+D"), self, activated=self._toggle_3d_preview)
+        QShortcut(QKeySequence("Ctrl+R"), self, activated=self._reset_to_defaults)
+        QShortcut(QKeySequence("?"), self, activated=self._show_help)
+        QShortcut(QKeySequence("Shift+?"), self, activated=self._show_help)
+
+    def _toggle_3d_preview(self) -> None:
+        self._viewer_group.setChecked(not self._viewer_group.isChecked())
+
+    def _reset_to_defaults(self) -> None:
+        if QMessageBox.question(
+            self, "Reset",
+            "Reset stack, operating point and LCOH parameters to defaults?\n"
+            "(Window size and onboarding flag are kept.)",
+        ) != QMessageBox.StandardButton.Yes:
+            return
+        self._settings.remove("stack")
+        self._settings.remove("op")
+        self._settings.remove("lcoh")
+        self._settings.sync()
+        # Re-apply defaults by reading from the (now empty) settings.
+        self._composer.set_state(restore_stack(self._settings))
+        T_C, ph2, po2, j = restore_operating_point(self._settings)
+        self._op_panel.set_state(T_C, ph2, po2, j)
+        capex, elec = restore_lcoh(self._settings)
+        self._econ_panel.set_state(capex, elec)
+        self._refresh_composer_tooltips()
+        self._recompute_polarisation()
+        self.statusBar().showMessage("Reset to defaults.")
+
+    def _show_help(self) -> None:
+        QMessageBox.information(
+            self, "Keyboard shortcuts",
+            "<b>Cmd+E</b>  Export V–I CSV<br>"
+            "<b>Cmd+D</b>  Toggle 3D component preview<br>"
+            "<b>Cmd+R</b>  Reset to defaults<br>"
+            "<b>Cmd+Q</b>  Quit<br>"
+            "<b>?</b>      This help<br><br>"
+            "All sliders and dropdowns recompute the polarisation curve live.<br>"
+            "Hover any value for its BibTeX source."
+        )
+
+    # ── onboarding ────────────────────────────────────────────────────
+
+    def _on_onboarding_dismissed(self) -> None:
+        show3d, _ = restore_ui_flags(self._settings)
+        save_ui_flags(self._settings, show3d=show3d, onboarding_seen=True)
 
     # ── persistence ───────────────────────────────────────────────────
 
@@ -232,6 +304,11 @@ class MainWindow(QMainWindow):
         self._op_panel.set_state(T_C, p_h2_bar, p_o2_bar, j_design)
         capex, electricity = restore_lcoh(self._settings)
         self._econ_panel.set_state(capex, electricity)
+
+        # Onboarding-banner visibility per UX-VISION §8.
+        _, onboarding_seen = restore_ui_flags(self._settings)
+        self._onboarding_banner.setVisible(not onboarding_seen)
+
         # Wire the persistence-save side after restore so we don't
         # immediately re-write defaults on top of the restored values.
         self._econ_panel.parameters_changed.connect(self._persist_lcoh)
@@ -415,11 +492,13 @@ class MainWindow(QMainWindow):
     def _on_condition_change(self, T_K: float, p_h2_Pa: float, p_o2_Pa: float) -> None:
         self._recompute_polarisation()
         self._persist_operating()
+        self._onboarding_banner.dismiss()
 
     def _on_composer_change(self) -> None:
         self._refresh_composer_tooltips()
         self._recompute_polarisation()
         self._persist_stack()
+        self._onboarding_banner.dismiss()
 
     def _on_design_j_change(self, design_j_A_per_m2: float) -> None:
         """Design-j slider moved — repick design point on the cached curve.

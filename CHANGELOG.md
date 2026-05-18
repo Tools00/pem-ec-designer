@@ -5,6 +5,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
+### Added (UX polish part 2b — persistence + shortcuts + onboarding · May 2026) ★
+- `ui/persistence.py` — typed save_*/restore_* helpers around `QSettings`
+  for `stack/*`, `op/*`, `lcoh/*`, `window/*`, `ui/*` keys per UX-VISION §9.
+- StackComposer, OperatingPanel, EconomicsPanel gain `set_state(…)` with
+  `blockSignals` so restoring doesn't cascade into a recompute.
+- MainWindow restores stack + operating point + LCOH at `__init__`,
+  persists on every meaningful change (composer, sliders, resize).
+- `__main__` sets `QCoreApplication.setOrganizationName/Application`
+  before constructing `QApplication` so QSettings is consistent cross-platform.
+- Keyboard shortcuts (UX-VISION §11 v1.0 subset): `Cmd+E` export CSV,
+  `Cmd+D` toggle 3D preview, `Cmd+R` reset to defaults, `?` help dialog.
+- `ui/onboarding_banner.py` — single dismissible hint above the
+  scroll area; auto-dismisses on first slider/dropdown change; flag
+  persisted as `ui.onboardingSeen` (UX-VISION §8).
+- Tests: +11 persistence Ini-roundtrip (tmp_path-isolated), +3
+  onboarding-banner. Total **226/226**.
+
 ### Added (UX polish part 2a — design-j + exports · May 2026) ★
 - **Design-j slider** in §2 (0.1–4.0 A/cm²) with separate `design_j_changed`
   signal. Moving it does NOT rebuild the stack — only repositions the marker

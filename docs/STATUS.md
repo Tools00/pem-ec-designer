@@ -19,7 +19,7 @@
 | Schema-E1 | ✓ `Component.material` optional · `manufacturer` + `cross_references` auf Component-Ebene · `GasDiffusionLayer` mit 14 Feldern · neuer `CrossReference` BaseModel · ID-Pattern erlaubt Underscore (für `anode_cl.*` u.a.) |
 | Units | ✓ +21 Engineering-Units (areal density, ρ-Varianten, λ thermisch, Zeit, Winkel, dimensionslose Brüche, **mg/cm² Katalysator-Loading**) |
 | Geometry | ✓ `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane` + `build_flow_field` (straight_parallel). STEP-Export verifiziert. |
-| Tests | ✓ **212/212** lokal (+9 source-collector + bibtex-key-stripping, +13 csv + bibtex-export) |
+| Tests | ✓ **226/226** lokal (+11 persistence Ini-roundtrip, +3 onboarding-banner) |
 | **Physics-Layer** | ✓ **`physics/` aktiv** — `thermodynamics.E_rev(T,p)`, `kinetics.butler_volmer_overpotential`, `ohmic.OhmicContribution`/`total_asr`, `polarization.cell_voltage`/`polarisation_curve`. Modell per **ADR-004** (0D · steady · isotherm · BV+ASR). Bernt-2016 + Carmo-2013 Validation-Anchor erfüllt. |
 | **Economics-Layer** | ✓ **`physics/efficiency.py` + `physics/lcoh.py`** — `lhv_efficiency(V)`, `levelised_cost_of_hydrogen(η, LCOHInputs)`. ADR-005 mit Schmidt-2017-Anker (3.71 €/kg @ η=0.65, 50 €/MWh, 1100 €/kW). |
 | UI-Stack-Smoke | ✓ PySide6 6.11 + pyvistaqt 0.11 + VTK rendert Membrane-STL → PNG. Findings in `docs/UI-LAUNCH-NOTES.md`. |
@@ -37,7 +37,9 @@
 | ✓ I | ~~Stack-Composer~~ | **DONE** — `assembly/library_filter.py` (8 pure filters) + `ui/stack_composer.py` (9 ComboBoxes) + ADR-006. Defaults reproduzieren v0-Hardcoded-Stack. |
 | ✓ C+1 | ~~UX-Politur Teil 1~~ | **DONE** — Single-Page-Scroll mit 5 Sektionen + `ui/source_tooltip.py` + `ui/validation_badge.py` (Bernt-2016-Anker). Click-to-explain Dialog. |
 | ✓ C+2a | ~~Design-j + CSV/BibTeX-Export~~ | **DONE** — Design-j-Slider (0.1–4 A/cm²) mit Marker-Sync, CSV-Export mit Self-Doc-Header, BibTeX-Subset-Export (genutzte Quellen). |
-| **★ C+ Teil 2b** | **UX-Politur Rest** | STEP-Export + QSettings-Persistenz (stack/op/lcoh keys per UX-VISION §9) + Keyboard-Shortcuts + Onboarding-Banner. Aufwand: 1 Session. |
+| ✓ C+2b | ~~QSettings + Shortcuts + Onboarding~~ | **DONE** — `ui/persistence.py` (stack/op/lcoh/window/ui Keys per §9), `Cmd+E/D/R/?` Shortcuts, dismissible Banner mit `ui.onboardingSeen`-Persist. |
+| **★ STEP-Export** | ADR-007 + Stack-Geometrie-Aggregation. Eigene Session (Design-Entscheidung wie 7 Layer mit ungleichen Footprints zu STEP gestapelt werden). |
+| **★ Release v0.1** | UX-VISION §14 N+5 — CHANGELOG aufräumen, README mit Screenshot, LICENSE-Diskussion, `git tag v0.1.0`. |
 | A | Specs erweitern | GDL **vollständig** (8). CL: 4 (2 Anode + 2 Cathode). BPP: 1. Endplate/Gasket/FF noch offen. **Niedrige Priorität**. |
 | C+ | UI-Politur (alt) | Material-Card, STEP-Export-Button, Skala im 3D-Viewer. **Niedrige Priorität**. |
 | D | pause | nichts tun |
