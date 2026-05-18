@@ -137,6 +137,42 @@ class StackComposer(QGroupBox):
 
     # ── public API ─────────────────────────────────────────────────────
 
+    def set_state(self, ids: dict[str, str | None]) -> None:
+        """Restore composer dropdowns from a stack-id dict.
+
+        Unknown / missing IDs are ignored (composer falls back to its
+        construction-time defaults). All slot signals are blocked during
+        the restore so we only get one `selection_changed` emission.
+        """
+        cb_map: dict[str, QComboBox] = {
+            "membrane_id": self._cb_membrane,
+            "membrane_material_id": self._cb_membrane_material,
+            "anode_catalyst_material_id": self._cb_anode_cat_mat,
+            "cathode_catalyst_material_id": self._cb_cathode_cat_mat,
+            "anode_cl_id": self._cb_anode_cl,
+            "cathode_cl_id": self._cb_cathode_cl,
+            "anode_gdl_id": self._cb_anode_gdl,
+            "cathode_gdl_id": self._cb_cathode_gdl,
+            "anode_bpp_id": self._cb_anode_bpp,
+            "cathode_bpp_id": self._cb_cathode_bpp,
+        }
+        for cb in cb_map.values():
+            cb.blockSignals(True)
+        try:
+            for field, cb in cb_map.items():
+                wanted = ids.get(field)
+                if not wanted:
+                    continue
+                # Find the entry in the combo box matching `wanted`.
+                for i in range(cb.count()):
+                    if cb.itemData(i) == wanted:
+                        cb.setCurrentIndex(i)
+                        break
+        finally:
+            for cb in cb_map.values():
+                cb.blockSignals(False)
+        self.selection_changed.emit()
+
     def current_selection(self) -> StackSelection:
         """Snapshot the current dropdowns into a `StackSelection`."""
         def _id(cb: QComboBox) -> str | None:

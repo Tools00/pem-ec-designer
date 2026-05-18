@@ -109,6 +109,22 @@ class EconomicsPanel(QGroupBox):
             electricity_eur_per_mwh=float(self._slider_elec.value()),
         )
 
+    def set_state(self, capex_eur_per_kw: float, electricity_eur_per_mwh: float) -> None:
+        """Restore slider values without emitting signals."""
+        # Clamp to slider ranges to avoid Qt silently rejecting out-of-range.
+        capex = max(400, min(3000, int(round(capex_eur_per_kw))))
+        elec = max(10, min(200, int(round(electricity_eur_per_mwh))))
+        for sl in (self._slider_capex, self._slider_elec):
+            sl.blockSignals(True)
+        try:
+            self._slider_capex.setValue(capex)
+            self._slider_elec.setValue(elec)
+        finally:
+            for sl in (self._slider_capex, self._slider_elec):
+                sl.blockSignals(False)
+        self._label_capex.setText(f"{capex} €/kW")
+        self._label_elec.setText(f"{elec} €/MWh")
+
     # ── internals ──────────────────────────────────────────────────────
 
     def _on_change(self) -> None:

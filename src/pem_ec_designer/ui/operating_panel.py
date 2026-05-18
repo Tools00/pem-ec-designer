@@ -113,3 +113,27 @@ class OperatingPanel(QGroupBox):
     def current_design_j(self) -> float:
         """Current design-current-density in A/m² (SI)."""
         return self._slider_j.value() / 10.0 * 1e4
+
+    def set_state(
+        self,
+        T_C: float,
+        p_h2_bar: float,
+        p_o2_bar: float,
+        j_design_A_per_cm2: float,
+    ) -> None:
+        """Restore slider values without emitting signals (avoids cascade)."""
+        for sl in (self._slider_t, self._slider_ph2, self._slider_po2, self._slider_j):
+            sl.blockSignals(True)
+        try:
+            self._slider_t.setValue(int(round(T_C)))
+            self._slider_ph2.setValue(int(round(p_h2_bar)))
+            self._slider_po2.setValue(int(round(p_o2_bar)))
+            self._slider_j.setValue(max(1, min(40, int(round(j_design_A_per_cm2 * 10)))))
+        finally:
+            for sl in (self._slider_t, self._slider_ph2, self._slider_po2, self._slider_j):
+                sl.blockSignals(False)
+        # Refresh labels manually.
+        self._label_t.setText(f"{self._slider_t.value():>3d} °C")
+        self._label_ph2.setText(f"{self._slider_ph2.value():>3d} bar")
+        self._label_po2.setText(f"{self._slider_po2.value():>3d} bar")
+        self._label_j.setText(f"{self._slider_j.value() / 10.0:>4.1f} A/cm²")

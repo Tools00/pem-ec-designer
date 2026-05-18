@@ -51,6 +51,17 @@ from ..physics.polarization import PolarisationCurve, polarisation_curve
 from ..schema import Component
 from .economics_panel import EconomicsPanel
 from .operating_panel import OperatingPanel
+from .persistence import (
+    default_settings,
+    restore_lcoh,
+    restore_operating_point,
+    restore_stack,
+    restore_window_size,
+    save_lcoh,
+    save_operating_point,
+    save_stack,
+    save_window_size,
+)
 from .plot_panel import PolarisationPanel
 from .source_tooltip import format_thickness_tooltip
 from .stack_composer import StackComposer, StackSelection
@@ -92,11 +103,15 @@ class MainWindow(QMainWindow):
     def __init__(self, library_dir: Path) -> None:
         super().__init__()
         self.setWindowTitle("pem-ec-designer v0")
-        self.resize(1280, 900)
 
         self._lib = load_library(library_dir)
         self._library_dir = Path(library_dir)
         self._last_curve: PolarisationCurve | None = None
+        self._settings = default_settings()
+
+        # Window size — restore (or default 1280×900).
+        w, h = restore_window_size(self._settings)
+        self.resize(w, h)
 
         # ── Header (title left, validation badge right) ────────────────
         header = QWidget()
@@ -194,9 +209,53 @@ class MainWindow(QMainWindow):
         if self._list.count() > 0:
             self._list.setCurrentRow(0)
 
+        # Restore persisted state (silent fallback to defaults).
+        self._restore_persisted_state()
+
         # Wire initial tooltips + run the first polarisation pass.
         self._refresh_composer_tooltips()
         self._recompute_polarisation()
+
+    # ── persistence ───────────────────────────────────────────────────
+
+    def _restore_persisted_state(self) -> None:
+        """Restore stack / operating / lcoh values from QSettings.
+
+        Each block validates inputs (composer rejects unknown IDs, sliders
+        clamp out-of-range values) — corrupt or stale settings degrade
+        gracefully to defaults.
+        """
+        stack_ids = restore_stack(self._settings)
+        if any(stack_ids.values()):
+            self._composer.set_state(stack_ids)
+        T_C, p_h2_bar, p_o2_bar, j_design = restore_operating_point(self._settings)
+        self._op_panel.set_state(T_C, p_h2_bar, p_o2_bar, j_design)
+        capex, electricity = restore_lcoh(self._settings)
+        self._econ_panel.set_state(capex, electricity)
+        # Wire the persistence-save side after restore so we don't
+        # immediately re-write defaults on top of the restored values.
+        self._econ_panel.parameters_changed.connect(self._persist_lcoh)
+
+    def _persist_stack(self) -> None:
+        save_stack(self._settings, self._composer.current_selection())
+
+    def _persist_operating(self) -> None:
+        T_K, p_h2, p_o2 = self._op_panel.current_values()
+        save_operating_point(
+            self._settings,
+            T_C=T_K - 273.15,
+            p_h2_bar=p_h2 / 1e5,
+            p_o2_bar=p_o2 / 1e5,
+            j_design_A_per_cm2=self._op_panel.current_design_j() / 1e4,
+        )
+
+    def _persist_lcoh(self, capex: float, electricity: float) -> None:
+        save_lcoh(self._settings, capex, electricity)
+
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        if hasattr(self, "_settings"):
+            save_window_size(self._settings, self.width(), self.height())
 
     # ── §1 Stack-Composer tooltips ────────────────────────────────────
 
@@ -355,10 +414,12 @@ class MainWindow(QMainWindow):
 
     def _on_condition_change(self, T_K: float, p_h2_Pa: float, p_o2_Pa: float) -> None:
         self._recompute_polarisation()
+        self._persist_operating()
 
     def _on_composer_change(self) -> None:
         self._refresh_composer_tooltips()
         self._recompute_polarisation()
+        self._persist_stack()
 
     def _on_design_j_change(self, design_j_A_per_m2: float) -> None:
         """Design-j slider moved — repick design point on the cached curve.
@@ -366,6 +427,7 @@ class MainWindow(QMainWindow):
         Does NOT rebuild the stack or recompute V(j) — only the marker /
         LCOH / Validation-Badge read-outs change. UX-VISION §6.2.
         """
+        self._persist_operating()
         if self._last_curve is None or not self._last_curve.points:
             return
         design_j_cm2 = design_j_A_per_m2 / 1e4
