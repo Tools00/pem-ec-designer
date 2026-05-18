@@ -44,9 +44,13 @@ def _slider_row(
 
 
 class OperatingPanel(QGroupBox):
-    """Three sliders: cell T (°C), p_H2 (bar), p_O2 (bar)."""
+    """Four sliders: cell T (°C), p_H2 (bar), p_O2 (bar), design_j (A/cm²)."""
 
-    condition_changed = Signal(float, float, float)  # T_K, p_h2_Pa, p_o2_Pa
+    # T_K, p_h2_Pa, p_o2_Pa — fires when *physical* conditions change.
+    # Design-j is on a separate signal because it doesn't rebuild the
+    # stack, only repositions the marker / LCOH / validation read-out.
+    condition_changed = Signal(float, float, float)
+    design_j_changed = Signal(float)  # A/m² (SI for consistency with physics layer)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__("Operating conditions", parent)
@@ -63,10 +67,19 @@ class OperatingPanel(QGroupBox):
         row_po2, self._slider_po2, self._label_po2 = _slider_row(1, 30, 1, "{:>3d}", "bar")
         self._slider_po2.valueChanged.connect(self._on_change)
 
+        # design_j: 0.1–4.0 A/cm² in 0.1 steps (integer slider 1–40, /10).
+        # 1.0 A/cm² is the default because that is the Bernt-2016 anchor
+        # for the Validation-Badge.
+        row_j, self._slider_j, self._label_j = _slider_row(1, 40, 10, "{:>4.1f}", "A/cm²")
+        # Override the formatter — we divide by 10 to get fractional A/cm².
+        self._label_j.setText("1.0 A/cm²")
+        self._slider_j.valueChanged.connect(self._on_design_j_change)
+
         form = QFormLayout()
         form.addRow("Temperature", row_t)
         form.addRow("p (H2, cathode)", row_ph2)
         form.addRow("p (O2, anode)", row_po2)
+        form.addRow("Design  j", row_j)
 
         outer = QVBoxLayout(self)
         outer.addLayout(form)
@@ -84,6 +97,11 @@ class OperatingPanel(QGroupBox):
             float(p_o2_bar) * 1e5,  # Pa
         )
 
+    def _on_design_j_change(self) -> None:
+        j_A_per_cm2 = self._slider_j.value() / 10.0
+        self._label_j.setText(f"{j_A_per_cm2:>4.1f} A/cm²")
+        self.design_j_changed.emit(j_A_per_cm2 * 1e4)  # A/m²
+
     def current_values(self) -> tuple[float, float, float]:
         """(T_K, p_h2_Pa, p_o2_Pa) — for initial render before any slider move."""
         return (
@@ -91,3 +109,7 @@ class OperatingPanel(QGroupBox):
             float(self._slider_ph2.value()) * 1e5,
             float(self._slider_po2.value()) * 1e5,
         )
+
+    def current_design_j(self) -> float:
+        """Current design-current-density in A/m² (SI)."""
+        return self._slider_j.value() / 10.0 * 1e4

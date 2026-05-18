@@ -47,8 +47,21 @@ class PolarisationPanel(QWidget):
             ax.set_yticks([])
         self._canvas.draw_idle()
 
-    def set_curve(self, curve: PolarisationCurve, title: str = "") -> None:
-        """Render V(j) + waterfall decomposition for the given curve."""
+    def set_curve(
+        self,
+        curve: PolarisationCurve,
+        title: str = "",
+        design_j_A_per_cm2: float | None = None,
+    ) -> None:
+        """Render V(j) + waterfall decomposition for the given curve.
+
+        Args:
+            curve: polarisation sweep from `physics.polarization`.
+            title: V–I subplot title.
+            design_j_A_per_cm2: optional design-point marker. Drawn as a
+                vertical dashed line + filled dot on both subplots and
+                annotated with V(j_design). UX-VISION §6.3 / §6.2.
+        """
         if not curve.points:
             self._draw_empty()
             return
@@ -71,19 +84,27 @@ class PolarisationPanel(QWidget):
         ax.legend(loc="lower right", fontsize=9)
         ax.grid(True, alpha=0.3)
 
-        # Mark V(1) and V(2) if in range
+        # Mark V(1) and V(2) if in range — literature anchors.
         for j_target in (1.0, 2.0):
             if j_cm2.min() <= j_target <= j_cm2.max():
                 idx = int(np.argmin(np.abs(j_cm2 - j_target)))
-                ax.plot([j_target], [v[idx]], "ro", ms=5)
-                ax.annotate(
-                    f"{v[idx]:.3f} V @ {j_target:.0f} A/cm²",
-                    xy=(j_target, v[idx]),
-                    xytext=(8, -12),
-                    textcoords="offset points",
-                    fontsize=8,
-                    color="red",
-                )
+                ax.plot([j_target], [v[idx]], "o", color="#888", ms=4)
+
+        # Design-j marker — UX-VISION §6.2 "besondere Rolle".
+        if design_j_A_per_cm2 is not None and j_cm2.min() <= design_j_A_per_cm2 <= j_cm2.max():
+            idx_d = int(np.argmin(np.abs(j_cm2 - design_j_A_per_cm2)))
+            v_d = float(v[idx_d])
+            ax.axvline(design_j_A_per_cm2, color="red", ls="--", lw=1.0, alpha=0.5)
+            ax.plot([design_j_A_per_cm2], [v_d], "ro", ms=7)
+            ax.annotate(
+                f"design  V = {v_d:.3f} V @ {design_j_A_per_cm2:.1f} A/cm²",
+                xy=(design_j_A_per_cm2, v_d),
+                xytext=(8, -14),
+                textcoords="offset points",
+                fontsize=8,
+                color="red",
+                fontweight="bold",
+            )
 
         # Right: stacked loss decomposition
         ax = self._ax_decomp
@@ -102,5 +123,9 @@ class PolarisationPanel(QWidget):
         ax.set_title("Loss decomposition")
         ax.legend(loc="lower right", fontsize=8)
         ax.grid(True, alpha=0.3)
+
+        # Design-j marker mirrored on the waterfall — UX-VISION §6.2.
+        if design_j_A_per_cm2 is not None and j_cm2.min() <= design_j_A_per_cm2 <= j_cm2.max():
+            ax.axvline(design_j_A_per_cm2, color="red", ls="--", lw=1.0, alpha=0.5)
 
         self._canvas.draw_idle()
