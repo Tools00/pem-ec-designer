@@ -5,6 +5,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
+### Added (UX polish part 2a — design-j + exports · May 2026) ★
+- **Design-j slider** in §2 (0.1–4.0 A/cm²) with separate `design_j_changed`
+  signal. Moving it does NOT rebuild the stack — only repositions the marker
+  on the V–I plot + waterfall, updates the LCOH read-out, and re-evaluates
+  the Validation-Badge. UX-VISION §6.2 "besondere Rolle" honoured.
+- PolarisationPanel: dashed vertical line + bold red dot at design_j on both
+  subplots. Annotation `design  V = X.XXX V @ Y.Y A/cm²`. V(1)/V(2) markers
+  demoted to small grey dots (literature anchors).
+- `assembly/source_collector.py` — `collect_source_keys()` walks
+  Component/Material `SourcedValue` fields and returns the set of unique
+  BibTeX keys with locator suffixes (`.tab2`, `.fig1a`, `.eq3`) stripped.
+  Datasheet keys (`chemours.datasheet.n117`) preserved.
+- `export/csv_export.py` — V–I CSV with self-documenting comment header
+  (T/p, stack components, sources cited, design-j). UX-VISION §10 format.
+- `export/bibtex_export.py` — subset of `library/sources.bib` containing
+  only the keys cited by the current stack. Minimal brace-balanced
+  parser; missing keys reported via return value.
+- MainWindow §5 Export: `V–I CSV…` + `Citations .bib…` buttons replace
+  the v0 placeholder, wired through `QFileDialog`.
+- Tests: +9 source-collector (bibtex-key stripping, datasheet-id
+  preservation), +13 csv + bibtex-export. Total **212/212**.
+
 ### Added (UX polish part 1 · May 2026) ★
 - **Single-page scroll layout** — `QTabWidget` is gone. MainWindow now
   has a header (title + Validation-Badge) and a `QScrollArea` with five

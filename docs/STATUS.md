@@ -12,13 +12,14 @@
 | ADR-003 Qt-Binding | ✓ PySide6 (LGPL) — formalisiert, was im pyproject schon stand |
 | **ADR-005 LCOH** | ✓ Annuitäten-Modell · Schmidt-2017-Defaults · η_LHV-getrieben |
 | **ADR-006 Stack-Composer** | ✓ 9 Library-Filter-Dropdowns · σ-cut-off 100 S/m für membrane materials |
-| **UI Single-Page** | ✓ Header (Title + Validation-Badge) · §1 Stack Design (Composer + collapsible 3D-Viewer) · §2 Operating · §3 Results · §4 Economics · §5 Export-Placeholder |
+| **UI Single-Page** | ✓ Header (Title + Validation-Badge) · §1 Stack Design (Composer + collapsible 3D-Viewer) · §2 Operating **+ Design-j-Slider** · §3 Results **mit Design-Marker** · §4 Economics · §5 Export (CSV + BibTeX live) |
+| **Export-Layer** | ✓ `export/csv_export.py` + `export/bibtex_export.py` + `assembly/source_collector.py`. CSV mit self-doc-Header; BibTeX-Subset enthält nur zitierte Keys. |
 | Python-Scaffold | ✓ `src/pem_ec_designer/` mit foundation/schema/materials/**geometry** |
 | Library | ✓ 5 Membranen + **8 GDL** + **2 Anode-CL** + **2 Cathode-CL** + **1 BPP** + **3 Materials** + **20 BibTeX** (inkl. 2 books, 2 GDL-DOI-Papers, 1 Cathode-CL-Paper, 1 POCO-Datasheet) |
 | Schema-E1 | ✓ `Component.material` optional · `manufacturer` + `cross_references` auf Component-Ebene · `GasDiffusionLayer` mit 14 Feldern · neuer `CrossReference` BaseModel · ID-Pattern erlaubt Underscore (für `anode_cl.*` u.a.) |
 | Units | ✓ +21 Engineering-Units (areal density, ρ-Varianten, λ thermisch, Zeit, Winkel, dimensionslose Brüche, **mg/cm² Katalysator-Loading**) |
 | Geometry | ✓ `build_extruded()` (kreis/quadrat/rechteck) + `build_membrane` + `build_flow_field` (straight_parallel). STEP-Export verifiziert. |
-| Tests | ✓ **190/190** lokal (+8 source-tooltip, +11 validation-badge) |
+| Tests | ✓ **212/212** lokal (+9 source-collector + bibtex-key-stripping, +13 csv + bibtex-export) |
 | **Physics-Layer** | ✓ **`physics/` aktiv** — `thermodynamics.E_rev(T,p)`, `kinetics.butler_volmer_overpotential`, `ohmic.OhmicContribution`/`total_asr`, `polarization.cell_voltage`/`polarisation_curve`. Modell per **ADR-004** (0D · steady · isotherm · BV+ASR). Bernt-2016 + Carmo-2013 Validation-Anchor erfüllt. |
 | **Economics-Layer** | ✓ **`physics/efficiency.py` + `physics/lcoh.py`** — `lhv_efficiency(V)`, `levelised_cost_of_hydrogen(η, LCOHInputs)`. ADR-005 mit Schmidt-2017-Anker (3.71 €/kg @ η=0.65, 50 €/MWh, 1100 €/kW). |
 | UI-Stack-Smoke | ✓ PySide6 6.11 + pyvistaqt 0.11 + VTK rendert Membrane-STL → PNG. Findings in `docs/UI-LAUNCH-NOTES.md`. |
@@ -35,7 +36,8 @@
 | ✓ G | ~~LCOH-Modul~~ | **DONE** — `physics/efficiency.py` + `physics/lcoh.py` + ADR-005 + `ui/economics_panel.py`. Schmidt-2017-Anker erfüllt (3.71 €/kg @ η=0.65). Sliders live unter Simulation-Tab. |
 | ✓ I | ~~Stack-Composer~~ | **DONE** — `assembly/library_filter.py` (8 pure filters) + `ui/stack_composer.py` (9 ComboBoxes) + ADR-006. Defaults reproduzieren v0-Hardcoded-Stack. |
 | ✓ C+1 | ~~UX-Politur Teil 1~~ | **DONE** — Single-Page-Scroll mit 5 Sektionen + `ui/source_tooltip.py` + `ui/validation_badge.py` (Bernt-2016-Anker). Click-to-explain Dialog. |
-| **★ C+ Teil 2** | **UX-Politur Teil 2** | Design-j-Slider mit Marker-Sync + Export-Buttons (STEP/CSV/BibTeX) + Keyboard-Shortcuts + State-Persistenz (QSettings) + Onboarding-Banner. UX-VISION §14 N+4. |
+| ✓ C+2a | ~~Design-j + CSV/BibTeX-Export~~ | **DONE** — Design-j-Slider (0.1–4 A/cm²) mit Marker-Sync, CSV-Export mit Self-Doc-Header, BibTeX-Subset-Export (genutzte Quellen). |
+| **★ C+ Teil 2b** | **UX-Politur Rest** | STEP-Export + QSettings-Persistenz (stack/op/lcoh keys per UX-VISION §9) + Keyboard-Shortcuts + Onboarding-Banner. Aufwand: 1 Session. |
 | A | Specs erweitern | GDL **vollständig** (8). CL: 4 (2 Anode + 2 Cathode). BPP: 1. Endplate/Gasket/FF noch offen. **Niedrige Priorität**. |
 | C+ | UI-Politur (alt) | Material-Card, STEP-Export-Button, Skala im 3D-Viewer. **Niedrige Priorität**. |
 | D | pause | nichts tun |

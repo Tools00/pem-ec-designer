@@ -24,12 +24,15 @@ import numpy as np
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
+    QFileDialog,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
+    QMessageBox,
+    QPushButton,
     QScrollArea,
     QSizePolicy,
     QSplitter,
@@ -38,10 +41,13 @@ from PySide6.QtWidgets import (
 )
 from pyvistaqt import QtInteractor
 
+from ..assembly.source_collector import collect_source_keys
 from ..assembly.stack import build_stack
+from ..export.bibtex_export import write_bibtex_subset
+from ..export.csv_export import CSVExportMetadata, write_polarisation_csv
 from ..geometry import build_extruded
 from ..materials import load_library
-from ..physics.polarization import polarisation_curve
+from ..physics.polarization import PolarisationCurve, polarisation_curve
 from ..schema import Component
 from .economics_panel import EconomicsPanel
 from .operating_panel import OperatingPanel
@@ -89,6 +95,8 @@ class MainWindow(QMainWindow):
         self.resize(1280, 900)
 
         self._lib = load_library(library_dir)
+        self._library_dir = Path(library_dir)
+        self._last_curve: PolarisationCurve | None = None
 
         # ── Header (title left, validation badge right) ────────────────
         header = QWidget()
@@ -123,6 +131,7 @@ class MainWindow(QMainWindow):
         # ── §2 Operating Point ─────────────────────────────────────────
         self._op_panel = OperatingPanel()
         self._op_panel.condition_changed.connect(self._on_condition_change)
+        self._op_panel.design_j_changed.connect(self._on_design_j_change)
 
         # ── §3 Results ─────────────────────────────────────────────────
         self._plot_panel = PolarisationPanel()
@@ -132,11 +141,24 @@ class MainWindow(QMainWindow):
         # ── §4 Economics ───────────────────────────────────────────────
         self._econ_panel = EconomicsPanel()
 
-        # ── §5 Export (placeholder) ────────────────────────────────────
-        export_placeholder = QLabel(
-            "Export (STEP · STL · V–I CSV · Citations .bib · PDF) — Pfad C+ Teil 2"
-        )
-        export_placeholder.setStyleSheet("color: #888; padding: 8px;")
+        # ── §5 Export ──────────────────────────────────────────────────
+        export_panel = QWidget()
+        export_layout = QHBoxLayout(export_panel)
+        export_layout.setContentsMargins(0, 0, 0, 0)
+        self._btn_csv = QPushButton("V–I CSV…")
+        self._btn_csv.setToolTip("Polarisation sweep + loss breakdown + design-point<br>"
+                                 "with self-documenting header (stack + sources cited).")
+        self._btn_csv.clicked.connect(self._on_export_csv)
+        self._btn_bib = QPushButton("Citations .bib…")
+        self._btn_bib.setToolTip("Subset of library/sources.bib containing only<br>"
+                                 "the BibTeX keys cited by the current stack.")
+        self._btn_bib.clicked.connect(self._on_export_bibtex)
+        export_layout.addWidget(self._btn_csv)
+        export_layout.addWidget(self._btn_bib)
+        export_layout.addStretch(1)
+        export_layout.addWidget(QLabel(
+            "<span style='color:#888'>STEP · STL · PDF → C+ Teil 2b</span>"
+        ))
 
         # ── assemble single-page scroll area ───────────────────────────
         page = QWidget()
@@ -147,7 +169,7 @@ class MainWindow(QMainWindow):
         page_layout.addWidget(_section("Operating Point", 2, self._op_panel))
         page_layout.addWidget(_section("Results", 3, self._plot_panel))
         page_layout.addWidget(_section("Economics", 4, self._econ_panel))
-        page_layout.addWidget(_section("Export", 5, export_placeholder))
+        page_layout.addWidget(_section("Export", 5, export_panel))
         page_layout.addStretch(1)
 
         scroll = QScrollArea()
@@ -311,10 +333,14 @@ class MainWindow(QMainWindow):
             op=build.operating_point,
             ohmic=build.ohmic,
         )
+        self._last_curve = curve
         title = f"PEM-EC cell @ {T_K - 273.15:.0f} °C · p_H2={p_h2/1e5:.0f} bar · p_O2={p_o2/1e5:.0f} bar"
-        self._plot_panel.set_curve(curve, title=title)
 
-        design_point = min(curve.points, key=lambda p: abs(p.j - _DESIGN_J_A_PER_M2))
+        design_j_A_per_m2 = self._op_panel.current_design_j()
+        design_j_cm2 = design_j_A_per_m2 / 1e4
+        self._plot_panel.set_curve(curve, title=title, design_j_A_per_cm2=design_j_cm2)
+
+        design_point = min(curve.points, key=lambda p: abs(p.j - design_j_A_per_m2))
         self._econ_panel.set_v_cell(design_point.v_cell)
         self._validation_badge.set_voltage(design_point.v_cell)
 
@@ -333,3 +359,112 @@ class MainWindow(QMainWindow):
     def _on_composer_change(self) -> None:
         self._refresh_composer_tooltips()
         self._recompute_polarisation()
+
+    def _on_design_j_change(self, design_j_A_per_m2: float) -> None:
+        """Design-j slider moved — repick design point on the cached curve.
+
+        Does NOT rebuild the stack or recompute V(j) — only the marker /
+        LCOH / Validation-Badge read-outs change. UX-VISION §6.2.
+        """
+        if self._last_curve is None or not self._last_curve.points:
+            return
+        design_j_cm2 = design_j_A_per_m2 / 1e4
+        # Re-draw with new marker (title preserved by reconstructing from current sliders).
+        T_K, p_h2, p_o2 = self._op_panel.current_values()
+        title = f"PEM-EC cell @ {T_K - 273.15:.0f} °C · p_H2={p_h2/1e5:.0f} bar · p_O2={p_o2/1e5:.0f} bar"
+        self._plot_panel.set_curve(self._last_curve, title=title, design_j_A_per_cm2=design_j_cm2)
+        design_point = min(self._last_curve.points, key=lambda p: abs(p.j - design_j_A_per_m2))
+        self._econ_panel.set_v_cell(design_point.v_cell)
+        self._validation_badge.set_voltage(design_point.v_cell)
+
+    # ── §5 Export handlers ────────────────────────────────────────────
+
+    def _build_csv_metadata(self) -> CSVExportMetadata:
+        sel = self._composer.current_selection()
+        T_K, p_h2, p_o2 = self._op_panel.current_values()
+        components = [
+            self._lib.components.get(cid) for cid in (
+                sel.membrane_id, sel.anode_cl_id, sel.cathode_cl_id,
+                sel.anode_gdl_id, sel.cathode_gdl_id,
+                sel.anode_bpp_id, sel.cathode_bpp_id,
+            ) if cid
+        ]
+        materials = [
+            self._lib.materials.get(mid) for mid in (
+                sel.membrane_material_id,
+                sel.anode_catalyst_material_id,
+                sel.cathode_catalyst_material_id,
+            ) if mid
+        ]
+        sources = collect_source_keys(components, materials)
+        return CSVExportMetadata(
+            T_celsius=T_K - 273.15,
+            p_h2_bar=p_h2 / 1e5,
+            p_o2_bar=p_o2 / 1e5,
+            stack_components={
+                "membrane": sel.membrane_id,
+                "anode_cl": sel.anode_cl_id,
+                "cathode_cl": sel.cathode_cl_id,
+                "anode_gdl": sel.anode_gdl_id,
+                "cathode_gdl": sel.cathode_gdl_id,
+                "anode_bpp": sel.anode_bpp_id,
+                "cathode_bpp": sel.cathode_bpp_id,
+            },
+            stack_materials={
+                "membrane": sel.membrane_material_id,
+                "anode_catalyst": sel.anode_catalyst_material_id,
+                "cathode_catalyst": sel.cathode_catalyst_material_id,
+            },
+            sources_cited=sources,
+            design_j_A_per_cm2=self._op_panel.current_design_j() / 1e4,
+        )
+
+    def _on_export_csv(self) -> None:
+        if self._last_curve is None or not self._last_curve.points:
+            QMessageBox.information(self, "Export", "No polarisation curve to export yet.")
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export V–I CSV", "polarisation.csv", "CSV (*.csv)"
+        )
+        if not path:
+            return
+        try:
+            write_polarisation_csv(self._last_curve, self._build_csv_metadata(), Path(path))
+        except (OSError, ValueError) as exc:
+            QMessageBox.critical(self, "Export failed", str(exc))
+            return
+        self.statusBar().showMessage(f"CSV exported → {path}")
+
+    def _on_export_bibtex(self) -> None:
+        sel = self._composer.current_selection()
+        components = [self._lib.components.get(cid) for cid in (
+            sel.membrane_id, sel.anode_cl_id, sel.cathode_cl_id,
+            sel.anode_gdl_id, sel.cathode_gdl_id,
+            sel.anode_bpp_id, sel.cathode_bpp_id,
+        ) if cid]
+        materials = [self._lib.materials.get(mid) for mid in (
+            sel.membrane_material_id,
+            sel.anode_catalyst_material_id,
+            sel.cathode_catalyst_material_id,
+        ) if mid]
+        keys = collect_source_keys(components, materials)
+        if not keys:
+            QMessageBox.information(self, "Export", "No BibTeX keys cited by current stack.")
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export cited sources (.bib)", "cited_sources.bib", "BibTeX (*.bib)"
+        )
+        if not path:
+            return
+        try:
+            found = write_bibtex_subset(
+                self._library_dir / "sources.bib", keys, Path(path)
+            )
+        except OSError as exc:
+            QMessageBox.critical(self, "Export failed", str(exc))
+            return
+        missing = keys - found
+        msg = f"BibTeX exported → {path} ({len(found)} entries)"
+        if missing:
+            msg += f"  ·  {len(missing)} requested key(s) not in sources.bib: {', '.join(sorted(missing))}"
+        self.statusBar().showMessage(msg)
