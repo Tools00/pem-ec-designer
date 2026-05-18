@@ -3,7 +3,31 @@
 All notable changes to **pem-ec-designer** are tracked here.
 Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [Unreleased] — v0.1.0 release candidate
+
+> **Release-candidate summary.** First end-to-end usable cut of the
+> designer: single-page UI with composer + operating sliders + V–I plot
+> + loss waterfall + LCOH readout + CSV/BibTeX export, all live and
+> source-cited. 226/226 tests, 7 ADRs (006 LCOH + 006 Stack-Composer
+> dropped in this release). Tag pending LICENSE decision.
+
+**Highlights vs. v0.0.1:**
+
+- `physics/efficiency.py` + `physics/lcoh.py` — η_LHV + Schmidt-2017 LCOH
+- `assembly/library_filter.py` + `assembly/source_collector.py` —
+  category filters + cited-source extraction
+- `ui/stack_composer.py` — 9 dropdowns replacing the v0 hardcoded stack
+- Single-page `QScrollArea` UI with 5 numbered sections (no more tabs)
+- `ui/source_tooltip.py` + `ui/validation_badge.py` — Bernt-2016 anchor
+- `ui/economics_panel.py` — LCOH live readout, slider-driven
+- Design-j slider with marker sync on V–I + waterfall
+- `export/csv_export.py` + `export/bibtex_export.py` — first real exports
+- `ui/persistence.py` — QSettings auto-save for stack/op/lcoh/window/ui
+- `ui/onboarding_banner.py` + keyboard shortcuts (Cmd+E/D/R, ?)
+
+**Tests:** 88 → **226** across this release window.
+
+---
 
 ### Added (UX polish part 2b — persistence + shortcuts + onboarding · May 2026) ★
 - `ui/persistence.py` — typed save_*/restore_* helpers around `QSettings`

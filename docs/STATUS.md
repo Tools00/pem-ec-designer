@@ -3,7 +3,7 @@
 > Read-on-demand. CLAUDE.md verweist hierher.
 > Halte diese Datei aktuell beim Session-Ende.
 
-## Stand 2026-05-16 · v0.0.1 (unreleased: +geometry +library +physics +economics)
+## Stand 2026-05-19 · **v0.1.0 release-candidate** (tag pending LICENSE decision)
 
 | Bereich | Stand |
 |---|---|
