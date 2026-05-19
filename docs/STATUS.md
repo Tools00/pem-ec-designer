@@ -66,6 +66,53 @@ Kernaussage: Tabs → scrollbare Single-Page-Notebook mit 5 Sektionen (§1 Stack
 §2 Operating Point · §3 Results · §4 Economics · §5 Export). Live everywhere, kein
 „Calculate"-Button, Quelle hinter jedem Wert, Validation-Badge immer sichtbar.
 
+## Nächst-Session-Briefing — ADR-008 Stack-Geometrie + STEP-Export
+
+**Warum 008, nicht 007:** UX-VISION §16 reserviert ADR-007 „evtl." für
+Compare-Drawer (v1.x). Bewusst frei lassen, um diese Reihenfolge nicht
+zu verdrängen.
+
+**Voraussetzung:** Branch `claude/beautiful-diffie-eb0ac2` ist in
+v0.1.0 gemerged oder ausgecheckt. Auf dieser Branch existieren ADR-005
+(LCOH) und ADR-006 (Stack-Composer) sowie die `StackBuild`-Dataclass.
+
+**Pflichtlektüre vor ADR-Draft:**
+- `docs/UX-VISION.md` §10 (Exports) + §13 (Roadmap-Mapping)
+- `docs/adr/004-physics-model.md` (Format-Konvention)
+- `docs/adr/006-stack-composer.md` (StackSelection-Datenklasse, die der STEP-Export konsumieren wird)
+- `src/pem_ec_designer/assembly/stack.py` — `build_stack` liefert schon `StackBuild`
+- `src/pem_ec_designer/geometry/extruded.py` — build123d-Pattern für **eine** Komponente
+- `src/pem_ec_designer/ui/main_window.py:_on_export_csv` — Pattern für `_on_export_step`
+
+**5 Design-Fragen, die ADR-008 entscheiden muss:**
+
+1. **Footprint-Aggregation.** BPP (~80 mm) > GDL (~55 mm) > Membrane
+   (50 mm aktiv). Optionen: (a) jede Schicht ihre eigene Größe,
+   (b) gemeinsame Bounding-Box (alle = BPP-Footprint), (c) konzentrische
+   Stufen wie in echten Zellen. **Welche?**
+2. **Layer-Reihenfolge.** Fest `[BPP→GDL→CL→Membrane→CL→GDL→BPP]`
+   hardcoded, oder StackSelection-Order konfigurierbar?
+3. **Z-Achse.** Physikalisch korrekt (Membran 25 µm vs. BPP 5 mm =
+   Faktor 200, im CAD-Viewer optisch unbrauchbar) oder Z-Exaggeration
+   mit Faktor + Toggle? UI-Viewer macht aktuell ×100.
+4. **Gasket-Layer.** Aktuell keine Gasket-Komponenten in Library —
+   im STEP weglassen, Dummy einfügen, oder ADR sagt
+   „Library-Erweiterung Voraussetzung"?
+5. **Per-Komponente STEP-Color.** build123d/OCP unterstützt Farben
+   in STEP eingeschränkt. Versuchen, oder bewusst monochrom + separate
+   Material-Liste als Metadaten?
+
+**Reihenfolge:** Erst ADR-008 in `docs/adr/008-stack-geometry-export.md`,
+User-OK abwarten, dann Code: `geometry/stack_assembly.py` +
+`_on_export_step` Handler in MainWindow + Tests + STATUS-Update +
+README-Update.
+
+**Modelle:** Opus + high effort für ADR-008-Draft, Sonnet + medium für
+Implementation. Wenn Frage nicht aus Library/UX-VISION beantwortbar →
+**fragen, nicht raten** (Strict-Quellen-Prinzip auch für Designentscheidungen).
+
+---
+
 ## Bootstrap-Sequenz
 
 ```bash
