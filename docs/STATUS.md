@@ -38,7 +38,7 @@
 | ✓ C+1 | ~~UX-Politur Teil 1~~ | **DONE** — Single-Page-Scroll mit 5 Sektionen + `ui/source_tooltip.py` + `ui/validation_badge.py` (Bernt-2016-Anker). Click-to-explain Dialog. |
 | ✓ C+2a | ~~Design-j + CSV/BibTeX-Export~~ | **DONE** — Design-j-Slider (0.1–4 A/cm²) mit Marker-Sync, CSV-Export mit Self-Doc-Header, BibTeX-Subset-Export (genutzte Quellen). |
 | ✓ C+2b | ~~QSettings + Shortcuts + Onboarding~~ | **DONE** — `ui/persistence.py` (stack/op/lcoh/window/ui Keys per §9), `Cmd+E/D/R/?` Shortcuts, dismissible Banner mit `ui.onboardingSeen`-Persist. |
-| **★ STEP-Export** | ADR-007 + Stack-Geometrie-Aggregation. Eigene Session (Design-Entscheidung wie 7 Layer mit ungleichen Footprints zu STEP gestapelt werden). |
+| ✓ STEP-Export | ~~Stack-Geometrie-Aggregation~~ **DONE** — ADR-008 + `geometry/stack_assembly.py` (pure, 7-Layer fixed order, per-Layer Footprint, true SI Z-Achse) + `_on_export_step` Handler + Sidecar `<name>.layers.json` mit Material-Mapping. 5 neue Tests. |
 | **★ Release v0.1** | UX-VISION §14 N+5 — CHANGELOG aufräumen, README mit Screenshot, LICENSE-Diskussion, `git tag v0.1.0`. |
 | A | Specs erweitern | GDL **vollständig** (8). CL: 4 (2 Anode + 2 Cathode). BPP: 1. Endplate/Gasket/FF noch offen. **Niedrige Priorität**. |
 | C+ | UI-Politur (alt) | Material-Card, STEP-Export-Button, Skala im 3D-Viewer. **Niedrige Priorität**. |

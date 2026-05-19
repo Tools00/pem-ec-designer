@@ -47,6 +47,7 @@ from ..assembly.stack import build_stack
 from ..export.bibtex_export import write_bibtex_subset
 from ..export.csv_export import CSVExportMetadata, write_polarisation_csv
 from ..geometry import build_extruded
+from ..geometry.stack_assembly import assembly_to_sidecar, build_stack_assembly
 from ..materials import load_library
 from ..physics.polarization import PolarisationCurve, polarisation_curve
 from ..schema import Component
@@ -173,11 +174,16 @@ class MainWindow(QMainWindow):
         self._btn_bib.setToolTip("Subset of library/sources.bib containing only<br>"
                                  "the BibTeX keys cited by the current stack.")
         self._btn_bib.clicked.connect(self._on_export_bibtex)
+        self._btn_step = QPushButton("STEP…")
+        self._btn_step.setToolTip("3D-Stack geometry as STEP (true SI dimensions) +<br>"
+                                  "sidecar .layers.json with material mapping (ADR-008).")
+        self._btn_step.clicked.connect(self._on_export_step)
         export_layout.addWidget(self._btn_csv)
         export_layout.addWidget(self._btn_bib)
+        export_layout.addWidget(self._btn_step)
         export_layout.addStretch(1)
         export_layout.addWidget(QLabel(
-            "<span style='color:#888'>STEP · STL · PDF → C+ Teil 2b</span>"
+            "<span style='color:#888'>STL · PDF → v1.x</span>"
         ))
 
         # ── assemble single-page scroll area ───────────────────────────
@@ -608,4 +614,59 @@ class MainWindow(QMainWindow):
         msg = f"BibTeX exported → {path} ({len(found)} entries)"
         if missing:
             msg += f"  ·  {len(missing)} requested key(s) not in sources.bib: {', '.join(sorted(missing))}"
+        self.statusBar().showMessage(msg)
+
+    def _on_export_step(self) -> None:
+        """STEP-Export of the current stack (ADR-008). Writes <name>.step
+        plus a sidecar <name>.layers.json with material/role mapping."""
+        import json
+
+        from build123d import export_step  # local import — keeps test surface small
+
+        from .. import __version__
+
+        sel = self._composer.current_selection()
+        comps = self._lib.components
+
+        def _get(cid: str | None):
+            return comps.get(cid) if cid else None
+
+        assembly = build_stack_assembly(
+            anode_bpp=_get(sel.anode_bpp_id),
+            anode_gdl=_get(sel.anode_gdl_id),
+            anode_cl=_get(sel.anode_cl_id),
+            membrane=_get(sel.membrane_id),
+            cathode_cl=_get(sel.cathode_cl_id),
+            cathode_gdl=_get(sel.cathode_gdl_id),
+            cathode_bpp=_get(sel.cathode_bpp_id),
+        )
+        if not assembly.layers:
+            QMessageBox.information(self, "Export", "No exportable layers in current stack.")
+            return
+
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export Stack STEP", "stack.step", "STEP (*.step *.stp)"
+        )
+        if not path:
+            return
+
+        step_path = Path(path)
+        sidecar_path = step_path.with_suffix(".layers.json")
+        T_K, p_h2, p_o2 = self._op_panel.current_values()
+        sidecar = assembly_to_sidecar(
+            assembly,
+            app_version=__version__,
+            operating_point={"T_K": T_K, "p_h2_Pa": p_h2, "p_o2_Pa": p_o2},
+        )
+        try:
+            export_step(assembly.compound, str(step_path))
+            sidecar_path.write_text(json.dumps(sidecar, indent=2))
+        except (OSError, ValueError, RuntimeError) as exc:
+            QMessageBox.critical(self, "Export failed", str(exc))
+            return
+
+        msg = (f"STEP exported → {step_path.name} ({len(assembly.layers)} layers) "
+               f"+ {sidecar_path.name}")
+        if assembly.skipped:
+            msg += f"  ·  {len(assembly.skipped)} skipped"
         self.statusBar().showMessage(msg)

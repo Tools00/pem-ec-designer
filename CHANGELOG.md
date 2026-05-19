@@ -5,7 +5,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
-(no changes since v0.1.0)
+### Added
+- ADR-008: Stack-Geometrie-Aggregation + STEP-Export.
+- `geometry/stack_assembly.py` — pure (no-Qt) Aggregation der 7 PEM-Layer in
+  fixer Reihenfolge `[BPP→GDL→CL→Membrane→CL→GDL→BPP]`, true SI Z-Achse,
+  per-Layer Footprint aus Library.
+- UI: `STEP…`-Button in §5 Export schreibt `<name>.step` plus Sidecar
+  `<name>.layers.json` mit Material/Role-Mapping (ADR-008 §D5).
+- 5 Tests in `tests/test_geometry_stack_assembly.py` (Layer-Order, Skipped-
+  Layer, fehlender Footprint, STEP-Roundtrip, Sidecar-Shape).
 
 ## [0.1.0] — 2026-05-19
 
