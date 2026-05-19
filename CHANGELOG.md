@@ -5,6 +5,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
 
 ## [Unreleased]
 
+(no changes since v0.1.1)
+
+## [0.1.1] — 2026-05-19
+
 ### Added
 - ADR-008: Stack-Geometrie-Aggregation + STEP-Export.
 - `geometry/stack_assembly.py` — pure (no-Qt) Aggregation der 7 PEM-Layer in
@@ -14,6 +18,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [SemVer](ht
   `<name>.layers.json` mit Material/Role-Mapping (ADR-008 §D5).
 - 5 Tests in `tests/test_geometry_stack_assembly.py` (Layer-Order, Skipped-
   Layer, fehlender Footprint, STEP-Roundtrip, Sidecar-Shape).
+
+### Fixed
+- Version-Drift: `__version__` und `pyproject.toml` waren bei v0.1.0-Release
+  noch `0.0.1`. Auf `0.1.1` gebumpt — STEP-Sidecar zitiert nun korrekt.
 
 ## [0.1.0] — 2026-05-19
 

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pem-ec-designer"
-version = "0.0.1"
+version = "0.1.1"
 description = "Visual PEM electrolyzer cell designer with CAD-quality 3D and parametric component library"
 readme = "README.md"
 requires-python = ">=3.11"
