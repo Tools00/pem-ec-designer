@@ -66,7 +66,29 @@ Kernaussage: Tabs → scrollbare Single-Page-Notebook mit 5 Sektionen (§1 Stack
 §2 Operating Point · §3 Results · §4 Economics · §5 Export). Live everywhere, kein
 „Calculate"-Button, Quelle hinter jedem Wert, Validation-Badge immer sichtbar.
 
-## Nächst-Session-Briefing — ADR-008 Stack-Geometrie + STEP-Export
+## Nächst-Session-Briefing — ADR-009 Implementation (StackGeometry)
+
+**Spec ist accepted** (siehe `docs/adr/009-stack-geometry-model.md`), Implementation steht aus. Empfohlenes Modell: **Sonnet + medium**, frischer Context.
+
+**Scope (breaking — v0.2.0 Minor-Bump):**
+- `schema/stack_geometry.py` (NEU) — `StackGeometry` + `DEFAULT_GEOMETRY`
+- `schema/component.py` — `footprint`-Field entfernen (clean cut)
+- `geometry/extruded.py` — Signatur auf `build_extruded(component, footprint)`
+- `geometry/stack_assembly.py` — `geometry: StackGeometry` Kwarg, Overhang-Logik
+- `ui/stack_geometry_panel.py` (NEU) — Active-Area-Picker + 6 Overhang-Spinner; emittiert `geometry_changed`
+- `ui/main_window.py` — Panel verdrahten, STEP-Sidecar um `stack_geometry`-Block ergänzen
+- `library/components/*.json` — `footprint`-Blöcke aus allen ~18 Einträgen entfernen
+- Tests: `test_stack_geometry.py` (NEU), bestehende `test_geometry_extruded.py` + `test_geometry_stack_assembly.py` an neue Signatur anpassen
+- Version-Bump 0.1.1 → 0.2.0 in `__init__.py` + `pyproject.toml` + CHANGELOG
+- `assembly_to_sidecar` erweitern um Geometry-Block
+
+**Quelle für Default Active-Area:** `@rost2022fuelcells` (5×5 cm Square, schon in `sources.bib`).
+
+**Reihenfolge:** Schema → Library-Cleanup → Geometry/Assembly-Refactor → Tests grün → UI-Panel → STEP-Sidecar update → STATUS+CHANGELOG → v0.2.0-Tag.
+
+---
+
+## Letztes Briefing (erledigt) — ADR-008 Stack-Geometrie + STEP-Export
 
 **Warum 008, nicht 007:** UX-VISION §16 reserviert ADR-007 „evtl." für
 Compare-Drawer (v1.x). Bewusst frei lassen, um diese Reihenfolge nicht
